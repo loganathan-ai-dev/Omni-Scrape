@@ -202,19 +202,21 @@ class OmniClient:
 
 def build_scrape_result(fetch_res: FetchResult, url: Optional[str] = None) -> ScrapeResult:
     """Turn a FetchResult into a ScrapeResult (no network access)."""
-    from omniscrape.normalizers.markdown import html_to_markdown
+    from omniscrape.content.markdown import fit_markdown, html_to_markdown
+    from omniscrape.content.metadata import extract_metadata
     from omniscrape.parsers.selector import Selector
     from omniscrape.parsers.semantic import SemanticExtractor
 
     page_url = fetch_res.url or url or ""
     html = fetch_res.html
-    selector = Selector(html)
-    semantic = SemanticExtractor(html, url=page_url)
+    selector = Selector(html)  # the page is parsed once; every extractor below shares this tree
+    semantic = SemanticExtractor(html, url=page_url, root=selector.root)
 
     title_el = selector.css("title")
     title = title_el[0].text if title_el else ""
     if not title:
         title = semantic.extract_opengraph().get("og:title", "")
+    fit = fit_markdown(selector.root, page_url, main=semantic.main)
 
     links: list[str] = []
     seen: set[str] = set()
@@ -232,7 +234,9 @@ def build_scrape_result(fetch_res: FetchResult, url: Optional[str] = None) -> Sc
         status_code=fetch_res.status_code,
         title=title,
         html=html,
-        markdown=html_to_markdown(html),
+        markdown=fit,
+        fit_markdown=fit,
+        metadata=extract_metadata(selector.root, page_url, semantic.structured),
         structured_data=semantic.extract_all(),
         product=semantic.extract_product(),
         article=semantic.extract_article(),
