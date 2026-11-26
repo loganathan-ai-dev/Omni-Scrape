@@ -1,0 +1,18 @@
+{
+ "type": "listing",
+ "url": "https://legacy-table.bench.local/legacy_table_listing_01",
+ "template": "legacy_table",
+ "n_cards": 800,
+ "selectors": {
+  "cards": "td.item",
+  "card_titles": "td.item font.itemname",
+  "card_prices": "td.item b.itemprice",
+  "card_links": "a.itemlink"
+ },
+ "expected_counts": {
+  "cards": 800,
+  "card_titles": 800,
+  "card_prices": 800,
+  "card_links": 800
+ }
+}

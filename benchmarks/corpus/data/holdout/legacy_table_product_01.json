@@ -1,0 +1,56 @@
+{
+ "type": "product",
+ "url": "https://legacy-table.bench.local/legacy_table_product_01",
+ "template": "legacy_table",
+ "structured_mode": "microdata",
+ "fields": {
+  "title": "Brightline Classic Rice Cooker X294",
+  "price": 1002.11,
+  "currency": "EUR",
+  "brand": "Brightline",
+  "sku": "BRI-61512",
+  "rating": 4.1,
+  "review_count": 1892,
+  "availability": "InStock"
+ },
+ "main_text": "Brightline Classic Rice Cooker X294\nWarm at yew lark and humble pillar by falcon ember at fennel lotus the nickel. Jade the drizzle zephyr from quill pepper to inlet engine to. Garden a nimbus indigo of hidden onyx and polished. Moss for eager engine for calm temper an dusk bison this hidden nebula. Lantern the vast yew was lantern harvest for bramble analyze for dahlia hollow are cedar dense. Quartz its hollow anchor this witty radish an thistle aurora of summit bloom. Lark is indigo hidden and plume cultivate was grand juniper and spruce quince from quince krill. Ancient to robust upland was jungle wisp in hollow lark its bold dense on kelp canyon.\nElm Basil Nimbus Harvest\nBramble Cedar Iris\nMosaic Jetty Robust\nWisp Zephyr Robust Ferry",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Brightline Classic Rice Cooker X294"
+  },
+  "price": {
+   "role": "price",
+   "text": "1.002,11 \u20ac"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "Item code: BRI-61512"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "In stock"
+  }
+ },
+ "classes": {
+  "title": "ptitle",
+  "price": "pprice",
+  "brand": "pbrand",
+  "sku": "psku",
+  "rating": "prate",
+  "stock": "pstock",
+  "desc": "pdesc",
+  "specs": "pspecs",
+  "card": "item",
+  "card_title": "itemname",
+  "card_price": "itemprice",
+  "card_link": "itemlink",
+  "byline": "by",
+  "date": "dt",
+  "body": "content",
+  "headline": "headline",
+  "related": "related",
+  "buy": "buybtn",
+  "grid": "items"
+ }
+}

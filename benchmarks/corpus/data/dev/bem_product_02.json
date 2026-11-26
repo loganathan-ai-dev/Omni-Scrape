@@ -1,0 +1,64 @@
+{
+ "type": "product",
+ "url": "https://bem.bench.local/bem_product_02",
+ "template": "bem",
+ "structured_mode": "og_only",
+ "fields": {
+  "title": "Kestrel Wireless Keyboard K113",
+  "price": 1736.52,
+  "currency": "GBP",
+  "brand": "Kestrel",
+  "sku": "KES-84443",
+  "rating": 3.6,
+  "review_count": 2665,
+  "availability": "InStock"
+ },
+ "main_text": "Kestrel Wireless Keyboard K113\nNavigate and vivid zephyr on beacon onyx was rust unveil this amber gravel from cobalt. Faint of nimbus balance the rust silent was vine birch at nimbus. Ember at vapor nimble to heath forge for quince rust this observe indigo. Fierce on calibrate delta its coral jasmine an zealous plume this hollow orbit with pattern.\nCedar Eager\nInlet Poplar Cobalt\nYarrow Lotus\nNutmeg Umber Topaz\nLedger Radish",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Kestrel Wireless Keyboard K113"
+  },
+  "price": {
+   "role": "price",
+   "text": "\u00a31,736.52"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "SKU: KES-84443"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "In stock"
+  }
+ },
+ "classes": {
+  "header": "site-header",
+  "nav": "site-nav",
+  "main": "site-main",
+  "footer": "site-footer",
+  "aside": "site-aside",
+  "article": "site-article",
+  "cookie": "site-cookie",
+  "title": "product__title",
+  "price": "product__price",
+  "brand": "product__brand",
+  "sku": "product__sku",
+  "rating": "product__rating",
+  "stock": "product__stock",
+  "desc": "product__description",
+  "specs": "product__specs",
+  "gallery": "product__gallery",
+  "grid": "listing__grid",
+  "card": "listing__card",
+  "card_title": "listing__card-title",
+  "card_price": "listing__card-price",
+  "card_link": "listing__card-link",
+  "byline": "article__byline",
+  "date": "article__date",
+  "body": "article__body",
+  "headline": "article__headline",
+  "related": "related-items",
+  "buy": "product__buy"
+ }
+}

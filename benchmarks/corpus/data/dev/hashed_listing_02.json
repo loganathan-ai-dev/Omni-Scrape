@@ -1,0 +1,18 @@
+{
+ "type": "listing",
+ "url": "https://hashed.bench.local/hashed_listing_02",
+ "template": "hashed",
+ "n_cards": 240,
+ "selectors": {
+  "cards": "div.sc-hiimfn",
+  "card_titles": "div.sc-hiimfn h3",
+  "card_prices": "div.sc-hiimfn span.sc-lmdngc",
+  "card_links": "a.sc-balcbd"
+ },
+ "expected_counts": {
+  "cards": 240,
+  "card_titles": 240,
+  "card_prices": 240,
+  "card_links": 240
+ }
+}

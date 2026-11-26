@@ -1,0 +1,64 @@
+{
+ "type": "product",
+ "url": "https://bem.bench.local/bem_product_04",
+ "template": "bem",
+ "structured_mode": "jsonld",
+ "fields": {
+  "title": "Altara Classic Monitor Arm X297",
+  "price": 2067.15,
+  "currency": "USD",
+  "brand": "Altara",
+  "sku": "ALT-97849",
+  "rating": 4.7,
+  "review_count": 618,
+  "availability": "InStock"
+ },
+ "main_text": "Altara Classic Monitor Arm X297\nMighty of copper paprika are pepper knoll from coral hidden. Whistle is valley evaluate from robust violet that whistle quarry from weave serene this robust whistle. Sable a zinc oyster for reef analyze with. Silver that amber vapor as tunnel nimbus on deft harbor. Signal in umber plume and faint zinc for mesa illuminate as. Deft this maple glacier at tundra rapid as. Wheat of keen nectar of lagoon copper in heath pepper that willow rust this onyx. Humble this swift kelp this hollow fierce its. Lagoon to bold dense a warm mighty that ripple saffron in refine dense and saffron garnet. Dense for witty gravel the velvet keen by heath island with harvest canvas by. Bloom at heath onyx that bison estuary as noble distill in jade knoll by. Dusk in fabric pillar an willow sable are fjord acorn and sculpt opal are oyster. Maple in lofty sequoia for illuminate refine a zephyr tender.\nCompass River Rapid\nTide Gentle Harbor Golden\nGrove Copper Elm\nJetty Island Rust Reef\nSilent Glacier\nRust Nickel Canyon\nLark Wisp Dune\nReef Tender Navigate",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Altara Classic Monitor Arm X297"
+  },
+  "price": {
+   "role": "price",
+   "text": "$2,067.15"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "SKU: ALT-97849"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "In stock"
+  }
+ },
+ "classes": {
+  "header": "site-header",
+  "nav": "site-nav",
+  "main": "site-main",
+  "footer": "site-footer",
+  "aside": "site-aside",
+  "article": "site-article",
+  "cookie": "site-cookie",
+  "title": "product__title",
+  "price": "product__price",
+  "brand": "product__brand",
+  "sku": "product__sku",
+  "rating": "product__rating",
+  "stock": "product__stock",
+  "desc": "product__description",
+  "specs": "product__specs",
+  "gallery": "product__gallery",
+  "grid": "listing__grid",
+  "card": "listing__card",
+  "card_title": "listing__card-title",
+  "card_price": "listing__card-price",
+  "card_link": "listing__card-link",
+  "byline": "article__byline",
+  "date": "article__date",
+  "body": "article__body",
+  "headline": "article__headline",
+  "related": "related-items",
+  "buy": "product__buy"
+ }
+}

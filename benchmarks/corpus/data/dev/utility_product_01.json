@@ -1,0 +1,64 @@
+{
+ "type": "product",
+ "url": "https://utility.bench.local/utility_product_01",
+ "template": "utility",
+ "structured_mode": "microdata",
+ "fields": {
+  "title": "Tessaro Classic Keyboard R216",
+  "price": 2444.75,
+  "currency": "EUR",
+  "brand": "Tessaro",
+  "sku": "TES-18502",
+  "rating": 3.8,
+  "review_count": 3038,
+  "availability": "InStock"
+ },
+ "main_text": "Tessaro Classic Keyboard R216\nJade in almond eager this golden polish with quince ledger that lofty lark. Weave to amber nimble for keen orchid at meadow quince that pebble wisp this silent harbor. Elm on bloom mango and dahlia polished and beacon mesa at cinder elm at mighty. Sturdy and rust measure the timber vine at. Fennel a rust keen with estuary hollow and juniper.\nCinder Lark\nZealous Heron Zephyr Umber\nSequoia Grove\nRadish Compass Prism Calibrate Zealous\nMesa Wren Unveil Yarrow\nRefine Basil Jetty Wheat Robust\nRipple Glacier Warm Polished Ledger\nSturdy Robust\nSaddle Marble Tender",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Tessaro Classic Keyboard R216"
+  },
+  "price": {
+   "role": "price",
+   "text": "2.444,75 \u20ac"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "SKU: TES-18502"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "In stock"
+  }
+ },
+ "classes": {
+  "header": "flex items-center justify-between px-6 py-4 bg-white shadow",
+  "nav": "hidden md:flex gap-4",
+  "main": "container mx-auto px-4",
+  "footer": "mt-16 bg-gray-900 text-gray-300 py-10",
+  "aside": "w-full lg:w-1/3 space-y-4",
+  "article": "prose lg:prose-xl",
+  "cookie": "fixed bottom-0 inset-x-0 p-4",
+  "title": "text-3xl font-bold tracking-tight",
+  "price": "text-2xl font-semibold text-emerald-600",
+  "brand": "text-sm uppercase text-gray-500",
+  "sku": "text-xs text-gray-400",
+  "rating": "flex items-center gap-1",
+  "stock": "text-sm font-medium",
+  "desc": "mt-4 text-gray-700 leading-7",
+  "specs": "mt-6 divide-y",
+  "gallery": "grid grid-cols-4 gap-2",
+  "grid": "grid grid-cols-2 md:grid-cols-4 gap-6",
+  "card": "rounded-xl border p-4 hover:shadow-lg",
+  "card_title": "mt-2 text-base font-medium",
+  "card_price": "mt-1 font-semibold",
+  "card_link": "block",
+  "byline": "text-sm text-gray-600",
+  "date": "text-sm text-gray-500",
+  "body": "mt-8 space-y-6",
+  "headline": "text-4xl font-extrabold",
+  "related": "mt-12 grid grid-cols-3 gap-4",
+  "buy": "mt-6 w-full rounded-lg bg-black px-4 py-3 text-white"
+ }
+}
