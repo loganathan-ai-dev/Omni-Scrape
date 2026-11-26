@@ -17,7 +17,7 @@ from benchmarks.adapters import SUITE_TOOLS, TOOLS
 from benchmarks.common import REPO_ROOT, RESULTS_DIR
 from benchmarks.envs import python_for_group
 
-ALL_SUITES = ["parse", "extract", "markdown", "adaptive", "crawl", "live"]
+ALL_SUITES = ["parse", "extract", "markdown", "adaptive", "render", "crawl", "live"]
 
 
 @dataclass

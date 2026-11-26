@@ -9,7 +9,7 @@ from benchmarks.adapters.base import ToolAdapter
 
 class OmniScrapeAdapter(ToolAdapter):
     package = "omniscrape"
-    suites = frozenset({"parse", "extract", "markdown", "adaptive", "crawl", "live"})
+    suites = frozenset({"parse", "extract", "markdown", "adaptive", "render", "crawl", "live"})
 
     def prepare(self) -> None:
         import omniscrape  # noqa: F401
@@ -79,6 +79,25 @@ class OmniScrapeAdapter(ToolAdapter):
             el = engine.relocate(page, fp) if fp else None
             out[name] = el.text if el is not None else None
         return out
+
+    # -------------------------------------------------------------- render
+    def render(self, urls, concurrency):
+        from omniscrape import OmniClient
+
+        async def main():
+            sem = asyncio.Semaphore(concurrency)
+            async with OmniClient(retries=1) as client:
+                async def one(url):
+                    async with sem:
+                        try:
+                            res = await client.fetch(url, tier=2)
+                            return {"url": url, "status": res.status_code, "html": res.html}
+                        except Exception as exc:
+                            return {"url": url, "status": 0, "html": "", "error": str(exc)[:200]}
+
+                return list(await asyncio.gather(*(one(u) for u in urls)))
+
+        return asyncio.run(main())
 
     # -------------------------------------------------------------- crawl
     def crawl(self, start_url, max_pages, concurrency, obey_robots, workdir):

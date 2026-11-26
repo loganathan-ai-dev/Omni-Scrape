@@ -14,7 +14,7 @@ def worker(adapter, params: dict[str, Any]) -> dict[str, Any]:
         pages = json.load(f)
     out = []
     for page in pages:
-        with tempfile.TemporaryDirectory(prefix="adaptive-") as storage:
+        with tempfile.TemporaryDirectory(prefix="adaptive-", ignore_cleanup_errors=True) as storage:
             adapter.adaptive_save(read_text(page["html_path"]), page["url"], page["selectors"], storage)
             for variant in page["variants"]:
                 html = read_text(variant["html_path"])

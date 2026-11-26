@@ -16,7 +16,7 @@ def _text(el: Any) -> str:
 
 class ScraplingAdapter(ToolAdapter):
     package = "scrapling"
-    suites = frozenset({"parse", "adaptive", "crawl", "live"})
+    suites = frozenset({"parse", "adaptive", "render", "crawl", "live"})
 
     def prepare(self) -> None:
         from scrapling.parser import Selector  # noqa: F401
@@ -45,6 +45,30 @@ class ScraplingAdapter(ToolAdapter):
             found = page.css(sel, identifier=name, adaptive=True)
             out[name] = _text(found[0]) if found else None
         return out
+
+    def render(self, urls, concurrency):
+        import asyncio
+
+        from scrapling.fetchers import AsyncStealthySession
+
+        async def main():
+            sem = asyncio.Semaphore(concurrency)
+            session = AsyncStealthySession(headless=True, max_pages=concurrency)
+            await session.start()
+            try:
+                async def one(url):
+                    async with sem:
+                        try:
+                            resp = await session.fetch(url)
+                            return {"url": url, "status": resp.status, "html": str(resp.html_content)}
+                        except Exception as exc:
+                            return {"url": url, "status": 0, "html": "", "error": str(exc)[:200]}
+
+                return list(await asyncio.gather(*(one(u) for u in urls)))
+            finally:
+                await session.close()
+
+        return asyncio.run(main())
 
     def crawl(self, start_url, max_pages, concurrency, obey_robots, workdir):
         from scrapling.spiders import Spider

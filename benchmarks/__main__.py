@@ -14,6 +14,9 @@ from pathlib import Path
 
 
 def main(argv=None) -> int:
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):  # tool error messages may contain non-cp1252 characters
+            stream.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser(prog="python -m benchmarks", description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -27,7 +30,7 @@ def main(argv=None) -> int:
     p.add_argument("--locked", action="store_true")
 
     p = sub.add_parser("run", help="run benchmark suites")
-    p.add_argument("--suite", default="parse,extract,markdown,adaptive,crawl,live")
+    p.add_argument("--suite", default="parse,extract,markdown,adaptive,render,crawl,live")
     p.add_argument("--tools", default="", help="comma-separated subset of tools")
     p.add_argument("--isolation", choices=["auto", "env", "none"], default="auto")
     p.add_argument("--repeats", type=int, default=5)
