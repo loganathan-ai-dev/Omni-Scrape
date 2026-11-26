@@ -11,7 +11,7 @@ from email.utils import parsedate_to_datetime
 from typing import Any, Optional, Union
 from urllib.parse import urljoin, urlsplit
 
-from omniscrape.classifier.strategies import EscalationStrategy
+from omniscrape.classifier.strategies import EscalationStrategy, is_blocked
 from omniscrape.exceptions import NetworkError, RateLimitError, ServerError
 from omniscrape.fetchers.base import BaseFetcher
 from omniscrape.fetchers.pool import ProxyPoolManager
@@ -183,7 +183,10 @@ class OmniClient:
                 self.dead_letter.record(url, type(exc).__name__, str(exc))
             raise
         if self.circuit_breaker:
-            self.circuit_breaker.record_success(domain)
+            if is_blocked(result):
+                self.circuit_breaker.record_failure(domain)  # a site that blocks every request should trip it
+            else:
+                self.circuit_breaker.record_success(domain)
         return result
 
     def _record_failure(self, domain: str) -> None:

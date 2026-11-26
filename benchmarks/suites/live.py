@@ -24,11 +24,11 @@ def run(ctx) -> dict[str, Any]:
     tools: dict[str, Any] = {}
     for tool in ctx.tools_for("live"):
         per_target = {}
-        entry: dict[str, Any] = {}
+        summaries = []
         for target in TARGETS:
             ctx.say(f"  live: {tool} -> {target['name']}")
-            res = ctx.run_worker(tool, "live", {**target, "concurrency": 2}, timeout=600)
-            entry = tool_summary(res)
+            res = ctx.run_worker(tool, "live", {**target, "concurrency": 2}, timeout=600, tag=target["name"])
+            summaries.append(tool_summary(res))
             if res.get("ok"):
                 pages = res["data"]["pages"]
                 secs = res["data"]["seconds"]
@@ -41,6 +41,10 @@ def run(ctx) -> dict[str, Any]:
                 }
             else:
                 per_target[target["name"]] = {"error": res.get("error")}
+        ok = [s for s in summaries if s.get("ok")]
+        entry = dict(ok[0] if ok else summaries[-1])
+        entry["ok"] = bool(ok)
+        entry["peak_rss_mb"] = max((s.get("peak_rss_mb") or 0) for s in summaries)
         entry["targets"] = per_target
         tools[tool] = entry
     return {"suite": "live", "params": {"targets": TARGETS, "concurrency": 2, "obey_robots": True},

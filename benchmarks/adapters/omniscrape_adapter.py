@@ -106,6 +106,7 @@ class OmniScrapeAdapter(ToolAdapter):
 
         host = urlsplit(start_url).netloc
         pages: list[dict[str, Any]] = []
+        scheduled = {start_url}  # hard cap on scheduled URLs, so queued requests never exceed max_pages
 
         class BenchSpider(Spider):
             name = "bench"
@@ -115,11 +116,10 @@ class OmniScrapeAdapter(ToolAdapter):
                 titles = selector.css("title")
                 pages.append({"url": response.url, "status": response.status_code,
                               "title": titles[0].text if titles else ""})
-                if len(pages) >= max_pages:
-                    return
                 for a in selector.css("a[href]"):
                     url = urljoin(response.url, a.get("href")).split("#")[0]
-                    if urlsplit(url).netloc == host:
+                    if urlsplit(url).netloc == host and url not in scheduled and len(scheduled) < max_pages:
+                        scheduled.add(url)
                         yield Request(url=url)
 
         BenchSpider.concurrency = concurrency

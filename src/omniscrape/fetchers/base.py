@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from typing import Any, Optional
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import unquote, urlsplit, urlunsplit
 
 from omniscrape.models import FetchResult
 
@@ -58,7 +58,7 @@ def playwright_proxy(proxy: Optional[str]) -> Optional[dict[str, str]]:
     netloc = f"{host}:{parts.port}" if parts.port else host
     config = {"server": urlunsplit((parts.scheme, netloc, "", "", ""))}
     if parts.username:
-        config["username"] = parts.username
+        config["username"] = unquote(parts.username)
     if parts.password:
-        config["password"] = parts.password
+        config["password"] = unquote(parts.password)
     return config
