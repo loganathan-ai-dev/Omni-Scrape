@@ -1,0 +1,24 @@
+{
+ "type": "product",
+ "url": "https://webscraper.io/test-sites/e-commerce/allinone/product/42",
+ "template": "webscraper_testsite",
+ "structured_mode": "microdata",
+ "fields": {
+  "title": "HP 250 G3",
+  "price": 520.99,
+  "currency": "USD",
+  "review_count": 13
+ },
+ "main_text": "HP 250 G3\n15.6\", Core i5-4210U, 4GB, 500GB, Windows 8.1",
+ "targets": {
+  "title": {
+   "selector": "div.caption > h4.title",
+   "text": "HP 250 G3"
+  },
+  "price": {
+   "selector": "div.caption > h4.price",
+   "text": "$520.99"
+  }
+ },
+ "real_world": true
+}

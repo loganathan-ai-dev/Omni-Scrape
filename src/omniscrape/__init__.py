@@ -10,7 +10,11 @@ from omniscrape._version import __version__
 from omniscrape.classifier.detector import PageClassifier
 from omniscrape.classifier.strategies import EscalationStrategy
 from omniscrape.client import OmniClient, build_scrape_result
-from omniscrape.crawler.engine import CrawlEngine
+from omniscrape.content import chunk_markdown, extract_main, extract_metadata, fit_markdown
+from omniscrape.crawler.engine import CrawlEngine, CrawlStats
+from omniscrape.crawler.links import LinkExtractor
+from omniscrape.crawler.sitemap import map_site
+from omniscrape.extract.product import extract_product
 from omniscrape.crawler.spider import Request, Spider
 from omniscrape.fetchers.base import BaseFetcher
 from omniscrape.fetchers.browser import DynamicFetcher
@@ -37,6 +41,14 @@ __all__ = [
     "scrape",
     "scrape_sync",
     "fetch",
+    "map_site",
+    "extract_product",
+    "extract_main",
+    "extract_metadata",
+    "fit_markdown",
+    "chunk_markdown",
+    "LinkExtractor",
+    "CrawlStats",
     "OmniClient",
     "build_scrape_result",
     "register_fetcher",

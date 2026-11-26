@@ -1,0 +1,13 @@
+{
+ "type": "article",
+ "url": "https://metro.bench.local/transport/fares",
+ "template": "dev_divsoup_news",
+ "structured_mode": "og_only",
+ "fields": {
+  "title": "Transit fares frozen until 2027",
+  "author": "Lena Okoye",
+  "published_date": "2026-02-03"
+ },
+ "main_text": "Transit fares frozen until 2027\nThe regional transit authority approved a fare freeze on Monday, keeping bus and tram prices flat until 2027.\nOfficials said higher ridership since the spring had covered rising fuel costs, making an increase unnecessary.\nCommuter groups welcomed the decision but asked for more frequent service on the night routes.\nThe authority will review the night network in January, with changes expected by the summer timetable.",
+ "handwritten": true
+}

@@ -1,0 +1,13 @@
+{
+ "type": "article",
+ "url": "https://go.dev/blog/survey2026-announce",
+ "template": "go_blog",
+ "structured_mode": "none",
+ "fields": {
+  "title": "Help set Go's priorities for next year",
+  "author": "Cameron Balahan",
+  "published_date": "2026-10-21"
+ },
+ "main_text": "Help set Go's priorities for next year\nHi Gophers! The 2026 Go Developer Survey is now open. We run this survey every year to understand how you use Go and the challenges you face. Your answers directly shape how we plan and prioritize our work.\nLast year, 5,379 of you responded, and your top frustration was making sure your code follows best practices and Go idioms (33% of respondents). Since then, we shipped a rewritten go fix in Go 1.26 that automatically modernizes your code, and added more modernizers in Go 1.27. You can read everything we learned in the 2025 results.\nTake the survey here. It’s open through November 3, takes about 10–20 minutes, and every question is optional. We’ll share the results on this blog in early 2027.\nPlease share the survey with your colleagues, friends, and online communities—the more Go developers we hear from, the better we understand what you need.\nThank you for helping shape the future of Go!",
+ "real_world": true
+}

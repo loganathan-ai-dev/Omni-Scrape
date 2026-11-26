@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "omniscrape"
-version = "0.1.0"
+version = "0.2.0"
 description = "Universal dynamic web scraping framework with self-healing adaptive selectors, 3-tier progressive fetchers, and zero-config extraction."
 readme = "README.md"
 authors = [

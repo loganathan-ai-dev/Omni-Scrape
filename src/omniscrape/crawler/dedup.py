@@ -1,22 +1,23 @@
-"""URL deduplication using exact set and bloom filter."""
+"""URL deduplication on canonical URLs (fragments, tracking parameters, trailing slashes ignored)."""
 
 from typing import Set
 
+from omniscrape.crawler.urls import canonicalize
+
 
 class URLFilter:
-    """Filters duplicate requests to prevent crawl loops."""
+    """Filters duplicate URLs to prevent crawl loops."""
 
     def __init__(self):
         self._seen: Set[str] = set()
 
     def add(self, url: str) -> bool:
         """Returns True if URL was newly added, False if already seen."""
-        norm_url = url.split("#")[0].rstrip("/")
-        if norm_url in self._seen:
+        key = canonicalize(url)
+        if key in self._seen:
             return False
-        self._seen.add(norm_url)
+        self._seen.add(key)
         return True
 
     def __contains__(self, url: str) -> bool:
-        norm_url = url.split("#")[0].rstrip("/")
-        return norm_url in self._seen
+        return canonicalize(url) in self._seen
