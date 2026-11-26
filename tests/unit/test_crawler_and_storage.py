@@ -9,7 +9,7 @@ from omniscrape.crawler.checkpoint import CheckpointManager
 from omniscrape.crawler.dedup import URLFilter
 from omniscrape.models import Product
 from omniscrape.storage.duckdb_backend import DuckDBStorage
-from omniscrape.storage.parquet_backend import JSONLStorage
+from omniscrape.storage.jsonl_backend import JSONLStorage
 
 
 def test_url_filter():

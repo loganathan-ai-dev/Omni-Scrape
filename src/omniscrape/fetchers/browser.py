@@ -3,7 +3,7 @@
 import time
 from typing import Optional
 from omniscrape.exceptions import ConnectionTimeoutError, NetworkError
-from omniscrape.fetchers.base import BaseFetcher
+from omniscrape.fetchers.base import BaseFetcher, playwright_proxy
 from omniscrape.models import FetchResult, DefenseSystem
 from omniscrape.observability.logging import get_logger
 from omniscrape.observability.metrics import global_metrics
@@ -54,9 +54,7 @@ class DynamicFetcher(BaseFetcher):
         await self._init_browser()
         start_time = time.perf_counter()
 
-        proxy_config = None
-        if proxy:
-            proxy_config = {"server": proxy}
+        proxy_config = playwright_proxy(proxy)
 
         context = await self._browser.new_context(
             proxy=proxy_config,

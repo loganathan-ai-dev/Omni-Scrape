@@ -35,7 +35,7 @@ async def test_scrape_api_mocked():
         assert res.url == "https://fake-store.com/item/1"
         assert res.title == "Mocked E-Store"
         assert "# Featured Gaming Chair" in res.markdown
-        assert "/cart" in res.links
+        assert "https://fake-store.com/cart" in res.links  # links are absolute since 0.2.0
 
 
 def test_version_exported():

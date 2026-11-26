@@ -9,12 +9,14 @@ from typing import Optional, Union
 from omniscrape._version import __version__
 from omniscrape.classifier.detector import PageClassifier
 from omniscrape.classifier.strategies import EscalationStrategy
+from omniscrape.client import OmniClient, build_scrape_result
 from omniscrape.crawler.engine import CrawlEngine
 from omniscrape.crawler.spider import Request, Spider
 from omniscrape.fetchers.base import BaseFetcher
 from omniscrape.fetchers.browser import DynamicFetcher
 from omniscrape.fetchers.http import FastFetcher
 from omniscrape.fetchers.pool import ProxyPoolManager
+from omniscrape.fetchers.registry import available_fetchers, create_fetcher, register_fetcher
 from omniscrape.fetchers.session import FetcherSession
 from omniscrape.fetchers.stealth import StealthFetcher
 from omniscrape.models import Article, FetchResult, Product, ScrapeResult
@@ -28,13 +30,18 @@ from omniscrape.parsers.selector import Element, Selector
 from omniscrape.parsers.semantic import SemanticExtractor
 from omniscrape.parsers.tables import TableParser
 from omniscrape.storage.duckdb_backend import DuckDBStorage
-from omniscrape.storage.parquet_backend import JSONLStorage
+from omniscrape.storage.jsonl_backend import JSONLStorage
 
 __all__ = [
     "__version__",
     "scrape",
     "scrape_sync",
     "fetch",
+    "OmniClient",
+    "build_scrape_result",
+    "register_fetcher",
+    "create_fetcher",
+    "available_fetchers",
     "scrape_product",
     "scrape_article",
     "Selector",
@@ -69,87 +76,39 @@ __all__ = [
 
 async def fetch(
     url: str,
-    tier: Optional[int] = None,
+    tier: Optional[Union[int, str]] = None,
     headers: Optional[dict[str, str]] = None,
     proxy: Optional[str] = None,
     timeout: float = 30.0,
+    *,
+    allow_stealth: bool = False,
+    retries: int = 2,
     **kwargs,
 ) -> FetchResult:
-    """Fetches raw HTML from a URL with automatic or forced tier selection."""
-    if tier == 1:
-        fetcher = FastFetcher()
-    elif tier == 2:
-        fetcher = DynamicFetcher()
-    elif tier == 3:
-        fetcher = StealthFetcher()
-    else:
-        # Dynamic classifier
-        classifier = PageClassifier()
-        classification = await classifier.probe(url)
-        fetcher = EscalationStrategy.get_initial_fetcher(classification)
+    """Fetch a URL with automatic (``tier=None``) or forced tier/engine selection.
 
-    try:
-        result = await fetcher.fetch(url, headers=headers, proxy=proxy, timeout=timeout, **kwargs)
-
-        # Check if auto-escalation is needed
-        next_tier = EscalationStrategy.should_escalate(result)
-        if next_tier and tier is None:
-            await fetcher.close()
-            if next_tier == "StealthFetcher":
-                fetcher = StealthFetcher()
-            else:
-                fetcher = DynamicFetcher()
-            result = await fetcher.fetch(url, headers=headers, proxy=proxy, timeout=timeout, **kwargs)
-
-        return result
-    finally:
-        await fetcher.close()
+    Auto mode starts with the fast HTTP tier and escalates to browser rendering when the page is
+    an empty JavaScript shell. Escalation to the stealth tier on a block happens only with
+    ``allow_stealth=True``. For many requests, reuse an ``OmniClient`` instead.
+    """
+    async with OmniClient(allow_stealth=allow_stealth, retries=retries, timeout=timeout) as client:
+        return await client.fetch(url, tier=tier, headers=headers, proxy=proxy, **kwargs)
 
 
 async def scrape(
     url: str,
-    tier: Optional[int] = None,
+    tier: Optional[Union[int, str]] = None,
     headers: Optional[dict[str, str]] = None,
     proxy: Optional[str] = None,
+    *,
+    allow_stealth: bool = False,
+    retries: int = 2,
+    timeout: float = 30.0,
     **kwargs,
 ) -> ScrapeResult:
-    """One-liner universal scraper: fetches, classifies, parses, and extracts structured data."""
-    fetch_res = await fetch(url, tier=tier, headers=headers, proxy=proxy, **kwargs)
-    html = fetch_res.html
-
-    semantic = SemanticExtractor(html, url=url)
-    density = DensityAnalyzer(html)
-    selector = Selector(html)
-
-    # Title detection
-    title = ""
-    title_el = selector.css("title")
-    if title_el:
-        title = title_el[0].text
-    if not title:
-        title = semantic.extract_opengraph().get("og:title", "")
-
-    # Structured extraction
-    product = semantic.extract_product()
-    article = semantic.extract_article()
-    markdown = html_to_markdown(html)
-
-    # Collect links
-    links = [el.get("href") for el in selector.css("a[href]") if el.get("href")]
-
-    return ScrapeResult(
-        url=url,
-        status_code=fetch_res.status_code,
-        title=title,
-        html=html,
-        markdown=markdown,
-        structured_data=semantic.extract_all(),
-        product=product,
-        article=article,
-        links=links[:100],
-        latency_ms=fetch_res.latency_ms,
-        fetcher_tier=fetch_res.fetcher_tier,
-    )
+    """One-liner universal scraper: fetch, then extract title, markdown, structured data and links."""
+    async with OmniClient(allow_stealth=allow_stealth, retries=retries, timeout=timeout) as client:
+        return await client.scrape(url, tier=tier, headers=headers, proxy=proxy, **kwargs)
 
 
 def scrape_sync(url: str, **kwargs) -> ScrapeResult:

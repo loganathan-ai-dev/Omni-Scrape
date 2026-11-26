@@ -1,105 +1,154 @@
-"""Dynamic page and anti-bot defense classifier."""
+"""Page-type and anti-bot defense classification.
+
+Classification works on any fetched response (``classify_result``), so the main fetch path no
+longer needs a separate probe request. ``PageClassifier.probe`` is kept for callers who want to
+inspect a URL without fetching it through a fetcher.
+
+Detection is used to *report* access restrictions. A detected defense is not, by itself, a
+reason to escalate: stealth escalation is opt-in (see ``EscalationStrategy``).
+"""
 
 import re
 import time
-from typing import Optional
-from curl_cffi.requests import AsyncSession
-from omniscrape.models import PageClassification, PageType, DefenseSystem
+from typing import Mapping
+
+from omniscrape.models import DefenseSystem, FetchResult, PageClassification, PageType
 from omniscrape.observability.logging import get_logger
 
 logger = get_logger("omniscrape.classifier")
 
+BLOCK_STATUSES = {401, 403, 405, 429, 503}
+
+SPA_INDICATORS = [
+    re.compile(r'<div[^>]+id=["\'](?:root|__next|app|__nuxt)["\'][^>]*>\s*</div>', re.IGNORECASE),
+    re.compile(r'<script[^>]*>\s*window\.__INITIAL_STATE__\s*=', re.IGNORECASE),
+    re.compile(r'<script[^>]*>\s*window\.__NEXT_DATA__\s*=', re.IGNORECASE),
+    re.compile(r'<noscript>[^<]*(?:enable|requires?)\s+javascript', re.IGNORECASE),
+]
+
+_CF_CHALLENGE = re.compile(
+    r"challenges\.cloudflare\.com|cf-turnstile|/cdn-cgi/challenge-platform|cf_chl_opt|"
+    r"<title>\s*(?:Just a moment|Attention Required! \| Cloudflare)",
+    re.IGNORECASE,
+)
+_DATADOME = re.compile(r"captcha-delivery\.com|geo\.captcha-delivery|datadome", re.IGNORECASE)
+_PERIMETERX = re.compile(r"px-captcha|_pxhd|perimeterx|human\s*challenge", re.IGNORECASE)
+_AKAMAI = re.compile(r"Reference\s*#\d+\.[0-9a-f]+|akamai", re.IGNORECASE)
+_AWS_WAF = re.compile(r"aws-waf-token|awswaf", re.IGNORECASE)
+_KASADA = re.compile(r"ips\.js|kpsdk", re.IGNORECASE)
+_TAGS = re.compile(r"<script\b.*?</script>|<style\b.*?</style>|<[^>]+>", re.IGNORECASE | re.DOTALL)
+
+
+def visible_text_length(html: str) -> int:
+    """Approximate length of visible text (scripts, styles and tags stripped)."""
+    return len(re.sub(r"\s+", " ", _TAGS.sub(" ", html or "")).strip())
+
+
+def looks_like_spa(html: str, max_text: int = 300) -> bool:
+    """True if the document is an empty client-rendered shell that needs JavaScript."""
+    if not html or len(html.strip()) < 500:
+        return True
+    if visible_text_length(html) >= max_text:
+        return False
+    return any(p.search(html) for p in SPA_INDICATORS)
+
+
+def detect_defense(status_code: int, headers: Mapping[str, str], body: str) -> DefenseSystem:
+    """Identify an anti-bot system that is actively blocking or challenging this response.
+
+    A CDN header alone (e.g. ``cf-ray`` on a normal 200 page) is NOT a detection: most of the
+    web sits behind Cloudflare/Akamai and serves content normally.
+    """
+    h = {k.lower(): str(v).lower() for k, v in (headers or {}).items()}
+    body = body or ""
+    head = body[:20000]
+    server = h.get("server", "")
+    blocked = status_code in BLOCK_STATUSES
+
+    # Challenge pages are sometimes served with 200, so the body check stands alone.
+    if _CF_CHALLENGE.search(head) and (blocked or visible_text_length(head) < 2000):
+        return DefenseSystem.CLOUDFLARE
+    if not blocked:
+        return DefenseSystem.NONE
+
+    if "cloudflare" in server or "cf-ray" in h or "cf-mitigated" in h:
+        return DefenseSystem.CLOUDFLARE
+    if "x-datadome" in h or any(k.startswith("x-dd-") for k in h) or _DATADOME.search(head):
+        return DefenseSystem.DATADOME
+    if _PERIMETERX.search(head):
+        return DefenseSystem.PERIMETERX
+    if any(k.startswith("x-kpsdk") for k in h) or (status_code == 429 and _KASADA.search(head)):
+        return DefenseSystem.KASADA
+    if "x-amzn-waf-action" in h or _AWS_WAF.search(head):
+        return DefenseSystem.AWS_WAF
+    if "akamaighost" in server or (status_code == 403 and _AKAMAI.search(head)):
+        return DefenseSystem.AKAMAI
+    return DefenseSystem.NONE
+
+
+def classify_result(result: FetchResult) -> PageClassification:
+    """Classify an already-fetched response."""
+    notes: list[str] = []
+    defense = result.defense_detected
+    if defense == DefenseSystem.NONE:
+        defense = detect_defense(result.status_code, result.headers, result.html)
+
+    if defense != DefenseSystem.NONE or result.status_code in (403, 503):
+        notes.append(f"Access restricted (HTTP {result.status_code}, defense={defense.value})")
+        return PageClassification(
+            url=result.url,
+            page_type=PageType.ANTI_BOT,
+            defense_system=defense,
+            confidence=0.9,
+            probe_latency_ms=result.latency_ms,
+            recommended_fetcher="StealthFetcher",
+            notes=notes,
+        )
+
+    if result.status_code == 200 and looks_like_spa(result.html):
+        notes.append("Empty client-rendered shell detected")
+        return PageClassification(
+            url=result.url,
+            page_type=PageType.DYNAMIC_SPA,
+            defense_system=defense,
+            confidence=0.85,
+            probe_latency_ms=result.latency_ms,
+            recommended_fetcher="DynamicFetcher",
+            notes=notes,
+        )
+
+    return PageClassification(
+        url=result.url,
+        page_type=PageType.STATIC,
+        defense_system=defense,
+        confidence=0.9,
+        probe_latency_ms=result.latency_ms,
+        recommended_fetcher="FastFetcher",
+        notes=notes,
+    )
+
 
 class PageClassifier:
-    """Probes a URL to discover required fetcher tier and detected anti-bot systems."""
-
-    SPA_INDICATORS = [
-        re.compile(r'<div[^>]+id=["\'](?:root|__next|app|__nuxt)["\'][^>]*>\s*</div>', re.IGNORECASE),
-        re.compile(r'<div[^>]+id=["\']root["\']>\s*</div>', re.IGNORECASE),
-        re.compile(r'<script[^>]*>window\.__INITIAL_STATE__\s*=', re.IGNORECASE),
-        re.compile(r'<script[^>]*>window\.__NEXT_DATA__\s*=', re.IGNORECASE),
-    ]
-
-    TURNSTILE_INDICATOR = re.compile(r'class=["\'][^"\']*cf-turnstile[^"\']*["\']', re.IGNORECASE)
-    DATADOME_INDICATOR = re.compile(r'datadome\.js|dd\.js', re.IGNORECASE)
+    """Probes a URL to discover the required fetcher tier and any blocking defense."""
 
     async def probe(self, url: str, timeout: float = 10.0) -> PageClassification:
-        start_time = time.perf_counter()
-        notes = []
+        from curl_cffi.requests import AsyncSession
 
+        start_time = time.perf_counter()
         try:
             async with AsyncSession(impersonate="chrome124") as session:
                 resp = await session.get(url, timeout=timeout, allow_redirects=True)
-                latency_ms = (time.perf_counter() - start_time) * 1000
-
-                headers_lower = {k.lower(): v.lower() for k, v in resp.headers.items()}
-                status = resp.status_code
-                body = resp.text or ""
-
-                defense = DefenseSystem.NONE
-                # Check headers
-                if "cf-ray" in headers_lower or "server" in headers_lower and "cloudflare" in headers_lower["server"]:
-                    defense = DefenseSystem.CLOUDFLARE
-                    notes.append("Cloudflare headers detected")
-                elif "x-datadome" in headers_lower or any(k.startswith("x-dd-") for k in headers_lower):
-                    defense = DefenseSystem.DATADOME
-                    notes.append("DataDome headers detected")
-
-                # Check body for challenges
-                if self.TURNSTILE_INDICATOR.search(body) or "challenges.cloudflare.com" in body:
-                    defense = DefenseSystem.CLOUDFLARE
-                    notes.append("Turnstile challenge found in DOM")
-                    return PageClassification(
-                        url=url,
-                        page_type=PageType.ANTI_BOT,
-                        defense_system=defense,
-                        confidence=0.95,
-                        probe_latency_ms=round(latency_ms, 2),
-                        recommended_fetcher="StealthFetcher",
-                        notes=notes,
-                    )
-
-                if status in (403, 503):
-                    notes.append(f"HTTP {status} returned on initial probe")
-                    return PageClassification(
-                        url=url,
-                        page_type=PageType.ANTI_BOT,
-                        defense_system=defense,
-                        confidence=0.90,
-                        probe_latency_ms=round(latency_ms, 2),
-                        recommended_fetcher="StealthFetcher",
-                        notes=notes,
-                    )
-
-                # Check for SPA empty skeleton
-                is_spa = any(pattern.search(body) for pattern in self.SPA_INDICATORS)
-                text_len = len(re.sub(r'<[^>]+>', '', body).strip())
-                if is_spa and text_len < 300:
-                    notes.append("Empty SPA container skeleton detected")
-                    return PageClassification(
-                        url=url,
-                        page_type=PageType.DYNAMIC_SPA,
-                        defense_system=defense,
-                        confidence=0.85,
-                        probe_latency_ms=round(latency_ms, 2),
-                        recommended_fetcher="DynamicFetcher",
-                        notes=notes,
-                    )
-
-                # If static with sufficient content
-                return PageClassification(
-                    url=url,
-                    page_type=PageType.STATIC,
-                    defense_system=defense,
-                    confidence=0.90,
-                    probe_latency_ms=round(latency_ms, 2),
-                    recommended_fetcher="FastFetcher",
-                    notes=notes,
-                )
-
+            latency_ms = (time.perf_counter() - start_time) * 1000
+            result = FetchResult(
+                url=str(resp.url),
+                status_code=resp.status_code,
+                headers=dict(resp.headers),
+                html=resp.text or "",
+                latency_ms=round(latency_ms, 2),
+            )
+            return classify_result(result)
         except Exception as exc:
             latency_ms = (time.perf_counter() - start_time) * 1000
-            notes.append(f"Probe exception: {exc}")
             return PageClassification(
                 url=url,
                 page_type=PageType.UNKNOWN,
@@ -107,5 +156,11 @@ class PageClassifier:
                 confidence=0.2,
                 probe_latency_ms=round(latency_ms, 2),
                 recommended_fetcher="FastFetcher",
-                notes=notes,
+                notes=[f"Probe exception: {exc}"],
             )
+
+    # Backward-compatible attribute aliases
+    SPA_INDICATORS = SPA_INDICATORS
+    TURNSTILE_INDICATOR = re.compile(r'class=["\'][^"\']*cf-turnstile[^"\']*["\']', re.IGNORECASE)
+    DATADOME_INDICATOR = re.compile(r"datadome\.js|dd\.js", re.IGNORECASE)
+
