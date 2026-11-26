@@ -1,0 +1,64 @@
+{
+ "type": "product",
+ "url": "https://bem.bench.local/bem_product_00",
+ "template": "bem",
+ "structured_mode": "jsonld",
+ "fields": {
+  "title": "Veloria Wireless Cookware Set M492",
+  "price": 1547.82,
+  "currency": "USD",
+  "brand": "Veloria",
+  "sku": "VEL-84537",
+  "rating": 3.3,
+  "review_count": 3257,
+  "availability": "OutOfStock"
+ },
+ "main_text": "Veloria Wireless Cookware Set M492\nAurora and poplar paprika its distill thunder as. Measure and silver ancient is orchid canyon an zephyr radish its olive. Umber and heath grove its poplar aurora for ledger cobalt at. Vivid in temper vivid as ledger distill was vivid warm at thunder meadow this. Calm as estuary temper this geyser bloom from saffron delta on. Ancient from hollow vivid for temper observe with dahlia balance an bison vast the. Compass for jade spruce its fjord granite a nimbus humble from valley bold. Whistle with drizzle quarry was distill almond by urchin kelp for humble saddle and nimbus. Calm this lark bramble the jasmine island is. Faint its jade bison the pillar umber to hazel. Dense a balance zealous is coral calibrate from polished estuary at.\nEstuary Grove Yarrow Sculpt Hidden\nTunnel Onyx Iris Voyage Nimbus\nJungle Jungle Fennel Lofty Harvest\nNimble Anchor Kiln Oyster\nRapid Tranquil Bison Quaint Olive\nZinc Bold\nPepper Grand Tender\nPolished Ancient\nValley Thistle",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Veloria Wireless Cookware Set M492"
+  },
+  "price": {
+   "role": "price",
+   "text": "$1,547.82"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "SKU: VEL-84537"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "Out of stock"
+  }
+ },
+ "classes": {
+  "header": "site-header",
+  "nav": "site-nav",
+  "main": "site-main",
+  "footer": "site-footer",
+  "aside": "site-aside",
+  "article": "site-article",
+  "cookie": "site-cookie",
+  "title": "product__title",
+  "price": "product__price",
+  "brand": "product__brand",
+  "sku": "product__sku",
+  "rating": "product__rating",
+  "stock": "product__stock",
+  "desc": "product__description",
+  "specs": "product__specs",
+  "gallery": "product__gallery",
+  "grid": "listing__grid",
+  "card": "listing__card",
+  "card_title": "listing__card-title",
+  "card_price": "listing__card-price",
+  "card_link": "listing__card-link",
+  "byline": "article__byline",
+  "date": "article__date",
+  "body": "article__body",
+  "headline": "article__headline",
+  "related": "related-items",
+  "buy": "product__buy"
+ }
+}

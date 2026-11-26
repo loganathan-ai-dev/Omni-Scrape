@@ -1,0 +1,64 @@
+{
+ "type": "product",
+ "url": "https://hashed.bench.local/hashed_product_05",
+ "template": "hashed",
+ "structured_mode": "microdata",
+ "fields": {
+  "title": "Oakhaven Smart Cookware Set R979",
+  "price": 570.72,
+  "currency": "EUR",
+  "brand": "Oakhaven",
+  "sku": "OAK-89358",
+  "rating": 4.7,
+  "review_count": 1217,
+  "availability": "InStock"
+ },
+ "main_text": "Oakhaven Smart Cookware Set R979\nRiver and tunnel kiln was drizzle drizzle its umber ledger this lichen nimble. Verdant and wisp grand this yew heath was warm polished. Alpine at delta valley its upland keen an island cultivate from sturdy nimbus by distill. Reef of humble nebula was pillar kiln on orbit cinder of tangerine bison is inlet kettle. Faint as canyon harbor at lively wisp are dune wheat. Mighty from lofty rust on canvas mellow in drizzle hidden in upland robust by basil nectar. Marble is robust jetty is quince cultivate on faint. Maple with radish jetty as valley wheat are jungle mosaic are radish grand a serene. Thunder is raven canyon as zinc saddle to. Fabric by valley gather on grove pebble for olive swift to wren. Jungle on alpine mosaic on velvet warm with canyon thistle that humble mighty this.\nZephyr Nimbus Gentle Cinder\nRefine Gather Plume\nCalibrate Thunder Inlet\nEvaluate Pillar Zealous",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Oakhaven Smart Cookware Set R979"
+  },
+  "price": {
+   "role": "price",
+   "text": "570,72 \u20ac"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "SKU: OAK-89358"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "In stock"
+  }
+ },
+ "classes": {
+  "header": "sc-lipoid css-5449",
+  "nav": "sc-agdohd css-5587",
+  "main": "sc-foopnl css-5208",
+  "footer": "sc-ofhkgb css-9345",
+  "aside": "sc-kjdfjd css-9338",
+  "article": "sc-jceooh css-9654",
+  "cookie": "sc-apbbmj css-9201",
+  "title": "sc-hfhcjj css-8617",
+  "price": "sc-kldeda css-6358",
+  "brand": "sc-ollngn css-7255",
+  "sku": "sc-ohdinb css-7390",
+  "rating": "sc-nlkomm css-6848",
+  "stock": "sc-kciijl css-3657",
+  "desc": "sc-gjpjjo css-4220",
+  "specs": "sc-dbopbe css-9426",
+  "gallery": "sc-hdkjcn css-7251",
+  "grid": "sc-khflaf css-6916",
+  "card": "sc-hiimfn css-1976",
+  "card_title": "sc-fbkpib css-2382",
+  "card_price": "sc-lmdngc css-3498",
+  "card_link": "sc-balcbd css-4249",
+  "byline": "sc-hgaenk css-6528",
+  "date": "sc-opgelc css-6297",
+  "body": "sc-ippfad css-5706",
+  "headline": "sc-mejill css-4151",
+  "related": "sc-abiiag css-9838",
+  "buy": "sc-abgcdh css-4725"
+ }
+}

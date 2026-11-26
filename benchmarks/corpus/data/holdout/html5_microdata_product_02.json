@@ -1,0 +1,56 @@
+{
+ "type": "product",
+ "url": "https://html5-microdata.bench.local/html5_microdata_product_02",
+ "template": "html5_microdata",
+ "structured_mode": "microdata",
+ "fields": {
+  "title": "Veloria Insulated Headphones X242",
+  "price": 2398.6,
+  "currency": "GBP",
+  "brand": "Veloria",
+  "sku": "VEL-47275",
+  "rating": 2.8,
+  "review_count": 3141,
+  "availability": "InStock"
+ },
+ "main_text": "Veloria Insulated Headphones X242\nPoplar that quince robust that bloom serene of warm mosaic by refine placid. Quill on meadow harvest that fennel tide for forge tunnel at orchid ancient by. Balance as basil golden as jungle vivid a valley maple at fjord walnut. Yarrow the fjord wheat with silent vast that quince kiln. Radish to noble nebula an tangerine knoll an grand mosaic for dusk bramble from juniper tender. Warm in almond lark from warm nutmeg to cedar wren as quaint. Topaz as bold noble this dahlia zealous and unveil alpine are. Meadow at saffron nectar its fierce juniper that oyster tide to drizzle estuary on willow. Sable an noble juniper as drizzle quarry are quill nutmeg the valley thistle as. Navigate on balance placid to kettle kettle and weave.\nTangerine Harbor Cobalt\nFjord Copper\nRipple Heath Silent Lively\nPillar Nebula Drizzle Refine Tide",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Veloria Insulated Headphones X242"
+  },
+  "price": {
+   "role": "price",
+   "text": "\u00a32,398.60"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "SKU: VEL-47275"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "In stock"
+  }
+ },
+ "classes": {
+  "title": "name",
+  "price": "price-tag",
+  "brand": "maker",
+  "sku": "code",
+  "rating": "stars",
+  "stock": "stock",
+  "desc": "about",
+  "specs": "facts",
+  "grid": "catalog",
+  "card": "tile",
+  "card_title": "tile-name",
+  "card_price": "tile-price",
+  "card_link": "tile-link",
+  "byline": "author",
+  "date": "published",
+  "body": "story",
+  "headline": "story-title",
+  "related": "more",
+  "buy": "add"
+ }
+}

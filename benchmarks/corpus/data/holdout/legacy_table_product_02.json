@@ -1,0 +1,56 @@
+{
+ "type": "product",
+ "url": "https://legacy-table.bench.local/legacy_table_product_02",
+ "template": "legacy_table",
+ "structured_mode": "og_only",
+ "fields": {
+  "title": "Kestrel Classic Cookware Set T495",
+  "price": 1685.17,
+  "currency": "GBP",
+  "brand": "Kestrel",
+  "sku": "KES-91501",
+  "rating": 3.8,
+  "review_count": 2710,
+  "availability": "InStock"
+ },
+ "main_text": "Kestrel Classic Cookware Set T495\nCanyon as garden spruce as measure elm for violet. Robust on beacon copper on krill brisk an beacon balance was grand reef and silent. Moss for voyage prism with tundra husk and garden vapor of umber. Ripple to upland sculpt for mountain pepper this jungle. Jetty in paprika humble and ivory navigate of harvest mighty by heath onyx an unveil. Kettle for drift illuminate by sequoia vast an nectar lotus that heron delta is.\nFierce Nutmeg Ancient\nElm Refine Jade\nQuince Orbit\nPebble Vapor\nGeyser Saffron Zealous Upland Deft\nNickel Jade Nimbus\nNimble Compass Kindle\nAnalyze Ivory Faint",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Kestrel Classic Cookware Set T495"
+  },
+  "price": {
+   "role": "price",
+   "text": "\u00a31,685.17"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "Item code: KES-91501"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "In stock"
+  }
+ },
+ "classes": {
+  "title": "ptitle",
+  "price": "pprice",
+  "brand": "pbrand",
+  "sku": "psku",
+  "rating": "prate",
+  "stock": "pstock",
+  "desc": "pdesc",
+  "specs": "pspecs",
+  "card": "item",
+  "card_title": "itemname",
+  "card_price": "itemprice",
+  "card_link": "itemlink",
+  "byline": "by",
+  "date": "dt",
+  "body": "content",
+  "headline": "headline",
+  "related": "related",
+  "buy": "buybtn",
+  "grid": "items"
+ }
+}

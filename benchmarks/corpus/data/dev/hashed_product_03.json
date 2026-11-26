@@ -1,0 +1,64 @@
+{
+ "type": "product",
+ "url": "https://hashed.bench.local/hashed_product_03",
+ "template": "hashed",
+ "structured_mode": "none",
+ "fields": {
+  "title": "Quorra Insulated Rice Cooker T941",
+  "price": 81470.0,
+  "currency": "INR",
+  "brand": "Quorra",
+  "sku": "QUO-31973",
+  "rating": 4.7,
+  "review_count": 59,
+  "availability": "OutOfStock"
+ },
+ "main_text": "Quorra Insulated Rice Cooker T941\nSignal from flint calibrate a ivory zephyr for mango sequoia by. Zinc and onyx beacon as garden wheat at quaint kettle for harvest deft from. Faint its granite whistle its pepper garnet an sculpt olive are mango moss this distill. Oyster as meadow witty an tide zealous in ferry walnut that gather ancient for amber basil. Knoll as juniper coral the aurora yarrow for alpine alpine to sturdy valley the wren. Illuminate for keen umber at juniper noble with geyser glacier in. Signal in umber quaint for compass geyser from nimble iris. Yew on saffron keen by saddle juniper of husk island. Krill this falcon inlet its mango measure from. Heron as aurora basil on summit almond from poplar cobalt at rapid iris are. Robust for velvet distill to mountain oyster and eager prism to placid noble was.\nVoyage Spruce Alpine\nNoble Warm Compass\nRaven Faint Sculpt\nEager Nutmeg Bloom Iris Heath\nNickel Prism Hollow\nAcorn Kindle\nUmber Cobalt Garnet\nGrove Fennel Dense Hazel\nQuartz Lotus Calibrate Jetty",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Quorra Insulated Rice Cooker T941"
+  },
+  "price": {
+   "role": "price",
+   "text": "\u20b981,470"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "SKU: QUO-31973"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "Out of stock"
+  }
+ },
+ "classes": {
+  "header": "sc-lipoid css-5449",
+  "nav": "sc-agdohd css-5587",
+  "main": "sc-foopnl css-5208",
+  "footer": "sc-ofhkgb css-9345",
+  "aside": "sc-kjdfjd css-9338",
+  "article": "sc-jceooh css-9654",
+  "cookie": "sc-apbbmj css-9201",
+  "title": "sc-hfhcjj css-8617",
+  "price": "sc-kldeda css-6358",
+  "brand": "sc-ollngn css-7255",
+  "sku": "sc-ohdinb css-7390",
+  "rating": "sc-nlkomm css-6848",
+  "stock": "sc-kciijl css-3657",
+  "desc": "sc-gjpjjo css-4220",
+  "specs": "sc-dbopbe css-9426",
+  "gallery": "sc-hdkjcn css-7251",
+  "grid": "sc-khflaf css-6916",
+  "card": "sc-hiimfn css-1976",
+  "card_title": "sc-fbkpib css-2382",
+  "card_price": "sc-lmdngc css-3498",
+  "card_link": "sc-balcbd css-4249",
+  "byline": "sc-hgaenk css-6528",
+  "date": "sc-opgelc css-6297",
+  "body": "sc-ippfad css-5706",
+  "headline": "sc-mejill css-4151",
+  "related": "sc-abiiag css-9838",
+  "buy": "sc-abgcdh css-4725"
+ }
+}

@@ -1,0 +1,18 @@
+{
+ "type": "listing",
+ "url": "https://nextjs.bench.local/nextjs_listing_01",
+ "template": "nextjs",
+ "n_cards": 800,
+ "selectors": {
+  "cards": "article.Card_d4CDa",
+  "card_titles": "article.Card_d4CDa p.CardTitle_Bd9B3",
+  "card_prices": "article.Card_d4CDa div.CardPrice_gA5B5",
+  "card_links": "a.CardLink_FgD1h"
+ },
+ "expected_counts": {
+  "cards": 800,
+  "card_titles": 800,
+  "card_prices": 800,
+  "card_links": 800
+ }
+}
