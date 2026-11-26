@@ -60,8 +60,11 @@ class Element:
 class Selector:
     """Root selector engine for an HTML document."""
 
-    def __init__(self, html: str):
+    def __init__(self, html: str = "", root: Optional[lxml.html.HtmlElement] = None):
         self.raw_html = html
+        if root is not None:  # reuse an already-parsed document
+            self.root = root
+            return
         try:
             parser = lxml.html.HTMLParser(encoding="utf-8")
             if isinstance(html, str):

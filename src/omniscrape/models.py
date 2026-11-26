@@ -55,7 +55,7 @@ class Product(BaseModel):
     url: str
     title: str
     price: Optional[float] = None
-    currency: str = "USD"
+    currency: Optional[str] = None  # ISO 4217; None when the page does not show one
     original_price: Optional[float] = None
     discount_percent: Optional[float] = None
     brand: Optional[str] = None
@@ -94,6 +94,8 @@ class ScrapeResult(BaseModel):
     title: str = ""
     html: str = ""
     markdown: str = ""
+    fit_markdown: str = ""
+    metadata: dict[str, Any] = Field(default_factory=dict)
     structured_data: dict[str, Any] = Field(default_factory=dict)
     product: Optional[Product] = None
     article: Optional[Article] = None
