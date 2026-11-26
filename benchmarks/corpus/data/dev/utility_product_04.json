@@ -1,0 +1,64 @@
+{
+ "type": "product",
+ "url": "https://utility.bench.local/utility_product_04",
+ "template": "utility",
+ "structured_mode": "jsonld",
+ "fields": {
+  "title": "Nordvik Ergonomic Backpack R790",
+  "price": 931.07,
+  "currency": "USD",
+  "brand": "Nordvik",
+  "sku": "NOR-74686",
+  "rating": 5.0,
+  "review_count": 703,
+  "availability": "InStock"
+ },
+ "main_text": "Nordvik Ergonomic Backpack R790\nHazel to opal jasmine at reef cinder this. Orchid a wren crisp a dahlia pattern as harvest cultivate its temper ivory in. Refine are kelp calibrate as bison heath for sculpt heron are saddle vine on garnet estuary. Elm this ferry coral as heron lagoon is birch unveil. Zephyr its noble copper from amber voyage in moss jetty. Dense in yarrow serene the voyage meadow this lagoon fjord. Walnut with kettle nimble is upland gather and. Hollow of whistle kiln to kiln silent an verdant humble by lofty heron. Estuary was mesa bramble this gather bold as bloom garnet this lark grand from. Prism in fierce flint by pebble signal with rust observe is. Fjord at weave ivory a acorn opal a fennel mosaic as. Summit as meadow wren with paprika flint this vivid sculpt this maple. Canyon in eager golden this kindle pattern on birch kindle an cinder maple in.\nKindle Beacon Bloom Wisp\nValley Ivory Placid Grand\nEager Silver Flint\nAurora Orchid\nMoss Fjord Zephyr Dusk\nNoble Gentle Jade Beacon Robust\nKrill Timber Kelp Pepper",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Nordvik Ergonomic Backpack R790"
+  },
+  "price": {
+   "role": "price",
+   "text": "$931.07"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "SKU: NOR-74686"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "In stock"
+  }
+ },
+ "classes": {
+  "header": "flex items-center justify-between px-6 py-4 bg-white shadow",
+  "nav": "hidden md:flex gap-4",
+  "main": "container mx-auto px-4",
+  "footer": "mt-16 bg-gray-900 text-gray-300 py-10",
+  "aside": "w-full lg:w-1/3 space-y-4",
+  "article": "prose lg:prose-xl",
+  "cookie": "fixed bottom-0 inset-x-0 p-4",
+  "title": "text-3xl font-bold tracking-tight",
+  "price": "text-2xl font-semibold text-emerald-600",
+  "brand": "text-sm uppercase text-gray-500",
+  "sku": "text-xs text-gray-400",
+  "rating": "flex items-center gap-1",
+  "stock": "text-sm font-medium",
+  "desc": "mt-4 text-gray-700 leading-7",
+  "specs": "mt-6 divide-y",
+  "gallery": "grid grid-cols-4 gap-2",
+  "grid": "grid grid-cols-2 md:grid-cols-4 gap-6",
+  "card": "rounded-xl border p-4 hover:shadow-lg",
+  "card_title": "mt-2 text-base font-medium",
+  "card_price": "mt-1 font-semibold",
+  "card_link": "block",
+  "byline": "text-sm text-gray-600",
+  "date": "text-sm text-gray-500",
+  "body": "mt-8 space-y-6",
+  "headline": "text-4xl font-extrabold",
+  "related": "mt-12 grid grid-cols-3 gap-4",
+  "buy": "mt-6 w-full rounded-lg bg-black px-4 py-3 text-white"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "type": "product",
+ "url": "https://fernhill.bench.local/products/linen-apron",
+ "template": "handwritten_storefront",
+ "structured_mode": "og_only",
+ "handwritten": true,
+ "fields": {"title": "Linen Apron – Forest Green", "price": 48.0, "currency": "USD", "brand": "Fernhill Goods", "sku": "FH-APR-GRN", "availability": "InStock"},
+ "main_text": "Linen Apron – Forest Green\nOur everyday apron is cut from stonewashed European linen that softens with every wash. Two deep front pockets hold a phone, a notebook, or a handful of clothespins.\n100% linen\nAdjustable neck strap\nMachine washable",
+ "targets": {
+  "title": {"selector": "div.product-single__meta > h1.product-single__title", "text": "Linen Apron – Forest Green"},
+  "price": {"selector": "div.product__price span.price-item--sale", "text": "$48.00"},
+  "sku": {"selector": "div.product-single__meta > div.product-single__sku", "text": "SKU: FH-APR-GRN"}
+ }
+}

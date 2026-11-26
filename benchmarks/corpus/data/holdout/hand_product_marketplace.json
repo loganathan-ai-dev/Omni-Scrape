@@ -1,0 +1,13 @@
+{
+ "type": "product",
+ "url": "https://bazaarhub.bench.local/dp/BMP12T",
+ "template": "handwritten_marketplace",
+ "structured_mode": "none",
+ "handwritten": true,
+ "fields": {"title": "Brewmatic Pro 12-Cup Programmable Coffee Maker with Thermal Carafe", "price": 7799.0, "currency": "INR", "brand": "Brewmatic", "rating": 4.3, "review_count": 2817, "availability": "InStock"},
+ "main_text": "Brewmatic Pro 12-Cup Programmable Coffee Maker with Thermal Carafe\nBrews up to 12 cups and keeps coffee hot for four hours in a double-walled stainless steel carafe.\nProgrammable 24-hour timer so your coffee is ready when you wake up.\nAdjustable brew strength with a bold setting for richer flavor.\nBrand Brewmatic\nModel BMP-12T\nCapacity 1.8 Litres",
+ "targets": {
+  "title": {"selector": "div#titleSection > span#productTitle", "text": "Brewmatic Pro 12-Cup Programmable Coffee Maker with Thermal Carafe"},
+  "stock": {"selector": "div#availability > span.a-color-success", "text": "In stock"}
+ }
+}

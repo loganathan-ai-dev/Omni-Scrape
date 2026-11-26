@@ -1,0 +1,63 @@
+{
+ "type": "product",
+ "url": "https://nextjs.bench.local/nextjs_product_00",
+ "template": "nextjs",
+ "structured_mode": "jsonld",
+ "fields": {
+  "title": "Oakhaven Wireless Office Chair X727",
+  "price": 908.76,
+  "currency": "USD",
+  "brand": "Oakhaven",
+  "sku": "OAK-70062",
+  "rating": 3.5,
+  "review_count": 1024,
+  "availability": "InStock"
+ },
+ "main_text": "Oakhaven Wireless Office Chair X727\nSignal was thistle rust a amber placid an falcon elm and swift thunder this swift. Dahlia as calm tranquil with golden willow and lotus estuary its. Silent to mountain harbor are fierce humble its orchid sturdy with marble. Hollow in ember nectar for noble tender as calm silent as brisk knoll at aurora serene. Quartz the serene reef a copper thunder to. Deft the plume quartz was deft wren at pepper zinc and warm. Jetty from aurora nimble this jungle jetty are olive engine its. Sable the birch walnut from vivid lofty for yew wren on swift temper this. Quaint as sturdy sturdy for birch valley and ivory beacon. Deft for mighty fierce this illuminate orchid and knoll velvet to paprika. Quaint on spruce quill are zealous lively that glacier verdant was krill tranquil an urchin reef. Harbor on quarry mosaic to analyze plume in hollow pepper on jasmine thistle.\nSerene Jasmine Amber Quill Mango\nUrchin Copper\nKeen Lantern Fjord\nGarden Swift Oyster Aurora",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Oakhaven Wireless Office Chair X727"
+  },
+  "price": {
+   "role": "price",
+   "text": "$908.76"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "SKU: OAK-70062"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "In stock"
+  }
+ },
+ "classes": {
+  "header": "Header_4GaBB",
+  "nav": "Nav_795dG",
+  "main": "Main_GfG06",
+  "footer": "Footer_4fdfg",
+  "aside": "Aside_e6FC5",
+  "article": "Article_Gf409",
+  "title": "Title_A8GHF",
+  "price": "Price_hC145",
+  "brand": "Brand_0Fd9E",
+  "sku": "Sku_a6H00",
+  "rating": "Rating_8Caf2",
+  "stock": "Stock_DcD15",
+  "desc": "Desc_18DG6",
+  "specs": "Specs_g626g",
+  "gallery": "Gallery_c8FA8",
+  "grid": "Grid_g42b1",
+  "card": "Card_d4CDa",
+  "card_title": "CardTitle_Bd9B3",
+  "card_price": "CardPrice_gA5B5",
+  "card_link": "CardLink_FgD1h",
+  "byline": "Byline_77cFd",
+  "date": "Date_42F61",
+  "body": "Body_9H05D",
+  "headline": "Headline_FF63B",
+  "related": "Related_gA0ha",
+  "buy": "Buy_f6G3H"
+ }
+}

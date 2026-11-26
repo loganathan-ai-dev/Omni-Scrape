@@ -1,0 +1,64 @@
+{
+ "type": "product",
+ "url": "https://utility.bench.local/utility_product_02",
+ "template": "utility",
+ "structured_mode": "og_only",
+ "fields": {
+  "title": "Quorra Ultralight Headphones M170",
+  "price": 1509.66,
+  "currency": "GBP",
+  "brand": "Quorra",
+  "sku": "QUO-57508",
+  "rating": 2.7,
+  "review_count": 2470,
+  "availability": "InStock"
+ },
+ "main_text": "Quorra Ultralight Headphones M170\nTopaz on weave distill was husk zephyr this tangerine lantern. Gentle to mesa tangerine the cobalt lark on sequoia nectar as nimble. Falcon for gather lively for deft quaint for ember pattern. Pepper a vast yew by umber tide to pillar granite this canyon valley from. Pebble for granite zealous is birch wren for geyser serene with. Noble this noble quarry is spruce polished on orchid. Walnut to upland lagoon and yew wren as. Walnut a anchor lagoon with elm sculpt by fabric acorn and. Sequoia the grove hidden from maple urchin its kelp silver of tranquil aurora. Quarry in orbit placid is jetty grand on warm nimbus is forge quill in dense. Fabric from oyster silver as garnet sable an sable. Calibrate the whistle poplar the nimble coral for amber vapor an balance elm at kindle weave. Polished on walnut birch are topaz polish in brisk delta from hidden nickel the. Drift an mosaic nimbus is coral gentle by jungle willow this brisk meadow. Mellow to pattern olive in quince silent with jetty quill in lofty.\nForge Canyon Lively Ancient\nVast Mountain Island Sequoia\nMango Paprika Jetty Jungle\nNimble Tranquil Lotus",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Quorra Ultralight Headphones M170"
+  },
+  "price": {
+   "role": "price",
+   "text": "\u00a31,509.66"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "SKU: QUO-57508"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "In stock"
+  }
+ },
+ "classes": {
+  "header": "flex items-center justify-between px-6 py-4 bg-white shadow",
+  "nav": "hidden md:flex gap-4",
+  "main": "container mx-auto px-4",
+  "footer": "mt-16 bg-gray-900 text-gray-300 py-10",
+  "aside": "w-full lg:w-1/3 space-y-4",
+  "article": "prose lg:prose-xl",
+  "cookie": "fixed bottom-0 inset-x-0 p-4",
+  "title": "text-3xl font-bold tracking-tight",
+  "price": "text-2xl font-semibold text-emerald-600",
+  "brand": "text-sm uppercase text-gray-500",
+  "sku": "text-xs text-gray-400",
+  "rating": "flex items-center gap-1",
+  "stock": "text-sm font-medium",
+  "desc": "mt-4 text-gray-700 leading-7",
+  "specs": "mt-6 divide-y",
+  "gallery": "grid grid-cols-4 gap-2",
+  "grid": "grid grid-cols-2 md:grid-cols-4 gap-6",
+  "card": "rounded-xl border p-4 hover:shadow-lg",
+  "card_title": "mt-2 text-base font-medium",
+  "card_price": "mt-1 font-semibold",
+  "card_link": "block",
+  "byline": "text-sm text-gray-600",
+  "date": "text-sm text-gray-500",
+  "body": "mt-8 space-y-6",
+  "headline": "text-4xl font-extrabold",
+  "related": "mt-12 grid grid-cols-3 gap-4",
+  "buy": "mt-6 w-full rounded-lg bg-black px-4 py-3 text-white"
+ }
+}

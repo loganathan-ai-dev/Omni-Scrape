@@ -1,0 +1,56 @@
+{
+ "type": "product",
+ "url": "https://html5-microdata.bench.local/html5_microdata_product_05",
+ "template": "html5_microdata",
+ "structured_mode": "microdata",
+ "fields": {
+  "title": "Altara Classic Desk Lamp R217",
+  "price": 2345.3,
+  "currency": "EUR",
+  "brand": "Altara",
+  "sku": "ALT-48575",
+  "rating": 3.5,
+  "review_count": 3152,
+  "availability": "InStock"
+ },
+ "main_text": "Altara Classic Desk Lamp R217\nNoble to wisp tranquil its knoll quince to bold gravel on temper knoll. Bramble for granite yew its polish dune was harbor. Tender with plume yarrow with estuary silent on bold falcon an mountain bison.\nOrchid Hazel Glacier Saffron Vine\nLotus Marble\nLively Cobalt\nFierce Cinder Faint Placid\nTundra Pepper\nDelta Weave Birch\nLagoon Navigate Hollow Saddle Jade\nFerry Willow Iris Cultivate Sable\nNimble Opal Ember Hazel",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Altara Classic Desk Lamp R217"
+  },
+  "price": {
+   "role": "price",
+   "text": "2.345,30 \u20ac"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "SKU: ALT-48575"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "In stock"
+  }
+ },
+ "classes": {
+  "title": "name",
+  "price": "price-tag",
+  "brand": "maker",
+  "sku": "code",
+  "rating": "stars",
+  "stock": "stock",
+  "desc": "about",
+  "specs": "facts",
+  "grid": "catalog",
+  "card": "tile",
+  "card_title": "tile-name",
+  "card_price": "tile-price",
+  "card_link": "tile-link",
+  "byline": "author",
+  "date": "published",
+  "body": "story",
+  "headline": "story-title",
+  "related": "more",
+  "buy": "add"
+ }
+}

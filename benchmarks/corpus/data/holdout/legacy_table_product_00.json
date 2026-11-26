@@ -1,0 +1,56 @@
+{
+ "type": "product",
+ "url": "https://legacy-table.bench.local/legacy_table_product_00",
+ "template": "legacy_table",
+ "structured_mode": "jsonld",
+ "fields": {
+  "title": "Nordvik Wireless Air Purifier T204",
+  "price": 1392.83,
+  "currency": "USD",
+  "brand": "Nordvik",
+  "sku": "NOR-91351",
+  "rating": 2.7,
+  "review_count": 2121,
+  "availability": "InStock"
+ },
+ "main_text": "Nordvik Wireless Air Purifier T204\nFierce to brisk mountain at polish cultivate are mighty cedar that keen yarrow are humble. Nebula at lofty noble are basil nickel at. Gravel from meadow sequoia to jasmine harbor by amber krill an mosaic reef by velvet.\nOnyx Mountain Measure Nimbus\nPoplar Whistle Heath\nGeyser Navigate Bloom\nSilver Urchin Fennel Zinc",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Nordvik Wireless Air Purifier T204"
+  },
+  "price": {
+   "role": "price",
+   "text": "$1,392.83"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "Item code: NOR-91351"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "In stock"
+  }
+ },
+ "classes": {
+  "title": "ptitle",
+  "price": "pprice",
+  "brand": "pbrand",
+  "sku": "psku",
+  "rating": "prate",
+  "stock": "pstock",
+  "desc": "pdesc",
+  "specs": "pspecs",
+  "card": "item",
+  "card_title": "itemname",
+  "card_price": "itemprice",
+  "card_link": "itemlink",
+  "byline": "by",
+  "date": "dt",
+  "body": "content",
+  "headline": "headline",
+  "related": "related",
+  "buy": "buybtn",
+  "grid": "items"
+ }
+}

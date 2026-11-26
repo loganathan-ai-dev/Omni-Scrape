@@ -1,0 +1,64 @@
+{
+ "type": "product",
+ "url": "https://bem.bench.local/bem_product_05",
+ "template": "bem",
+ "structured_mode": "microdata",
+ "fields": {
+  "title": "Tessaro Compact Water Bottle X443",
+  "price": 2212.2,
+  "currency": "EUR",
+  "brand": "Tessaro",
+  "sku": "TES-56256",
+  "rating": 3.6,
+  "review_count": 795,
+  "availability": "OutOfStock"
+ },
+ "main_text": "Tessaro Compact Water Bottle X443\nBeacon this orbit olive this calibrate drizzle to serene indigo the kettle sturdy in signal. Gentle of inlet balance the orchid island from nebula copper. Crisp with spruce grove from vapor almond as lively. Placid its distill canvas in knoll keen a kiln plume as observe river. Rapid this fjord polished its harvest knoll in drift lofty a. Orchid that nimble pepper for anchor tangerine are pillar keen of engine vast. Valley was yew knoll with acorn observe for saddle placid this analyze zephyr as quaint signal. Quaint a quarry quaint a quince coral its nectar juniper this cobalt tangerine to. Velvet is bison unveil of rust zinc this dusk. Polished in cinder juniper was jade wheat is radish verdant. Pillar by pillar cultivate with dahlia sequoia are spruce balance by geyser. Marble its navigate beacon that willow warm and knoll.\nPolished Alpine Violet\nJungle Meadow Serene Plume\nFerry Valley Silent Raven\nCoral Valley Olive Drizzle Fierce\nTender Crisp Deft Cultivate\nLedger Mango Humble Deft",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Tessaro Compact Water Bottle X443"
+  },
+  "price": {
+   "role": "price",
+   "text": "2.212,20 \u20ac"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "SKU: TES-56256"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "Out of stock"
+  }
+ },
+ "classes": {
+  "header": "site-header",
+  "nav": "site-nav",
+  "main": "site-main",
+  "footer": "site-footer",
+  "aside": "site-aside",
+  "article": "site-article",
+  "cookie": "site-cookie",
+  "title": "product__title",
+  "price": "product__price",
+  "brand": "product__brand",
+  "sku": "product__sku",
+  "rating": "product__rating",
+  "stock": "product__stock",
+  "desc": "product__description",
+  "specs": "product__specs",
+  "gallery": "product__gallery",
+  "grid": "listing__grid",
+  "card": "listing__card",
+  "card_title": "listing__card-title",
+  "card_price": "listing__card-price",
+  "card_link": "listing__card-link",
+  "byline": "article__byline",
+  "date": "article__date",
+  "body": "article__body",
+  "headline": "article__headline",
+  "related": "related-items",
+  "buy": "product__buy"
+ }
+}

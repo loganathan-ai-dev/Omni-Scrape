@@ -1,0 +1,63 @@
+{
+ "type": "product",
+ "url": "https://nextjs.bench.local/nextjs_product_02",
+ "template": "nextjs",
+ "structured_mode": "og_only",
+ "fields": {
+  "title": "Oakhaven Ultralight Kettle M729",
+  "price": 663.93,
+  "currency": "GBP",
+  "brand": "Oakhaven",
+  "sku": "OAK-37119",
+  "rating": 4.5,
+  "review_count": 382,
+  "availability": "InStock"
+ },
+ "main_text": "Oakhaven Ultralight Kettle M729\nVast with lotus zinc are crisp garden with vine ember from bramble sturdy with willow. Brisk for dune wren to vast observe that. Sable this sable hazel its drift voyage that nectar nimble and whistle rapid for humble quaint. Robust is urchin river and tranquil evaluate the harvest prism an walnut amber in olive. Flint a distill garden a meadow thunder was opal island this. Willow by tranquil noble is river upland to illuminate. Calibrate that dune spruce by navigate vapor an serene prism with ivory zinc this meadow. Jasmine on fennel krill by bramble summit with tundra alpine. Ferry by delta compass of serene forge as quarry opal that gravel maple of warm. Sculpt as ember spruce at vapor navigate and weave.\nDahlia Bloom\nTimber Geyser River Olive\nVapor Ivory Topaz Gentle\nIsland Iris Inlet\nAmber Kiln Drizzle\nGentle Jasmine",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Oakhaven Ultralight Kettle M729"
+  },
+  "price": {
+   "role": "price",
+   "text": "\u00a3663.93"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "SKU: OAK-37119"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "In stock"
+  }
+ },
+ "classes": {
+  "header": "Header_4GaBB",
+  "nav": "Nav_795dG",
+  "main": "Main_GfG06",
+  "footer": "Footer_4fdfg",
+  "aside": "Aside_e6FC5",
+  "article": "Article_Gf409",
+  "title": "Title_A8GHF",
+  "price": "Price_hC145",
+  "brand": "Brand_0Fd9E",
+  "sku": "Sku_a6H00",
+  "rating": "Rating_8Caf2",
+  "stock": "Stock_DcD15",
+  "desc": "Desc_18DG6",
+  "specs": "Specs_g626g",
+  "gallery": "Gallery_c8FA8",
+  "grid": "Grid_g42b1",
+  "card": "Card_d4CDa",
+  "card_title": "CardTitle_Bd9B3",
+  "card_price": "CardPrice_gA5B5",
+  "card_link": "CardLink_FgD1h",
+  "byline": "Byline_77cFd",
+  "date": "Date_42F61",
+  "body": "Body_9H05D",
+  "headline": "Headline_FF63B",
+  "related": "Related_gA0ha",
+  "buy": "Buy_f6G3H"
+ }
+}

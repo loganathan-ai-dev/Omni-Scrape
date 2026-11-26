@@ -1,0 +1,64 @@
+{
+ "type": "product",
+ "url": "https://hashed.bench.local/hashed_product_00",
+ "template": "hashed",
+ "structured_mode": "jsonld",
+ "fields": {
+  "title": "Tessaro Classic Tent R163",
+  "price": 523.25,
+  "currency": "USD",
+  "brand": "Tessaro",
+  "sku": "TES-20184",
+  "rating": 4.1,
+  "review_count": 2056,
+  "availability": "InStock"
+ },
+ "main_text": "Tessaro Classic Tent R163\nTundra the zealous lantern was kettle lichen by mango. Glacier by unveil polish by onyx paprika at. Urchin of distill plume was jasmine radish is. Jungle that fabric engine of quince zephyr are bison jade its deft walnut was. Hollow at lark canvas of tranquil compass and pepper cobalt are drizzle. Radish that signal estuary this brisk mesa to raven rapid was brisk. Thunder a lark thunder its deft mighty with grand cinder from observe rapid in deft. Gather that olive vine on zealous gravel that weave. Fabric to yew orbit are lively sculpt an. Inlet for verdant hollow the kiln temper its. Pebble in raven nickel in indigo lantern as. Maple its copper ferry at tranquil deft in vivid nebula from jungle. Serene the cultivate drift at calibrate hollow on silent.\nJade Canvas Jade Harvest\nAnalyze Knoll Pebble Measure\nPolished Falcon Distill\nIsland Placid Harbor Copper\nTimber Umber Jungle\nWeave Jasmine Wisp Vine\nGlacier Drizzle\nRust Fjord Swift Jasmine Juniper",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Tessaro Classic Tent R163"
+  },
+  "price": {
+   "role": "price",
+   "text": "$523.25"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "SKU: TES-20184"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "In stock"
+  }
+ },
+ "classes": {
+  "header": "sc-lipoid css-5449",
+  "nav": "sc-agdohd css-5587",
+  "main": "sc-foopnl css-5208",
+  "footer": "sc-ofhkgb css-9345",
+  "aside": "sc-kjdfjd css-9338",
+  "article": "sc-jceooh css-9654",
+  "cookie": "sc-apbbmj css-9201",
+  "title": "sc-hfhcjj css-8617",
+  "price": "sc-kldeda css-6358",
+  "brand": "sc-ollngn css-7255",
+  "sku": "sc-ohdinb css-7390",
+  "rating": "sc-nlkomm css-6848",
+  "stock": "sc-kciijl css-3657",
+  "desc": "sc-gjpjjo css-4220",
+  "specs": "sc-dbopbe css-9426",
+  "gallery": "sc-hdkjcn css-7251",
+  "grid": "sc-khflaf css-6916",
+  "card": "sc-hiimfn css-1976",
+  "card_title": "sc-fbkpib css-2382",
+  "card_price": "sc-lmdngc css-3498",
+  "card_link": "sc-balcbd css-4249",
+  "byline": "sc-hgaenk css-6528",
+  "date": "sc-opgelc css-6297",
+  "body": "sc-ippfad css-5706",
+  "headline": "sc-mejill css-4151",
+  "related": "sc-abiiag css-9838",
+  "buy": "sc-abgcdh css-4725"
+ }
+}

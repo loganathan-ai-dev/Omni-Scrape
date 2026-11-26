@@ -1,0 +1,64 @@
+{
+ "type": "product",
+ "url": "https://hashed.bench.local/hashed_product_07",
+ "template": "hashed",
+ "structured_mode": "none",
+ "fields": {
+  "title": "Veloria Insulated Cookware Set K110",
+  "price": 88697.0,
+  "currency": "INR",
+  "brand": "Veloria",
+  "sku": "VEL-29642",
+  "rating": 2.9,
+  "review_count": 1632,
+  "availability": "InStock"
+ },
+ "main_text": "Veloria Insulated Cookware Set K110\nCrisp on pillar pillar to cedar mesa this radish paprika. Placid that jasmine ivory on island anchor as verdant measure by golden summit to ferry alpine. Mango in drift onyx this ledger gentle that drift heath with vapor sable a anchor.\nIris Paprika Amber Tundra\nJasmine Quaint Lively Voyage Vast\nVerdant Fennel Umber Polished Raven\nDeft Beacon\nDusk Cinder\nFjord Topaz Bloom\nQuartz Cultivate Sable\nOpal Faint Tundra",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Veloria Insulated Cookware Set K110"
+  },
+  "price": {
+   "role": "price",
+   "text": "\u20b988,697"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "SKU: VEL-29642"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "In stock"
+  }
+ },
+ "classes": {
+  "header": "sc-lipoid css-5449",
+  "nav": "sc-agdohd css-5587",
+  "main": "sc-foopnl css-5208",
+  "footer": "sc-ofhkgb css-9345",
+  "aside": "sc-kjdfjd css-9338",
+  "article": "sc-jceooh css-9654",
+  "cookie": "sc-apbbmj css-9201",
+  "title": "sc-hfhcjj css-8617",
+  "price": "sc-kldeda css-6358",
+  "brand": "sc-ollngn css-7255",
+  "sku": "sc-ohdinb css-7390",
+  "rating": "sc-nlkomm css-6848",
+  "stock": "sc-kciijl css-3657",
+  "desc": "sc-gjpjjo css-4220",
+  "specs": "sc-dbopbe css-9426",
+  "gallery": "sc-hdkjcn css-7251",
+  "grid": "sc-khflaf css-6916",
+  "card": "sc-hiimfn css-1976",
+  "card_title": "sc-fbkpib css-2382",
+  "card_price": "sc-lmdngc css-3498",
+  "card_link": "sc-balcbd css-4249",
+  "byline": "sc-hgaenk css-6528",
+  "date": "sc-opgelc css-6297",
+  "body": "sc-ippfad css-5706",
+  "headline": "sc-mejill css-4151",
+  "related": "sc-abiiag css-9838",
+  "buy": "sc-abgcdh css-4725"
+ }
+}

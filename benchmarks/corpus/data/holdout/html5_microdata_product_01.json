@@ -1,0 +1,56 @@
+{
+ "type": "product",
+ "url": "https://html5-microdata.bench.local/html5_microdata_product_01",
+ "template": "html5_microdata",
+ "structured_mode": "microdata",
+ "fields": {
+  "title": "Brightline Ultralight Desk Lamp X514",
+  "price": 583.04,
+  "currency": "EUR",
+  "brand": "Brightline",
+  "sku": "BRI-78014",
+  "rating": 2.9,
+  "review_count": 2600,
+  "availability": "InStock"
+ },
+ "main_text": "Brightline Ultralight Desk Lamp X514\nMarble by vapor saddle was garnet elm are ripple dahlia this. Island for falcon bold by kindle voyage and. Poplar and onyx tunnel in distill poplar by quince navigate in. Ledger as orchid geyser of golden canvas to juniper. Lotus a lantern zealous was saffron marble this umber husk that bison. Aurora on island sturdy was upland saddle to reef garnet at harbor copper. Cinder as maple bison as wisp almond as marble ripple from whistle island. Quince from observe balance by olive zinc and orchid dahlia on iris unveil by wisp. Compass as mighty fabric with delta anchor by zinc deft in fjord cedar on. Amber as wren orbit with lively fabric from wisp. Opal for fierce ledger with drizzle nebula that inlet. Wheat from harvest canvas and polish saffron of ivory. Hazel the summit kiln was pepper mountain are almond. Rapid as analyze nickel with delta rapid its ember knoll from verdant nebula at ripple. Vivid is fabric oyster by fennel vapor of wheat. Rust was quarry canyon with plume dune its.\nWren Silent\nMeadow Lantern Gather Tangerine\nLichen Opal Kettle Compass\nLark Nickel Silver Island\nOrchid Serene Thunder Jetty Drift",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Brightline Ultralight Desk Lamp X514"
+  },
+  "price": {
+   "role": "price",
+   "text": "583,04 \u20ac"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "SKU: BRI-78014"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "In stock"
+  }
+ },
+ "classes": {
+  "title": "name",
+  "price": "price-tag",
+  "brand": "maker",
+  "sku": "code",
+  "rating": "stars",
+  "stock": "stock",
+  "desc": "about",
+  "specs": "facts",
+  "grid": "catalog",
+  "card": "tile",
+  "card_title": "tile-name",
+  "card_price": "tile-price",
+  "card_link": "tile-link",
+  "byline": "author",
+  "date": "published",
+  "body": "story",
+  "headline": "story-title",
+  "related": "more",
+  "buy": "add"
+ }
+}

@@ -1,0 +1,64 @@
+{
+ "type": "product",
+ "url": "https://bem.bench.local/bem_product_06",
+ "template": "bem",
+ "structured_mode": "og_only",
+ "fields": {
+  "title": "Oakhaven Compact Kettle X795",
+  "price": 1278.24,
+  "currency": "GBP",
+  "brand": "Oakhaven",
+  "sku": "OAK-88299",
+  "rating": 3.0,
+  "review_count": 1760,
+  "availability": "OutOfStock"
+ },
+ "main_text": "Oakhaven Compact Kettle X795\nOpal to vapor nebula this weave basil this. Golden an canyon river is ember opal as meadow. Pebble was cultivate lichen that wheat amber that flint analyze by weave.\nDeft Juniper Placid\nYarrow Maple Fierce Dune\nGolden Hazel Zephyr Witty\nJuniper Robust Fjord",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Oakhaven Compact Kettle X795"
+  },
+  "price": {
+   "role": "price",
+   "text": "\u00a31,278.24"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "SKU: OAK-88299"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "Out of stock"
+  }
+ },
+ "classes": {
+  "header": "site-header",
+  "nav": "site-nav",
+  "main": "site-main",
+  "footer": "site-footer",
+  "aside": "site-aside",
+  "article": "site-article",
+  "cookie": "site-cookie",
+  "title": "product__title",
+  "price": "product__price",
+  "brand": "product__brand",
+  "sku": "product__sku",
+  "rating": "product__rating",
+  "stock": "product__stock",
+  "desc": "product__description",
+  "specs": "product__specs",
+  "gallery": "product__gallery",
+  "grid": "listing__grid",
+  "card": "listing__card",
+  "card_title": "listing__card-title",
+  "card_price": "listing__card-price",
+  "card_link": "listing__card-link",
+  "byline": "article__byline",
+  "date": "article__date",
+  "body": "article__body",
+  "headline": "article__headline",
+  "related": "related-items",
+  "buy": "product__buy"
+ }
+}

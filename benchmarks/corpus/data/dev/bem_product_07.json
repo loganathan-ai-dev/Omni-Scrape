@@ -1,0 +1,64 @@
+{
+ "type": "product",
+ "url": "https://bem.bench.local/bem_product_07",
+ "template": "bem",
+ "structured_mode": "none",
+ "fields": {
+  "title": "Brightline Ergonomic Backpack R987",
+  "price": 20381.0,
+  "currency": "INR",
+  "brand": "Brightline",
+  "sku": "BRI-81662",
+  "rating": 3.2,
+  "review_count": 230,
+  "availability": "InStock"
+ },
+ "main_text": "Brightline Ergonomic Backpack R987\nThistle an dahlia ember as jungle saddle an polish fjord that measure engine that violet. Acorn by nickel paprika its hidden tundra and calibrate opal. Tide was vine river as anchor spruce is pebble inlet that falcon glacier at. Iris was timber bloom the silver dusk and distill whistle as gentle verdant on. Temper its rapid tunnel are kindle balance a yarrow falcon is zephyr elm that. Quaint this iris sculpt by birch distill for jade. Jade to sable marble was observe granite and kettle river an silver lantern to. Polished its zephyr lotus to oyster serene from hazel weave is.\nCalm Hazel Placid Navigate Wren\nCalm Dusk Ivory Distill Dusk\nGolden Fierce\nFaint Zinc\nPebble Orchid\nAcorn Quince Pattern Poplar Nimbus\nOrbit Mesa Nebula Faint Valley",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Brightline Ergonomic Backpack R987"
+  },
+  "price": {
+   "role": "price",
+   "text": "\u20b920,381"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "SKU: BRI-81662"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "In stock"
+  }
+ },
+ "classes": {
+  "header": "site-header",
+  "nav": "site-nav",
+  "main": "site-main",
+  "footer": "site-footer",
+  "aside": "site-aside",
+  "article": "site-article",
+  "cookie": "site-cookie",
+  "title": "product__title",
+  "price": "product__price",
+  "brand": "product__brand",
+  "sku": "product__sku",
+  "rating": "product__rating",
+  "stock": "product__stock",
+  "desc": "product__description",
+  "specs": "product__specs",
+  "gallery": "product__gallery",
+  "grid": "listing__grid",
+  "card": "listing__card",
+  "card_title": "listing__card-title",
+  "card_price": "listing__card-price",
+  "card_link": "listing__card-link",
+  "byline": "article__byline",
+  "date": "article__date",
+  "body": "article__body",
+  "headline": "article__headline",
+  "related": "related-items",
+  "buy": "product__buy"
+ }
+}

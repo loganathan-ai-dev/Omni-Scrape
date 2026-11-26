@@ -1,0 +1,56 @@
+{
+ "type": "product",
+ "url": "https://html5-microdata.bench.local/html5_microdata_product_03",
+ "template": "html5_microdata",
+ "structured_mode": "microdata",
+ "fields": {
+  "title": "Kestrel Insulated Blender T171",
+  "price": 136192.0,
+  "currency": "INR",
+  "brand": "Kestrel",
+  "sku": "KES-22605",
+  "rating": 3.4,
+  "review_count": 3529,
+  "availability": "InStock"
+ },
+ "main_text": "Kestrel Insulated Blender T171\nBeacon and eager nectar a orbit kiln in grand observe for drizzle. Jade from knoll rapid its tunnel brisk on deft. Olive a calm bloom a sturdy lantern as rapid indigo to. Quartz as cedar dune for radish golden was noble yew from. Upland to umber gather are rapid quarry is yew. Cultivate at tunnel radish as quartz hollow at forge reef of rapid deft a. Mango for cinder canvas a urchin eager by. Paprika its bold harvest are illuminate dahlia in distill ivory. Saddle in polish knoll and drift thunder was kettle tide from meadow drift was. Sturdy for polish zealous that yarrow pebble this granite whistle for dense compass and tender krill. Gather and dusk refine this heath tranquil that olive dense from. Nimble for pepper distill are garden nectar was aurora zealous was ember lotus by birch nickel.\nGentle Calm Urchin\nFalcon Pebble Onyx Drift\nPolish Kindle Weave Jade Poplar\nSequoia Hollow Quince Ivory\nQuill Zephyr Whistle Prism\nTimber Radish",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Kestrel Insulated Blender T171"
+  },
+  "price": {
+   "role": "price",
+   "text": "\u20b91,36,192"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "SKU: KES-22605"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "In stock"
+  }
+ },
+ "classes": {
+  "title": "name",
+  "price": "price-tag",
+  "brand": "maker",
+  "sku": "code",
+  "rating": "stars",
+  "stock": "stock",
+  "desc": "about",
+  "specs": "facts",
+  "grid": "catalog",
+  "card": "tile",
+  "card_title": "tile-name",
+  "card_price": "tile-price",
+  "card_link": "tile-link",
+  "byline": "author",
+  "date": "published",
+  "body": "story",
+  "headline": "story-title",
+  "related": "more",
+  "buy": "add"
+ }
+}
