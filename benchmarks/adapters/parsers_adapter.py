@@ -104,7 +104,8 @@ class MarkdownifyAdapter(ToolAdapter):
     def markdown(self, html: str, url: str) -> str:
         from markdownify import markdownify
 
-        return markdownify(html, heading_style="ATX", strip=["script", "style", "noscript"])
+        # Defaults drop <script>/<style> contents; strip= would keep their text as output.
+        return markdownify(html, heading_style="ATX")
 
 
 class Html2TextAdapter(ToolAdapter):

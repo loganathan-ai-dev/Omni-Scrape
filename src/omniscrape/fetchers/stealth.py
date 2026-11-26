@@ -5,6 +5,7 @@ challenge is still present after loading, the result is returned with ``defense_
 so the caller can treat it as an access restriction.
 """
 
+import asyncio
 import time
 from typing import Any, Optional
 
@@ -34,6 +35,7 @@ class StealthFetcher(BaseFetcher):
         self._camoufox_cm: Any = None
         self._playwright: Any = None
         self._browser: Any = None
+        self._launch_lock = asyncio.Lock()
         try:
             import camoufox  # noqa: F401
 
@@ -44,6 +46,11 @@ class StealthFetcher(BaseFetcher):
     async def _ensure_browser(self) -> None:
         if self._browser is not None:
             return
+        async with self._launch_lock:  # concurrent first requests must share one browser
+            if self._browser is None:
+                await self._launch()
+
+    async def _launch(self) -> None:
         if self._camoufox_available:
             from camoufox.async_api import AsyncCamoufox
 
