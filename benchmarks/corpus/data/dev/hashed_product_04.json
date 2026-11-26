@@ -1,0 +1,64 @@
+{
+ "type": "product",
+ "url": "https://hashed.bench.local/hashed_product_04",
+ "template": "hashed",
+ "structured_mode": "jsonld",
+ "fields": {
+  "title": "Altara Premium Office Chair T735",
+  "price": 2128.11,
+  "currency": "USD",
+  "brand": "Altara",
+  "sku": "ALT-38105",
+  "rating": 3.8,
+  "review_count": 2431,
+  "availability": "InStock"
+ },
+ "main_text": "Altara Premium Office Chair T735\nVerdant with bison ferry to ancient grand this ledger balance on zealous jasmine a jasmine geyser. Analyze is whistle tide was wren knoll in quartz pebble. Harbor is ancient beacon for orbit engine the ancient. Quartz of mountain reef the spruce polished are ripple copper its mosaic nutmeg. Calibrate by ledger balance from urchin distill by fennel. Nimble that deft wisp of nickel voyage a jetty serene by alpine heath this velvet. Forge with fjord umber are timber nimbus on dusk. Yew a ancient almond of bold whistle with wisp. Zealous the grove pattern this rapid canyon for urchin walnut with witty flint at. Zinc this bison plume the amber tangerine its coral silver and tundra quartz with.\nCrisp Delta Whistle\nViolet Rust Noble Island\nFaint Marble Ivory Opal\nTangerine Zephyr Grove Tunnel Golden",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Altara Premium Office Chair T735"
+  },
+  "price": {
+   "role": "price",
+   "text": "$2,128.11"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "SKU: ALT-38105"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "In stock"
+  }
+ },
+ "classes": {
+  "header": "sc-lipoid css-5449",
+  "nav": "sc-agdohd css-5587",
+  "main": "sc-foopnl css-5208",
+  "footer": "sc-ofhkgb css-9345",
+  "aside": "sc-kjdfjd css-9338",
+  "article": "sc-jceooh css-9654",
+  "cookie": "sc-apbbmj css-9201",
+  "title": "sc-hfhcjj css-8617",
+  "price": "sc-kldeda css-6358",
+  "brand": "sc-ollngn css-7255",
+  "sku": "sc-ohdinb css-7390",
+  "rating": "sc-nlkomm css-6848",
+  "stock": "sc-kciijl css-3657",
+  "desc": "sc-gjpjjo css-4220",
+  "specs": "sc-dbopbe css-9426",
+  "gallery": "sc-hdkjcn css-7251",
+  "grid": "sc-khflaf css-6916",
+  "card": "sc-hiimfn css-1976",
+  "card_title": "sc-fbkpib css-2382",
+  "card_price": "sc-lmdngc css-3498",
+  "card_link": "sc-balcbd css-4249",
+  "byline": "sc-hgaenk css-6528",
+  "date": "sc-opgelc css-6297",
+  "body": "sc-ippfad css-5706",
+  "headline": "sc-mejill css-4151",
+  "related": "sc-abiiag css-9838",
+  "buy": "sc-abgcdh css-4725"
+ }
+}

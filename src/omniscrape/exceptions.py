@@ -24,13 +24,13 @@ class ConnectionTimeoutError(NetworkError):
 
 
 class DNSResolutionError(NetworkError):
-    """Host could not be resolved."""
-    pass
+    """Host could not be resolved (not retried: retrying rarely helps)."""
+    retryable: bool = False
 
 
 class SSLHandshakeError(NetworkError):
-    """SSL/TLS negotiation failure."""
-    pass
+    """SSL/TLS negotiation failure (not retried)."""
+    retryable: bool = False
 
 
 # 2. Anti-Bot & Access Control Errors

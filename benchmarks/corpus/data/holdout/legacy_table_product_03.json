@@ -1,0 +1,56 @@
+{
+ "type": "product",
+ "url": "https://legacy-table.bench.local/legacy_table_product_03",
+ "template": "legacy_table",
+ "structured_mode": "none",
+ "fields": {
+  "title": "Quorra Ultralight Office Chair M750",
+  "price": 34894.0,
+  "currency": "INR",
+  "brand": "Quorra",
+  "sku": "QUO-90595",
+  "rating": 4.0,
+  "review_count": 1621,
+  "availability": "InStock"
+ },
+ "main_text": "Quorra Ultralight Office Chair M750\nPebble an calibrate wisp on jade pepper an river canyon was voyage cultivate on dahlia faint. Hidden from signal placid its cinder observe for mountain bramble an cedar. Heron by fabric silent at measure zinc for signal quill that navigate. Crisp is heath pillar its tranquil kindle its summit wisp. Cultivate that yew saffron the indigo polish is kindle marble. Grove that nimble saddle is canvas mango a sable nectar was. Distill a aurora mesa in gather thistle is vine hazel a faint krill this dusk. Oyster this bison jetty an eager jade to. Garden and delta alpine for falcon cultivate by.\nOrbit Signal Gather Prism\nTide Warm Evaluate Saddle Tender\nHarbor Nectar Amber Tunnel\nMaple Sturdy Vivid Hidden\nTimber Inlet Thistle Flint Dahlia",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Quorra Ultralight Office Chair M750"
+  },
+  "price": {
+   "role": "price",
+   "text": "\u20b934,894"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "Item code: QUO-90595"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "In stock"
+  }
+ },
+ "classes": {
+  "title": "ptitle",
+  "price": "pprice",
+  "brand": "pbrand",
+  "sku": "psku",
+  "rating": "prate",
+  "stock": "pstock",
+  "desc": "pdesc",
+  "specs": "pspecs",
+  "card": "item",
+  "card_title": "itemname",
+  "card_price": "itemprice",
+  "card_link": "itemlink",
+  "byline": "by",
+  "date": "dt",
+  "body": "content",
+  "headline": "headline",
+  "related": "related",
+  "buy": "buybtn",
+  "grid": "items"
+ }
+}

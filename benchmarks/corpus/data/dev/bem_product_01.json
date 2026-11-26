@@ -1,0 +1,64 @@
+{
+ "type": "product",
+ "url": "https://bem.bench.local/bem_product_01",
+ "template": "bem",
+ "structured_mode": "microdata",
+ "fields": {
+  "title": "Veloria Wireless Blender M912",
+  "price": 603.21,
+  "currency": "EUR",
+  "brand": "Veloria",
+  "sku": "VEL-18710",
+  "rating": 3.6,
+  "review_count": 2908,
+  "availability": "InStock"
+ },
+ "main_text": "Veloria Wireless Blender M912\nPlacid in sculpt cultivate on signal cinder by olive elm. Radish with marble lively to lagoon walnut and. Swift for alpine basil an mellow urchin an estuary quarry in. Tunnel its grove thunder are rapid fjord and amber orbit to silent distill a. Radish to basil meadow is alpine dune this spruce spruce to. Brisk at weave violet was summit elm are quartz topaz and keen. Ivory by copper raven an analyze drizzle as ember prism in compass poplar. Humble an polish heron this mesa navigate in amber witty of tide opal. Kelp to jungle cobalt an thunder heath the pillar garden for cedar tundra a. Lark that thistle nutmeg its keen serene this. Island to granite harvest of indigo mosaic of opal sturdy was.\nWillow Nutmeg Calm\nGrand Wisp Reef Unveil\nNimbus Yarrow\nRipple Jungle Almond Drift\nCobalt Cedar Basil Moss",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Veloria Wireless Blender M912"
+  },
+  "price": {
+   "role": "price",
+   "text": "603,21 \u20ac"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "SKU: VEL-18710"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "In stock"
+  }
+ },
+ "classes": {
+  "header": "site-header",
+  "nav": "site-nav",
+  "main": "site-main",
+  "footer": "site-footer",
+  "aside": "site-aside",
+  "article": "site-article",
+  "cookie": "site-cookie",
+  "title": "product__title",
+  "price": "product__price",
+  "brand": "product__brand",
+  "sku": "product__sku",
+  "rating": "product__rating",
+  "stock": "product__stock",
+  "desc": "product__description",
+  "specs": "product__specs",
+  "gallery": "product__gallery",
+  "grid": "listing__grid",
+  "card": "listing__card",
+  "card_title": "listing__card-title",
+  "card_price": "listing__card-price",
+  "card_link": "listing__card-link",
+  "byline": "article__byline",
+  "date": "article__date",
+  "body": "article__body",
+  "headline": "article__headline",
+  "related": "related-items",
+  "buy": "product__buy"
+ }
+}

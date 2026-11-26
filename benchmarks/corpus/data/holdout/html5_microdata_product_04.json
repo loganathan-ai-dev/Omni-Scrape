@@ -1,0 +1,56 @@
+{
+ "type": "product",
+ "url": "https://html5-microdata.bench.local/html5_microdata_product_04",
+ "template": "html5_microdata",
+ "structured_mode": "microdata",
+ "fields": {
+  "title": "Brightline Insulated Backpack X361",
+  "price": 1106.94,
+  "currency": "USD",
+  "brand": "Brightline",
+  "sku": "BRI-30958",
+  "rating": 4.0,
+  "review_count": 2868,
+  "availability": "OutOfStock"
+ },
+ "main_text": "Brightline Insulated Backpack X361\nLotus at yew rust that voyage witty its. Brisk and weave upland on copper juniper as whistle estuary at saffron whistle its husk knoll. Willow this summit maple the tide distill is temper urchin an wheat walnut is canyon. Heath in rapid fjord its bison deft the nimble sequoia its dune. Orbit with fennel hidden the ember crisp was golden zephyr this. Quill by mighty quarry is keen witty was mosaic prism on vine. Noble from spruce velvet with pillar elm with fabric bloom. Valley that moss elm of mango kindle by island lark. Evaluate an mango ancient are nutmeg voyage of calm swift by. Beacon in pebble kiln was mighty orbit this violet tide. Ripple by unveil mighty its mountain brisk this pattern golden at pepper tranquil. Plume by engine wheat was harbor umber this sculpt nectar at topaz.\nTangerine Marble\nKrill Basil Timber Tangerine\nLagoon Husk Crisp Thistle\nWeave Fabric Lantern Geyser",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Brightline Insulated Backpack X361"
+  },
+  "price": {
+   "role": "price",
+   "text": "$1,106.94"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "SKU: BRI-30958"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "Out of stock"
+  }
+ },
+ "classes": {
+  "title": "name",
+  "price": "price-tag",
+  "brand": "maker",
+  "sku": "code",
+  "rating": "stars",
+  "stock": "stock",
+  "desc": "about",
+  "specs": "facts",
+  "grid": "catalog",
+  "card": "tile",
+  "card_title": "tile-name",
+  "card_price": "tile-price",
+  "card_link": "tile-link",
+  "byline": "author",
+  "date": "published",
+  "body": "story",
+  "headline": "story-title",
+  "related": "more",
+  "buy": "add"
+ }
+}

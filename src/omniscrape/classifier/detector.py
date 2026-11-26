@@ -26,11 +26,13 @@ SPA_INDICATORS = [
     re.compile(r'<noscript>[^<]*(?:enable|requires?)\s+javascript', re.IGNORECASE),
 ]
 
-_CF_CHALLENGE = re.compile(
-    r"challenges\.cloudflare\.com|cf-turnstile|/cdn-cgi/challenge-platform|cf_chl_opt|"
-    r"<title>\s*(?:Just a moment|Attention Required! \| Cloudflare)",
+# Interstitial challenge pages (the whole page is the challenge).
+_CF_INTERSTITIAL = re.compile(
+    r"/cdn-cgi/challenge-platform|cf_chl_opt|<title>\s*(?:Just a moment|Attention Required! \| Cloudflare)",
     re.IGNORECASE,
 )
+# Also seen on ordinary pages that embed a Turnstile widget in a form; only meaningful on block statuses.
+_CF_WIDGET = re.compile(r"challenges\.cloudflare\.com|cf-turnstile", re.IGNORECASE)
 _DATADOME = re.compile(r"captcha-delivery\.com|geo\.captcha-delivery|datadome", re.IGNORECASE)
 _PERIMETERX = re.compile(r"px-captcha|_pxhd|perimeterx|human\s*challenge", re.IGNORECASE)
 _AKAMAI = re.compile(r"Reference\s*#\d+\.[0-9a-f]+|akamai", re.IGNORECASE)
@@ -65,11 +67,14 @@ def detect_defense(status_code: int, headers: Mapping[str, str], body: str) -> D
     server = h.get("server", "")
     blocked = status_code in BLOCK_STATUSES
 
-    # Challenge pages are sometimes served with 200, so the body check stands alone.
-    if _CF_CHALLENGE.search(head) and (blocked or visible_text_length(head) < 2000):
+    # Interstitials are sometimes served with 200, so that check stands alone. A Turnstile widget alone
+    # (a protected login form on a normal page) is not a block.
+    if _CF_INTERSTITIAL.search(head) and (blocked or visible_text_length(head) < 2000):
         return DefenseSystem.CLOUDFLARE
     if not blocked:
         return DefenseSystem.NONE
+    if _CF_WIDGET.search(head):
+        return DefenseSystem.CLOUDFLARE
 
     if "cloudflare" in server or "cf-ray" in h or "cf-mitigated" in h:
         return DefenseSystem.CLOUDFLARE

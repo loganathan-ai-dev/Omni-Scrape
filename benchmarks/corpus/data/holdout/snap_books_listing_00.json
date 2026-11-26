@@ -1,0 +1,18 @@
+{
+ "type": "listing",
+ "url": "https://books.toscrape.com/catalogue/page-2.html",
+ "template": "toscrape_books",
+ "n_cards": 20,
+ "selectors": {
+  "cards": "article.product_pod",
+  "card_titles": "article.product_pod h3 a",
+  "card_prices": "article.product_pod p.price_color",
+  "card_links": "article.product_pod div.image_container a"
+ },
+ "expected_counts": {
+  "cards": 20,
+  "card_titles": 20,
+  "card_prices": 20,
+  "card_links": 20
+ }
+}

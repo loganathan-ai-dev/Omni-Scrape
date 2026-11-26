@@ -1,0 +1,18 @@
+{
+ "type": "listing",
+ "url": "https://utility.bench.local/utility_listing_02",
+ "template": "utility",
+ "n_cards": 240,
+ "selectors": {
+  "cards": "div.rounded-xl.border",
+  "card_titles": "div.rounded-xl.border h3",
+  "card_prices": "div.rounded-xl.border span.font-semibold",
+  "card_links": "div.rounded-xl.border a.block"
+ },
+ "expected_counts": {
+  "cards": 240,
+  "card_titles": 240,
+  "card_prices": 240,
+  "card_links": 240
+ }
+}

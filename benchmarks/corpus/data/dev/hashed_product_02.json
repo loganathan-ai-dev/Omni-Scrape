@@ -1,0 +1,64 @@
+{
+ "type": "product",
+ "url": "https://hashed.bench.local/hashed_product_02",
+ "template": "hashed",
+ "structured_mode": "og_only",
+ "fields": {
+  "title": "Oakhaven Classic Water Bottle X987",
+  "price": 2460.74,
+  "currency": "GBP",
+  "brand": "Oakhaven",
+  "sku": "OAK-75819",
+  "rating": 2.8,
+  "review_count": 1163,
+  "availability": "OutOfStock"
+ },
+ "main_text": "Oakhaven Classic Water Bottle X987\nCanyon on lichen quince to quarry cinder with maple willow on. Tender are nickel drift on heron willow an willow vine on valley tundra. Urchin on ferry bold of fjord vapor for river.\nEmber Canyon Nutmeg Spruce\nSwift Pillar Olive\nGarnet Cedar Timber Bold\nMellow Beacon Rapid Nimble",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Oakhaven Classic Water Bottle X987"
+  },
+  "price": {
+   "role": "price",
+   "text": "\u00a32,460.74"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "SKU: OAK-75819"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "Out of stock"
+  }
+ },
+ "classes": {
+  "header": "sc-lipoid css-5449",
+  "nav": "sc-agdohd css-5587",
+  "main": "sc-foopnl css-5208",
+  "footer": "sc-ofhkgb css-9345",
+  "aside": "sc-kjdfjd css-9338",
+  "article": "sc-jceooh css-9654",
+  "cookie": "sc-apbbmj css-9201",
+  "title": "sc-hfhcjj css-8617",
+  "price": "sc-kldeda css-6358",
+  "brand": "sc-ollngn css-7255",
+  "sku": "sc-ohdinb css-7390",
+  "rating": "sc-nlkomm css-6848",
+  "stock": "sc-kciijl css-3657",
+  "desc": "sc-gjpjjo css-4220",
+  "specs": "sc-dbopbe css-9426",
+  "gallery": "sc-hdkjcn css-7251",
+  "grid": "sc-khflaf css-6916",
+  "card": "sc-hiimfn css-1976",
+  "card_title": "sc-fbkpib css-2382",
+  "card_price": "sc-lmdngc css-3498",
+  "card_link": "sc-balcbd css-4249",
+  "byline": "sc-hgaenk css-6528",
+  "date": "sc-opgelc css-6297",
+  "body": "sc-ippfad css-5706",
+  "headline": "sc-mejill css-4151",
+  "related": "sc-abiiag css-9838",
+  "buy": "sc-abgcdh css-4725"
+ }
+}

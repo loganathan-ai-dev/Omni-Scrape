@@ -1,0 +1,18 @@
+{
+ "type": "listing",
+ "url": "https://html5-microdata.bench.local/html5_microdata_listing_00",
+ "template": "html5_microdata",
+ "n_cards": 48,
+ "selectors": {
+  "cards": "li.tile",
+  "card_titles": "li.tile h2.tile-name",
+  "card_prices": "li.tile data.tile-price",
+  "card_links": "a.tile-link"
+ },
+ "expected_counts": {
+  "cards": 48,
+  "card_titles": 48,
+  "card_prices": 48,
+  "card_links": 48
+ }
+}

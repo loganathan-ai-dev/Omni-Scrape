@@ -23,3 +23,8 @@ env/
 *.duckdb
 *.jsonl
 .omniscrape/
+
+# Benchmarks
+benchmarks/.envs/
+benchmarks/results/
+benchmarks/corpus/data/adaptive/
