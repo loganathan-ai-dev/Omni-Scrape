@@ -4,6 +4,7 @@ import os
 import re
 import sqlite3
 import json
+from contextlib import closing
 from pathlib import Path
 from typing import Any, Optional
 import lxml.html
@@ -96,7 +97,7 @@ class AdaptiveEngine:
         self._init_db()
 
     def _init_db(self):
-        with sqlite3.connect(self.db_path) as conn:
+        with closing(sqlite3.connect(self.db_path)) as conn, conn:
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS fingerprints (
                     domain TEXT,
@@ -106,10 +107,9 @@ class AdaptiveEngine:
                     PRIMARY KEY (domain, name)
                 )
             """)
-            conn.commit()
 
     def save_fingerprint(self, domain: str, name: str, fp: NodeFingerprint):
-        with sqlite3.connect(self.db_path) as conn:
+        with closing(sqlite3.connect(self.db_path)) as conn, conn:
             conn.execute("""
                 INSERT INTO fingerprints (domain, name, fingerprint)
                 VALUES (?, ?, ?)
@@ -117,16 +117,13 @@ class AdaptiveEngine:
                     fingerprint = excluded.fingerprint,
                     updated_at = CURRENT_TIMESTAMP
             """, (domain, name, json.dumps(fp.to_dict())))
-            conn.commit()
 
     def load_fingerprint(self, domain: str, name: str) -> Optional[NodeFingerprint]:
-        with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT fingerprint FROM fingerprints WHERE domain = ? AND name = ?", (domain, name))
-            row = cursor.fetchone()
-            if row:
-                return NodeFingerprint(json.loads(row[0]))
-        return None
+        with closing(sqlite3.connect(self.db_path)) as conn:
+            row = conn.execute(
+                "SELECT fingerprint FROM fingerprints WHERE domain = ? AND name = ?", (domain, name)
+            ).fetchone()
+        return NodeFingerprint(json.loads(row[0])) if row else None
 
     def calculate_similarity(self, fp1: NodeFingerprint, fp2: NodeFingerprint) -> float:
         """Weighted similarity metric across 12 structural factors."""

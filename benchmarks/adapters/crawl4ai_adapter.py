@@ -8,7 +8,7 @@ from benchmarks.adapters.base import ToolAdapter
 
 class Crawl4AIAdapter(ToolAdapter):
     package = "crawl4ai"
-    suites = frozenset({"markdown", "crawl"})
+    suites = frozenset({"markdown", "render", "crawl"})
 
     def __init__(self, fit: bool = False):
         self.fit = fit
@@ -33,6 +33,17 @@ class Crawl4AIAdapter(ToolAdapter):
         if self.fit:
             return result.fit_markdown or ""
         return result.raw_markdown or ""
+
+    def render(self, urls, concurrency):
+        from crawl4ai import AsyncWebCrawler, BrowserConfig, CacheMode, CrawlerRunConfig
+
+        async def main():
+            config = CrawlerRunConfig(cache_mode=CacheMode.BYPASS, semaphore_count=concurrency, verbose=False)
+            async with AsyncWebCrawler(config=BrowserConfig(headless=True, verbose=False)) as crawler:
+                results = await crawler.arun_many(urls, config=config)
+            return [{"url": r.url, "status": r.status_code or 0, "html": r.html or ""} for r in results]
+
+        return asyncio.run(main())
 
     def crawl(self, start_url, max_pages, concurrency, obey_robots, workdir):
         from crawl4ai import AsyncWebCrawler, BrowserConfig, CacheMode, CrawlerRunConfig
