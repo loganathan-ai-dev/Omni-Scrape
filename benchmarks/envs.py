@@ -19,7 +19,8 @@ PYTHON_VERSION = "3.12"
 LOCK_DIR = BENCH_DIR / "requirements"
 
 ENV_GROUPS: dict[str, dict] = {
-    "omniscrape": {"packages": ["psutil"], "editable": True},
+    "omniscrape": {"packages": ["psutil", "playwright"], "editable": True,
+                   "post": [["-m", "playwright", "install", "chromium"]]},
     "parsers": {"packages": ["lxml", "cssselect", "beautifulsoup4", "selectolax", "parsel", "trafilatura",
                              "markdownify", "html2text", "psutil"]},
     "scrapling": {"packages": ["scrapling[fetchers]", "psutil"]},

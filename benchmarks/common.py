@@ -1,6 +1,7 @@
 """Shared paths, text normalization and scoring helpers (stdlib only)."""
 
 import json
+import os
 import re
 import statistics
 from collections import Counter
@@ -11,7 +12,18 @@ BENCH_DIR = Path(__file__).resolve().parent
 REPO_ROOT = BENCH_DIR.parent
 CORPUS_DIR = BENCH_DIR / "corpus" / "data"
 RESULTS_DIR = BENCH_DIR / "results"
-ENVS_DIR = BENCH_DIR / ".envs"
+
+
+def _default_envs_dir() -> Path:
+    """Per-tool virtualenvs hold thousands of files, so keep them out of synced folders (OneDrive)."""
+    override = os.environ.get("OMNISCRAPE_BENCH_ENVS")
+    if override:
+        return Path(override)
+    base = os.environ.get("LOCALAPPDATA") or os.environ.get("XDG_CACHE_HOME") or str(Path.home() / ".cache")
+    return Path(base) / "omniscrape-bench" / "envs"
+
+
+ENVS_DIR = _default_envs_dir()
 
 _WORD = re.compile(r"[^\W\d_]{2,}", re.UNICODE)
 _WS = re.compile(r"\s+")
