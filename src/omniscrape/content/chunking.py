@@ -24,16 +24,14 @@ def chunk_markdown(md: str, max_tokens: int = 512, overlap_blocks: int = 0) -> l
     chunks: list[Chunk] = []
     path: list[tuple[int, str]] = []
     current: list[str] = []
-    current_tokens = 0
     current_path: list[str] = []
 
     def flush() -> None:
-        nonlocal current, current_tokens
+        nonlocal current
         if current:
             text = "\n\n".join(current)
             chunks.append(Chunk(text=text, headings=list(current_path), tokens=count_tokens(text)))
             current = current[-overlap_blocks:] if overlap_blocks else []
-            current_tokens = sum(count_tokens(c) for c in current)
 
     for block in blocks:
         m = _HEADING.match(block)
@@ -48,14 +46,13 @@ def chunk_markdown(md: str, max_tokens: int = 512, overlap_blocks: int = 0) -> l
         if count_tokens(block) > max_tokens:
             pieces = _split_sentences(block, max_tokens)
         for piece in pieces:
-            t = count_tokens(piece)
-            if current and current_tokens + t > max_tokens:
+            # measure the joined text: separators add tokens and per-block estimates round down
+            if current and count_tokens("\n\n".join([*current, piece])) > max_tokens:
                 flush()
                 current_path = [x for _, x in path]
             if not current:
                 current_path = [x for _, x in path]
             current.append(piece)
-            current_tokens += t
     flush()
     return chunks
 
