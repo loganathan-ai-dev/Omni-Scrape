@@ -102,11 +102,11 @@ class OmniScrapeAdapter(ToolAdapter):
     # -------------------------------------------------------------- crawl
     def crawl(self, start_url, max_pages, concurrency, obey_robots, workdir):
         from omniscrape.crawler.engine import CrawlEngine
+        from omniscrape.crawler.links import LinkExtractor
         from omniscrape.crawler.spider import Request, Spider
 
-        host = urlsplit(start_url).netloc
         pages: list[dict[str, Any]] = []
-        scheduled = {start_url}  # hard cap on scheduled URLs, so queued requests never exceed max_pages
+        links = LinkExtractor(same_domain=True)
 
         class BenchSpider(Spider):
             name = "bench"
@@ -116,21 +116,11 @@ class OmniScrapeAdapter(ToolAdapter):
                 titles = selector.css("title")
                 pages.append({"url": response.url, "status": response.status_code,
                               "title": titles[0].text if titles else ""})
-                for a in selector.css("a[href]"):
-                    url = urljoin(response.url, a.get("href")).split("#")[0]
-                    if urlsplit(url).netloc == host and url not in scheduled and len(scheduled) < max_pages:
-                        scheduled.add(url)
-                        yield Request(url=url)
+                for url in links.extract(selector, response.url):
+                    yield Request(url=url)
 
         BenchSpider.concurrency = concurrency
-        engine_kwargs: dict[str, Any] = {"use_checkpoint": False}
-        import inspect
-
-        params = inspect.signature(CrawlEngine.__init__).parameters
-        if "obey_robots" in params:  # added in Phase 5
-            engine_kwargs["obey_robots"] = obey_robots
-        if "max_pages" in params:
-            engine_kwargs["max_pages"] = max_pages
-        engine = CrawlEngine(BenchSpider(), **engine_kwargs)
+        engine = CrawlEngine(BenchSpider(), obey_robots=obey_robots, max_pages=max_pages,
+                             allowed_domains=[urlsplit(start_url).netloc])
         asyncio.run(engine.run())
         return pages
