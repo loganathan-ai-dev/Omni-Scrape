@@ -11,6 +11,11 @@ class OmniScrapeAdapter(ToolAdapter):
     package = "omniscrape"
     suites = frozenset({"parse", "extract", "markdown", "adaptive", "render", "crawl", "live"})
 
+    def __init__(self, isolate: bool = False):
+        # render suite: isolate=False shares one browser context and reuses tabs (like the other tools'
+        # sessions); isolate=True is OmniScrape's default: a fresh context per page.
+        self.isolate = isolate
+
     def prepare(self) -> None:
         import omniscrape  # noqa: F401
 
@@ -86,7 +91,7 @@ class OmniScrapeAdapter(ToolAdapter):
 
         async def main():
             sem = asyncio.Semaphore(concurrency)
-            async with OmniClient(retries=1) as client:
+            async with OmniClient(retries=1, fetcher_options={2: {"isolate": self.isolate}}) as client:
                 async def one(url):
                     async with sem:
                         try:
