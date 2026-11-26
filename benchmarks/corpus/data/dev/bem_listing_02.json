@@ -1,0 +1,18 @@
+{
+ "type": "listing",
+ "url": "https://bem.bench.local/bem_listing_02",
+ "template": "bem",
+ "n_cards": 240,
+ "selectors": {
+  "cards": "div.listing__card",
+  "card_titles": "div.listing__card h3.listing__card-title",
+  "card_prices": "div.listing__card span.listing__card-price",
+  "card_links": "a.listing__card-link"
+ },
+ "expected_counts": {
+  "cards": 240,
+  "card_titles": 240,
+  "card_prices": 240,
+  "card_links": 240
+ }
+}

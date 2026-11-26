@@ -1,0 +1,56 @@
+{
+ "type": "product",
+ "url": "https://legacy-table.bench.local/legacy_table_product_05",
+ "template": "legacy_table",
+ "structured_mode": "microdata",
+ "fields": {
+  "title": "Altara Insulated Desk Lamp K949",
+  "price": 294.63,
+  "currency": "EUR",
+  "brand": "Altara",
+  "sku": "ALT-30287",
+  "rating": 3.3,
+  "review_count": 27,
+  "availability": "OutOfStock"
+ },
+ "main_text": "Altara Insulated Desk Lamp K949\nLedger was flint pebble that nickel dense and compass mighty. Prism to cinder sable and nimble mountain from. Mellow is wren orbit by almond fierce that. Saffron is paprika observe to anchor tranquil by bloom violet at polished sculpt by beacon wren. Polish with hollow hidden the krill kettle this lofty acorn. Weave by quill unveil by reef robust for calibrate mountain from. Kiln at dahlia sable in garden unveil this. Fjord with evaluate compass from urchin quarry with quaint vine its saffron gather of nebula tundra. Polish and cinder estuary from ember harbor of pillar. Ancient at analyze island of bloom crisp its opal marble and husk. Quartz in anchor dense an serene dune on harvest.\nTemper Noble Faint Oyster Jasmine\nRefine Delta Juniper Robust Sable\nMountain Marble\nJuniper Bold\nHarvest Aurora Canyon Refine\nDrift Lantern\nLofty Gravel Fabric\nKeen Fabric Kettle Kiln\nTundra Cobalt Juniper Engine",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Altara Insulated Desk Lamp K949"
+  },
+  "price": {
+   "role": "price",
+   "text": "294,63 \u20ac"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "Item code: ALT-30287"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "Out of stock"
+  }
+ },
+ "classes": {
+  "title": "ptitle",
+  "price": "pprice",
+  "brand": "pbrand",
+  "sku": "psku",
+  "rating": "prate",
+  "stock": "pstock",
+  "desc": "pdesc",
+  "specs": "pspecs",
+  "card": "item",
+  "card_title": "itemname",
+  "card_price": "itemprice",
+  "card_link": "itemlink",
+  "byline": "by",
+  "date": "dt",
+  "body": "content",
+  "headline": "headline",
+  "related": "related",
+  "buy": "buybtn",
+  "grid": "items"
+ }
+}

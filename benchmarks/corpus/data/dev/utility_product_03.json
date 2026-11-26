@@ -1,0 +1,64 @@
+{
+ "type": "product",
+ "url": "https://utility.bench.local/utility_product_03",
+ "template": "utility",
+ "structured_mode": "none",
+ "fields": {
+  "title": "Oakhaven Ultralight Desk Lamp K636",
+  "price": 142725.0,
+  "currency": "INR",
+  "brand": "Oakhaven",
+  "sku": "OAK-19852",
+  "rating": 4.7,
+  "review_count": 1923,
+  "availability": "InStock"
+ },
+ "main_text": "Oakhaven Ultralight Desk Lamp K636\nJuniper was gravel drift by oyster pebble this inlet jade the lark gentle for bloom. Lively its pillar estuary its husk kiln this bramble cobalt are robust reef for cultivate ember. Jetty at elm tunnel by bison falcon a valley yarrow. Quince this jasmine ledger this amber anchor its voyage garden from timber keen. Kelp this canyon lark was oyster serene its illuminate quince the amber calm from basil nimble.\nLantern Zephyr Thunder Lively Quartz\nNickel Temper Deft\nGather Whistle Vivid Flint Spruce\nWalnut Calm Lively\nSaffron Garnet Fierce Swift\nLantern Engine Dusk\nCalm Drizzle Amber Upland Gather",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Oakhaven Ultralight Desk Lamp K636"
+  },
+  "price": {
+   "role": "price",
+   "text": "\u20b91,42,725"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "SKU: OAK-19852"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "In stock"
+  }
+ },
+ "classes": {
+  "header": "flex items-center justify-between px-6 py-4 bg-white shadow",
+  "nav": "hidden md:flex gap-4",
+  "main": "container mx-auto px-4",
+  "footer": "mt-16 bg-gray-900 text-gray-300 py-10",
+  "aside": "w-full lg:w-1/3 space-y-4",
+  "article": "prose lg:prose-xl",
+  "cookie": "fixed bottom-0 inset-x-0 p-4",
+  "title": "text-3xl font-bold tracking-tight",
+  "price": "text-2xl font-semibold text-emerald-600",
+  "brand": "text-sm uppercase text-gray-500",
+  "sku": "text-xs text-gray-400",
+  "rating": "flex items-center gap-1",
+  "stock": "text-sm font-medium",
+  "desc": "mt-4 text-gray-700 leading-7",
+  "specs": "mt-6 divide-y",
+  "gallery": "grid grid-cols-4 gap-2",
+  "grid": "grid grid-cols-2 md:grid-cols-4 gap-6",
+  "card": "rounded-xl border p-4 hover:shadow-lg",
+  "card_title": "mt-2 text-base font-medium",
+  "card_price": "mt-1 font-semibold",
+  "card_link": "block",
+  "byline": "text-sm text-gray-600",
+  "date": "text-sm text-gray-500",
+  "body": "mt-8 space-y-6",
+  "headline": "text-4xl font-extrabold",
+  "related": "mt-12 grid grid-cols-3 gap-4",
+  "buy": "mt-6 w-full rounded-lg bg-black px-4 py-3 text-white"
+ }
+}

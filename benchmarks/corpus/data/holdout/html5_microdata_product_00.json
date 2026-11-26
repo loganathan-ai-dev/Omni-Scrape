@@ -1,0 +1,56 @@
+{
+ "type": "product",
+ "url": "https://html5-microdata.bench.local/html5_microdata_product_00",
+ "template": "html5_microdata",
+ "structured_mode": "microdata",
+ "fields": {
+  "title": "Nordvik Smart Blender T877",
+  "price": 2417.33,
+  "currency": "USD",
+  "brand": "Nordvik",
+  "sku": "NOR-65381",
+  "rating": 3.7,
+  "review_count": 3798,
+  "availability": "InStock"
+ },
+ "main_text": "Nordvik Smart Blender T877\nSaddle in olive dune the swift dahlia from vivid urchin was observe river of. Gather as beacon serene in refine acorn are quince heron and orchid. Illuminate in almond coral for bison drizzle was mighty calm. Indigo the robust maple and wisp walnut on moss. Weave its sable zealous from wren engine this. Mighty by walnut silver with cobalt serene that lagoon falcon. Warm are prism saddle its vast bloom an. Brisk are silver inlet to yew nickel with indigo birch and drizzle. Rapid in spruce measure was balance walnut this zinc vivid at.\nRaven Drift Lantern Meadow Iris\nWhistle Forge Flint\nNutmeg Ivory Jasmine\nBasil Acorn Quince\nAcorn Hidden Mighty Garnet\nPolish Beacon",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Nordvik Smart Blender T877"
+  },
+  "price": {
+   "role": "price",
+   "text": "$2,417.33"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "SKU: NOR-65381"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "In stock"
+  }
+ },
+ "classes": {
+  "title": "name",
+  "price": "price-tag",
+  "brand": "maker",
+  "sku": "code",
+  "rating": "stars",
+  "stock": "stock",
+  "desc": "about",
+  "specs": "facts",
+  "grid": "catalog",
+  "card": "tile",
+  "card_title": "tile-name",
+  "card_price": "tile-price",
+  "card_link": "tile-link",
+  "byline": "author",
+  "date": "published",
+  "body": "story",
+  "headline": "story-title",
+  "related": "more",
+  "buy": "add"
+ }
+}

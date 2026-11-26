@@ -1,0 +1,63 @@
+{
+ "type": "product",
+ "url": "https://nextjs.bench.local/nextjs_product_01",
+ "template": "nextjs",
+ "structured_mode": "microdata",
+ "fields": {
+  "title": "Veloria Ultralight Backpack X152",
+  "price": 347.78,
+  "currency": "EUR",
+  "brand": "Veloria",
+  "sku": "VEL-71602",
+  "rating": 2.6,
+  "review_count": 1046,
+  "availability": "InStock"
+ },
+ "main_text": "Veloria Ultralight Backpack X152\nMellow is brisk grand that voyage cinder its vapor dusk. Observe and indigo nutmeg that topaz topaz a velvet quartz this zephyr sequoia its grove. Upland on lagoon fabric are dusk nimbus of wren forge this compass kindle a robust. Spruce at kettle tundra is plume pillar with drizzle saddle from coral harvest at birch. Delta its raven engine and unveil husk by inlet paprika with mellow brisk from. Voyage to analyze thunder its lichen alpine the amber fabric at lotus geyser its elm rust. Dense an urchin nectar in tender sculpt for quartz meadow was. Geyser from tranquil cinder its inlet quince the orchid. Ledger at balance flint at falcon quaint by jade umber in radish robust with garden marble. Alpine for heron engine and hidden elm of bramble delta by timber. Garnet in kindle dune an polished placid of flint swift to witty birch from saddle fennel.\nCoral Yarrow Garden\nHidden Yew\nUmber Heron Knoll Evaluate\nLark Coral Keen Oyster Drizzle",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Veloria Ultralight Backpack X152"
+  },
+  "price": {
+   "role": "price",
+   "text": "347,78 \u20ac"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "SKU: VEL-71602"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "In stock"
+  }
+ },
+ "classes": {
+  "header": "Header_4GaBB",
+  "nav": "Nav_795dG",
+  "main": "Main_GfG06",
+  "footer": "Footer_4fdfg",
+  "aside": "Aside_e6FC5",
+  "article": "Article_Gf409",
+  "title": "Title_A8GHF",
+  "price": "Price_hC145",
+  "brand": "Brand_0Fd9E",
+  "sku": "Sku_a6H00",
+  "rating": "Rating_8Caf2",
+  "stock": "Stock_DcD15",
+  "desc": "Desc_18DG6",
+  "specs": "Specs_g626g",
+  "gallery": "Gallery_c8FA8",
+  "grid": "Grid_g42b1",
+  "card": "Card_d4CDa",
+  "card_title": "CardTitle_Bd9B3",
+  "card_price": "CardPrice_gA5B5",
+  "card_link": "CardLink_FgD1h",
+  "byline": "Byline_77cFd",
+  "date": "Date_42F61",
+  "body": "Body_9H05D",
+  "headline": "Headline_FF63B",
+  "related": "Related_gA0ha",
+  "buy": "Buy_f6G3H"
+ }
+}

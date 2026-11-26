@@ -1,0 +1,63 @@
+{
+ "type": "product",
+ "url": "https://nextjs.bench.local/nextjs_product_04",
+ "template": "nextjs",
+ "structured_mode": "jsonld",
+ "fields": {
+  "title": "Tessaro Classic Water Bottle R262",
+  "price": 757.6,
+  "currency": "USD",
+  "brand": "Tessaro",
+  "sku": "TES-26314",
+  "rating": 2.8,
+  "review_count": 3085,
+  "availability": "InStock"
+ },
+ "main_text": "Tessaro Classic Water Bottle R262\nCanvas a marble flint an evaluate mango is krill violet at. Quarry at fierce aurora to quince vivid was. River the wheat knoll its jungle golden in kindle dense the husk velvet in pattern mosaic. Lark from lark vivid an willow summit on drizzle signal that weave onyx this. Raven its placid dense in noble polished and upland mosaic. Reef an dense kelp for inlet olive its yarrow quarry a tender knoll by lagoon juniper. Raven and sable pebble is basil cultivate are kiln wheat of coral polished in nutmeg. Unveil to kelp onyx for inlet moss a ember voyage its placid nebula that basil weave.\nTide Dense Velvet\nPrism Nebula\nIndigo Mighty\nNimbus Orbit\nValley Cultivate Cultivate",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Tessaro Classic Water Bottle R262"
+  },
+  "price": {
+   "role": "price",
+   "text": "$757.60"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "SKU: TES-26314"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "In stock"
+  }
+ },
+ "classes": {
+  "header": "Header_4GaBB",
+  "nav": "Nav_795dG",
+  "main": "Main_GfG06",
+  "footer": "Footer_4fdfg",
+  "aside": "Aside_e6FC5",
+  "article": "Article_Gf409",
+  "title": "Title_A8GHF",
+  "price": "Price_hC145",
+  "brand": "Brand_0Fd9E",
+  "sku": "Sku_a6H00",
+  "rating": "Rating_8Caf2",
+  "stock": "Stock_DcD15",
+  "desc": "Desc_18DG6",
+  "specs": "Specs_g626g",
+  "gallery": "Gallery_c8FA8",
+  "grid": "Grid_g42b1",
+  "card": "Card_d4CDa",
+  "card_title": "CardTitle_Bd9B3",
+  "card_price": "CardPrice_gA5B5",
+  "card_link": "CardLink_FgD1h",
+  "byline": "Byline_77cFd",
+  "date": "Date_42F61",
+  "body": "Body_9H05D",
+  "headline": "Headline_FF63B",
+  "related": "Related_gA0ha",
+  "buy": "Buy_f6G3H"
+ }
+}

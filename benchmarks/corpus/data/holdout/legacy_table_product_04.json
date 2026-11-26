@@ -1,0 +1,56 @@
+{
+ "type": "product",
+ "url": "https://legacy-table.bench.local/legacy_table_product_04",
+ "template": "legacy_table",
+ "structured_mode": "jsonld",
+ "fields": {
+  "title": "Nordvik Ergonomic Blender K491",
+  "price": 1011.83,
+  "currency": "USD",
+  "brand": "Nordvik",
+  "sku": "NOR-25795",
+  "rating": 5.0,
+  "review_count": 162,
+  "availability": "OutOfStock"
+ },
+ "main_text": "Nordvik Ergonomic Blender K491\nVerdant for tundra zephyr at humble radish on knoll harbor by radish forge. Engine this kiln willow in hazel silent at rapid drizzle to. Faint to nickel hollow was lively valley at.\nPaprika Tender Saffron\nUmber Heron Thunder\nPebble Mountain Knoll Mellow\nJuniper Quarry",
+ "targets": {
+  "title": {
+   "role": "title",
+   "text": "Nordvik Ergonomic Blender K491"
+  },
+  "price": {
+   "role": "price",
+   "text": "$1,011.83"
+  },
+  "sku": {
+   "role": "sku",
+   "text": "Item code: NOR-25795"
+  },
+  "stock": {
+   "role": "stock",
+   "text": "Out of stock"
+  }
+ },
+ "classes": {
+  "title": "ptitle",
+  "price": "pprice",
+  "brand": "pbrand",
+  "sku": "psku",
+  "rating": "prate",
+  "stock": "pstock",
+  "desc": "pdesc",
+  "specs": "pspecs",
+  "card": "item",
+  "card_title": "itemname",
+  "card_price": "itemprice",
+  "card_link": "itemlink",
+  "byline": "by",
+  "date": "dt",
+  "body": "content",
+  "headline": "headline",
+  "related": "related",
+  "buy": "buybtn",
+  "grid": "items"
+ }
+}
