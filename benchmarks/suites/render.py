@@ -48,6 +48,8 @@ def run(ctx) -> dict[str, Any]:
         server.stop()
     return {"suite": "render", "params": {"pages": n, "concurrency": concurrency, "page": "inline-script hydration"},
             "notes": ["Cold batch: includes browser launch, so it measures what a one-off job costs.",
-                      "Each tool uses its own default browser path (OmniScrape tier 2, Crawl4AI AsyncWebCrawler, "
-                      "Scrapling AsyncStealthySession)."],
+                      "Each tool uses its own browser path (OmniScrape tier 2, Crawl4AI AsyncWebCrawler, "
+                      "Scrapling AsyncStealthySession).",
+                      "omniscrape shares one browser context and reuses tabs, like the other tools' sessions; "
+                      "omniscrape-isolated is OmniScrape's default (a fresh context per page, no shared cookies)."],
             "tools": tools}

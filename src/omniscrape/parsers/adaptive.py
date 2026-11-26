@@ -1,188 +1,228 @@
-"""12-factor structural fingerprinting and self-healing selector engine."""
+"""Self-healing selectors: fingerprint an element once, find it again after the page changes.
 
-import os
+A fingerprint records structure (tag, full ancestor tag path, depth, sibling position, child
+tags), attributes (stable keys, classes), content (text, shingles, digit/currency shape) and
+context (words from neighbouring siblings and the parent, e.g. labels such as "SKU:").
+Relocation scores every element in the new page on all factors; it never requires the tag or
+classes to match. A match is accepted only above ``min_confidence`` and when it beats the runner-up
+by ``margin`` (ambiguous matches are rejected: a missed element is safer than a wrong one).
+
+Use through ``Selector(html, url=..., adaptive=True)``::
+
+    page.css(".price", auto_save=True)      # first run: remember the element
+    page.css(".price", adaptive=True)       # later: falls back to relocation if the selector breaks
+"""
+
+import json
 import re
 import sqlite3
-import json
 from contextlib import closing
 from pathlib import Path
 from typing import Any, Optional
-import lxml.html
-from omniscrape.parsers.selector import Element, Selector
+
 from omniscrape.observability.logging import get_logger
 
 logger = get_logger("omniscrape.parsers.adaptive")
 
+SKIP_TAGS = {"html", "head", "script", "style", "noscript", "template", "meta", "link", "title", "br", "svg", "path"}
+VOLATILE_ATTRS = {"class", "style", "id"}
+_WORD = re.compile(r"[^\W_]{2,}", re.UNICODE)
+
+# factor weights (sum to 1.0)
+WEIGHTS = {
+    "tag": 0.10, "path": 0.18, "depth": 0.04, "parent_tag": 0.05, "attr_keys": 0.08, "classes": 0.05,
+    "text_exact": 0.12, "text_shingles": 0.08, "text_shape": 0.07, "siblings": 0.05, "children": 0.05,
+    "context": 0.13,
+}
+
+
+def _words(text: str, limit: int = 40) -> list[str]:
+    return [w.casefold() for w in _WORD.findall(text or "")][:limit]
+
+
+def _shingles(text: str, n: int = 3) -> set[str]:
+    t = " ".join((text or "").casefold().split())
+    return {t[i:i + n] for i in range(max(1, len(t) - n + 1))} if t else set()
+
+
+def _jaccard(a: set, b: set) -> float:
+    if not a and not b:
+        return 1.0
+    return len(a & b) / len(a | b) if a | b else 0.0
+
+
+def _lcs_ratio(a: list[str], b: list[str]) -> float:
+    if not a and not b:
+        return 1.0
+    if not a or not b:
+        return 0.0
+    prev = [0] * (len(b) + 1)
+    for x in a:
+        cur = [0]
+        for j, y in enumerate(b, 1):
+            cur.append(prev[j - 1] + 1 if x == y else max(prev[j], cur[j - 1]))
+        prev = cur
+    return 2 * prev[-1] / (len(a) + len(b))
+
+
+def _own_text(node: Any) -> str:
+    return " ".join((node.text_content() or "").split())
+
 
 class NodeFingerprint:
-    """12-factor structural profile of an HTML DOM node."""
+    """Structural, attribute, content and context profile of a DOM node."""
+
+    FIELDS = ("tag", "path", "hierarchy", "text", "text_len", "has_digits", "has_currency", "stable_attrib_keys",
+              "classes", "attrib_count", "child_count", "child_tags", "sibling_count", "sibling_index", "dom_depth",
+              "parent_tag", "id_fragment", "context")
 
     def __init__(self, data: dict[str, Any]):
         self.tag: str = data.get("tag", "")
-        self.hierarchy: str = data.get("hierarchy", "")
-        self.text_len: int = data.get("text_len", 0)
+        self.path: list[str] = data.get("path") or [t for t in data.get("hierarchy", "").split(">") if t]
+        self.hierarchy: str = data.get("hierarchy", ">".join(self.path[-4:]))
+        self.text: str = data.get("text", "")
+        self.text_len: int = data.get("text_len", len(self.text))
         self.has_digits: bool = data.get("has_digits", False)
         self.has_currency: bool = data.get("has_currency", False)
         self.stable_attrib_keys: list[str] = data.get("stable_attrib_keys", [])
+        self.classes: list[str] = data.get("classes", [])
         self.attrib_count: int = data.get("attrib_count", 0)
         self.child_count: int = data.get("child_count", 0)
+        self.child_tags: list[str] = data.get("child_tags", [])
         self.sibling_count: int = data.get("sibling_count", 0)
-        self.dom_depth: int = data.get("dom_depth", 0)
+        self.sibling_index: int = data.get("sibling_index", 0)
+        self.dom_depth: int = data.get("dom_depth", len(self.path))
         self.parent_tag: str = data.get("parent_tag", "")
         self.id_fragment: str = data.get("id_fragment", "")
+        self.context: list[str] = data.get("context", [])
+        self._shingles: Optional[set[str]] = None
 
     def to_dict(self) -> dict[str, Any]:
-        return {
-            "tag": self.tag,
-            "hierarchy": self.hierarchy,
-            "text_len": self.text_len,
-            "has_digits": self.has_digits,
-            "has_currency": self.has_currency,
-            "stable_attrib_keys": self.stable_attrib_keys,
-            "attrib_count": self.attrib_count,
-            "child_count": self.child_count,
-            "sibling_count": self.sibling_count,
-            "dom_depth": self.dom_depth,
-            "parent_tag": self.parent_tag,
-            "id_fragment": self.id_fragment,
-        }
+        return {f: getattr(self, f) for f in self.FIELDS}
+
+    @property
+    def shingles(self) -> set[str]:
+        if self._shingles is None:
+            self._shingles = _shingles(self.text[:300])
+        return self._shingles
 
     @classmethod
-    def from_element(cls, el: Element) -> "NodeFingerprint":
-        raw = el._node
-        text = el.text
-
-        # Get ancestor hierarchy
-        ancestors = []
-        curr = raw.getparent()
-        depth = 0
-        while curr is not None:
-            depth += 1
-            ancestors.append(curr.tag.lower())
-            curr = curr.getparent()
-        hierarchy = ">".join(reversed(ancestors[-4:])) if ancestors else ""
-
+    def from_node(cls, raw: Any) -> "NodeFingerprint":
+        text = _own_text(raw)
+        ancestors = [a.tag.lower() for a in raw.iterancestors() if isinstance(a.tag, str)]
+        path = list(reversed(ancestors))
         parent = raw.getparent()
-        parent_tag = parent.tag.lower() if parent is not None else ""
-        siblings = list(parent.iterchildren()) if parent is not None else []
-
-        attrib_keys = [k for k in raw.attrib.keys() if k.startswith(("data-", "aria-", "itemprop", "role", "name"))]
-
+        siblings = [s for s in parent if isinstance(s.tag, str)] if parent is not None else [raw]
+        children = [c for c in raw if isinstance(c.tag, str)]
+        context_parts = []
+        prev_sib, next_sib = raw.getprevious(), raw.getnext()
+        while prev_sib is not None and not isinstance(prev_sib.tag, str):
+            prev_sib = prev_sib.getprevious()
+        while next_sib is not None and not isinstance(next_sib.tag, str):
+            next_sib = next_sib.getnext()
+        if prev_sib is not None:
+            context_parts.append(_own_text(prev_sib)[-120:])
+        if next_sib is not None:
+            context_parts.append(_own_text(next_sib)[:120])
+        if parent is not None:  # parent's own text outside this node (labels like "SKU:")
+            parent_bits = [parent.text or ""] + [c.tail or "" for c in parent]
+            context_parts.append(" ".join(parent_bits)[:200])
+        stable = sorted(k for k in raw.attrib if k not in VOLATILE_ATTRS)
         return cls({
-            "tag": el.tag,
-            "hierarchy": hierarchy,
-            "text_len": len(text),
-            "has_digits": bool(re.search(r"\d", text)),
-            "has_currency": bool(re.search(r"[₹$€£¥]", text)),
-            "stable_attrib_keys": sorted(attrib_keys),
-            "attrib_count": len(raw.attrib),
-            "child_count": len(list(raw.iterchildren())),
-            "sibling_count": len(siblings),
-            "dom_depth": depth,
-            "parent_tag": parent_tag,
-            "id_fragment": raw.attrib.get("id", "")[:12],
+            "tag": raw.tag.lower(), "path": path, "hierarchy": ">".join(path[-4:]), "text": text[:500],
+            "text_len": len(text), "has_digits": bool(re.search(r"\d", text)),
+            "has_currency": bool(re.search(r"[₹$€£¥]|\b(?:USD|EUR|GBP|INR)\b", text)),
+            "stable_attrib_keys": stable, "classes": sorted((raw.get("class") or "").split()),
+            "attrib_count": len(raw.attrib), "child_count": len(children), "child_tags": [c.tag for c in children][:20],
+            "sibling_count": len(siblings), "sibling_index": siblings.index(raw) if raw in siblings else 0,
+            "dom_depth": len(path), "parent_tag": parent.tag.lower() if parent is not None and isinstance(parent.tag, str) else "",
+            "id_fragment": (raw.get("id") or "")[:12], "context": _words(" ".join(context_parts)),
         })
+
+    @classmethod
+    def from_element(cls, el: Any) -> "NodeFingerprint":
+        return cls.from_node(el._node if hasattr(el, "_node") else el)
+
+
+def similarity(a: NodeFingerprint, b: NodeFingerprint) -> float:
+    s = 0.0
+    s += WEIGHTS["tag"] * (a.tag == b.tag)
+    s += WEIGHTS["path"] * _lcs_ratio(a.path, b.path)
+    s += WEIGHTS["depth"] * max(0.0, 1 - abs(a.dom_depth - b.dom_depth) / 4)
+    s += WEIGHTS["parent_tag"] * (a.parent_tag == b.parent_tag)
+    s += WEIGHTS["attr_keys"] * _jaccard(set(a.stable_attrib_keys), set(b.stable_attrib_keys))
+    s += WEIGHTS["classes"] * (_jaccard(set(a.classes), set(b.classes)) if a.classes or b.classes else 1.0)
+    s += WEIGHTS["text_exact"] * (bool(a.text) and a.text == b.text)
+    s += WEIGHTS["text_shingles"] * _jaccard(a.shingles, b.shingles)
+    shape = (a.has_digits == b.has_digits) + (a.has_currency == b.has_currency)
+    shape += max(0.0, 1 - abs(a.text_len - b.text_len) / max(a.text_len, b.text_len, 1))
+    s += WEIGHTS["text_shape"] * shape / 3
+    sib = max(0.0, 1 - abs(a.sibling_count - b.sibling_count) / max(a.sibling_count, b.sibling_count, 1))
+    s += WEIGHTS["siblings"] * (0.5 * sib + 0.5 * (a.sibling_index == b.sibling_index))
+    s += WEIGHTS["children"] * _lcs_ratio(a.child_tags, b.child_tags)
+    s += WEIGHTS["context"] * _jaccard(set(a.context), set(b.context))
+    return round(s, 4)
 
 
 class AdaptiveEngine:
-    """Manages persistent selector fingerprints and computes multi-factor similarity relocation."""
+    """Persistent fingerprints (SQLite) plus relocation."""
 
     def __init__(self, db_path: Optional[str] = None):
         if not db_path:
             cache_dir = Path.home() / ".omniscrape"
             cache_dir.mkdir(parents=True, exist_ok=True)
             db_path = str(cache_dir / "fingerprints.db")
-
         self.db_path = db_path
-        self._init_db()
-
-    def _init_db(self):
         with closing(sqlite3.connect(self.db_path)) as conn, conn:
-            conn.execute("""
-                CREATE TABLE IF NOT EXISTS fingerprints (
-                    domain TEXT,
-                    name TEXT,
-                    fingerprint TEXT,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    PRIMARY KEY (domain, name)
-                )
-            """)
+            conn.execute("""CREATE TABLE IF NOT EXISTS fingerprints (
+                domain TEXT, name TEXT, fingerprint TEXT, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (domain, name))""")
 
-    def save_fingerprint(self, domain: str, name: str, fp: NodeFingerprint):
+    def save_fingerprint(self, domain: str, name: str, fp: NodeFingerprint) -> None:
         with closing(sqlite3.connect(self.db_path)) as conn, conn:
-            conn.execute("""
-                INSERT INTO fingerprints (domain, name, fingerprint)
-                VALUES (?, ?, ?)
-                ON CONFLICT(domain, name) DO UPDATE SET
-                    fingerprint = excluded.fingerprint,
-                    updated_at = CURRENT_TIMESTAMP
-            """, (domain, name, json.dumps(fp.to_dict())))
+            conn.execute("""INSERT INTO fingerprints (domain, name, fingerprint) VALUES (?, ?, ?)
+                ON CONFLICT(domain, name) DO UPDATE SET fingerprint = excluded.fingerprint, updated_at = CURRENT_TIMESTAMP""",
+                         (domain, name, json.dumps(fp.to_dict())))
 
     def load_fingerprint(self, domain: str, name: str) -> Optional[NodeFingerprint]:
         with closing(sqlite3.connect(self.db_path)) as conn:
-            row = conn.execute(
-                "SELECT fingerprint FROM fingerprints WHERE domain = ? AND name = ?", (domain, name)
-            ).fetchone()
+            row = conn.execute("SELECT fingerprint FROM fingerprints WHERE domain = ? AND name = ?",
+                               (domain, name)).fetchone()
         return NodeFingerprint(json.loads(row[0])) if row else None
 
     def calculate_similarity(self, fp1: NodeFingerprint, fp2: NodeFingerprint) -> float:
-        """Weighted similarity metric across 12 structural factors."""
-        score = 0.0
+        return similarity(fp1, fp2)
 
-        # Tag match (0.25)
-        if fp1.tag == fp2.tag:
-            score += 0.25
+    def rank(self, root: Any, stored: NodeFingerprint, top: int = 3) -> list[tuple[float, Any]]:
+        scored = []
+        for node in root.iter():
+            if not isinstance(node.tag, str) or node.tag.lower() in SKIP_TAGS:
+                continue
+            scored.append((similarity(stored, NodeFingerprint.from_node(node)), node))
+        scored.sort(key=lambda x: -x[0])
+        return scored[:top]
 
-        # Parent tag match (0.15)
-        if fp1.parent_tag == fp2.parent_tag:
-            score += 0.15
+    def relocate(self, selector: Any, stored_fp: NodeFingerprint, min_confidence: float = 0.62,
+                 margin: float = 0.015) -> Optional[Any]:
+        """Best-matching element in ``selector``'s document, or None if no confident, unambiguous match."""
+        from omniscrape.parsers.selector import Element
 
-        # Characteristic content flags (0.20)
-        if fp1.has_currency == fp2.has_currency:
-            score += 0.10
-        if fp1.has_digits == fp2.has_digits:
-            score += 0.10
-
-        # Text length proximity (0.10)
-        max_len = max(fp1.text_len, fp2.text_len, 1)
-        len_diff = abs(fp1.text_len - fp2.text_len)
-        score += max(0.0, 0.10 * (1.0 - len_diff / max_len))
-
-        # DOM depth proximity (0.10)
-        depth_diff = abs(fp1.dom_depth - fp2.dom_depth)
-        score += max(0.0, 0.10 * (1.0 - depth_diff / 5.0))
-
-        # Stable attribute key overlap (0.20)
-        s1 = set(fp1.stable_attrib_keys)
-        s2 = set(fp2.stable_attrib_keys)
-        if s1 and s2:
-            jaccard = len(s1 & s2) / len(s1 | s2)
-            score += 0.20 * jaccard
-        elif not s1 and not s2:
-            score += 0.10
-
-        return round(score, 3)
-
-    def relocate(
-        self,
-        selector: Selector,
-        stored_fp: NodeFingerprint,
-        min_confidence: float = 0.70,
-    ) -> Optional[Element]:
-        """Scans DOM candidates and selects best matching node based on fingerprint."""
-        candidates = selector.css(stored_fp.tag) or selector.css("*")
-        best_candidate: Optional[Element] = None
-        highest_score = -1.0
-
-        for cand in candidates:
-            cand_fp = NodeFingerprint.from_element(cand)
-            sim = self.calculate_similarity(stored_fp, cand_fp)
-            if sim > highest_score:
-                highest_score = sim
-                best_candidate = cand
-
-        if best_candidate and highest_score >= min_confidence:
-            logger.info(f"Self-healed element relocation matched with confidence {highest_score}")
-            return best_candidate
-
-        return None
+        root = selector.root if hasattr(selector, "root") else selector
+        ranked = self.rank(root, stored_fp)
+        if not ranked:
+            return None
+        best_score, best = ranked[0]
+        runner_up = ranked[1][0] if len(ranked) > 1 else 0.0
+        # A nested wrapper and its only child can tie; prefer the deeper node when their texts match.
+        if len(ranked) > 1 and best_score - runner_up < margin:
+            other = ranked[1][1]
+            if other in best.iterdescendants() and _own_text(other) == _own_text(best):
+                best, best_score = other, ranked[1][0]
+                runner_up = ranked[2][0] if len(ranked) > 2 else 0.0
+            elif best in other.iterdescendants() and _own_text(other) == _own_text(best):
+                runner_up = ranked[2][0] if len(ranked) > 2 else 0.0
+        if best_score < min_confidence or best_score - runner_up < margin:
+            logger.info(f"Adaptive relocation rejected (best={best_score}, runner-up={runner_up})")
+            return None
+        logger.info(f"Adaptive relocation matched with confidence {best_score}")
+        return Element(best, getattr(selector, "url", ""))

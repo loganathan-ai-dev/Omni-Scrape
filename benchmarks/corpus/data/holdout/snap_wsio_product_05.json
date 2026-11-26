@@ -1,0 +1,24 @@
+{
+ "type": "product",
+ "url": "https://webscraper.io/test-sites/e-commerce/allinone/product/132",
+ "template": "webscraper_testsite",
+ "structured_mode": "microdata",
+ "fields": {
+  "title": "Dell Latitude 5480",
+  "price": 1271.06,
+  "currency": "USD",
+  "review_count": 13
+ },
+ "main_text": "Dell Latitude 5480\nDell Latitude 5480, 14\" FHD, Core i7-7600U, 8GB, 1TB, GeForce GT930MX, Windows 10 Pro",
+ "targets": {
+  "title": {
+   "selector": "div.caption > h4.title",
+   "text": "Dell Latitude 5480"
+  },
+  "price": {
+   "selector": "div.caption > h4.price",
+   "text": "$1271.06"
+  }
+ },
+ "real_world": true
+}

@@ -1,7 +1,6 @@
 """Unit tests for 12-factor fingerprinting and adaptive self-healing."""
 
 import tempfile
-import pytest
 from omniscrape.parsers.adaptive import AdaptiveEngine, NodeFingerprint
 from omniscrape.parsers.selector import Selector
 
@@ -55,3 +54,24 @@ def test_adaptive_fingerprinting_and_relocation():
     assert healed_el is not None
     assert healed_el.text == "₹85,000"
     assert healed_el.get("data-qa") == "product_price"
+
+
+def test_builtin_auto_save_and_adaptive_relocation(tmp_path):
+    db = str(tmp_path / "fp.db")
+    v1 = Selector(HTML_V1, url="https://store.com/item", adaptive=True, storage=db)
+    assert v1.css(".old-price-class::text", identifier="price", auto_save=True).get() == "₹85,000"
+    v2 = Selector(HTML_V2.replace("<span", "<div").replace("</span>", "</div>"),  # class renamed AND tag changed
+                  url="https://store.com/item", adaptive=True, storage=db)
+    assert v2.css(".old-price-class", identifier="price") == []          # adaptive off: plain miss
+    healed = v2.css(".old-price-class", identifier="price", adaptive=True)
+    assert healed[0].text == "₹85,000" and healed[0].tag == "div"
+    assert v2.css(".old-price-class::text", identifier="price", adaptive=True).get() == "₹85,000"
+
+
+def test_ambiguous_relocation_is_rejected(tmp_path):
+    engine = AdaptiveEngine(db_path=str(tmp_path / "fp.db"))
+    fp = NodeFingerprint.from_element(Selector("<ul><li>A</li></ul>").css("li")[0])
+    # two structurally identical candidates (same path, position and context): refusing beats guessing
+    assert engine.relocate(Selector("<div><ul><li>B</li></ul><ul><li>B</li></ul></div>"), fp) is None
+    # the original position breaks a tie between otherwise identical siblings
+    assert engine.relocate(Selector("<ul><li>B</li><li>B</li></ul>"), fp) is not None
