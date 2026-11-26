@@ -1,0 +1,29 @@
+{
+ "type": "product",
+ "url": "https://scrapeme.live/shop/Blastoise/index.html",
+ "template": "woocommerce_scrapeme",
+ "structured_mode": "jsonld",
+ "fields": {
+  "title": "Blastoise",
+  "price": 76.0,
+  "currency": "GBP",
+  "sku": "5212",
+  "availability": "InStock"
+ },
+ "main_text": "Blastoise\nBlastoise has water spouts that protrude from its shell. The water spouts are very accurate. They can shoot bullets of water with enough accuracy to strike empty cans from a distance of over 160 feet.",
+ "targets": {
+  "title": {
+   "selector": "div.summary > h1.product_title",
+   "text": "Blastoise"
+  },
+  "price": {
+   "selector": "p.price > span.woocommerce-Price-amount",
+   "text": "£76.00"
+  },
+  "stock": {
+   "selector": "div.summary > p.stock",
+   "text": "88 in stock"
+  }
+ },
+ "real_world": true
+}

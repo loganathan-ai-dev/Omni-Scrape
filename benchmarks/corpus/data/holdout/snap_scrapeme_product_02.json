@@ -1,0 +1,29 @@
+{
+ "type": "product",
+ "url": "https://scrapeme.live/shop/Charmeleon/index.html",
+ "template": "woocommerce_scrapeme",
+ "structured_mode": "jsonld",
+ "fields": {
+  "title": "Charmeleon",
+  "price": 165.0,
+  "currency": "GBP",
+  "sku": "6565",
+  "availability": "InStock"
+ },
+ "main_text": "Charmeleon\nCharmeleon mercilessly destroys its foes using its sharp claws. If it encounters a strong foe, it turns aggressive. In this excited state, the flame at the tip of its tail flares with a bluish white color.",
+ "targets": {
+  "title": {
+   "selector": "div.summary > h1.product_title",
+   "text": "Charmeleon"
+  },
+  "price": {
+   "selector": "p.price > span.woocommerce-Price-amount",
+   "text": "£165.00"
+  },
+  "stock": {
+   "selector": "div.summary > p.stock",
+   "text": "284 in stock"
+  }
+ },
+ "real_world": true
+}
