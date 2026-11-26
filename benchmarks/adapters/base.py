@@ -45,6 +45,10 @@ class ToolAdapter:
     def adaptive_find(self, html: str, url: str, selectors: dict[str, str], storage_dir: str) -> dict[str, Optional[str]]:
         raise NotImplementedError
 
+    # render suite: load JS-rendered pages in a browser; return [{"url", "status", "html"}]
+    def render(self, urls: list[str], concurrency: int) -> list[dict[str, Any]]:
+        raise NotImplementedError
+
     # crawl + live suites: return [{"url", "status", "title"}]
     def crawl(self, start_url: str, max_pages: int, concurrency: int, obey_robots: bool, workdir: str) -> list[dict[str, Any]]:
         raise NotImplementedError

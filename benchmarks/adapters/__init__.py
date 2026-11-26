@@ -30,6 +30,7 @@ SUITE_TOOLS: dict[str, list[str]] = {
     "extract": ["omniscrape", "trafilatura"],
     "markdown": ["omniscrape", "trafilatura", "crawl4ai", "crawl4ai-fit", "markdownify", "html2text"],
     "adaptive": ["omniscrape", "scrapling"],
+    "render": ["omniscrape", "crawl4ai", "scrapling"],
     "crawl": ["omniscrape", "scrapy", "crawlee", "scrapling", "crawl4ai"],
     "live": ["omniscrape", "scrapy", "crawlee", "scrapling"],
 }
