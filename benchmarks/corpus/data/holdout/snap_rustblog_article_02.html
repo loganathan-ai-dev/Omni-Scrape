@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Google Summer of Code 2026 results | Rust Blog</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="description" content="Empowering everyone to build reliable and efficient software.">
+     <!-- Twitter card -->
+     <meta name="twitter:card" content="summary">
+     <meta name="twitter:site" content="@rustlang">
+     <meta name="twitter:creator" content="@rustlang">
+     <meta name="twitter:title" content="Google Summer of Code 2026 results | Rust Blog">
+     <meta name="twitter:description" content="Empowering everyone to build reliable and efficient software.">
+    <meta name="twitter:image" content="https://www.rust-lang.org/static/images/rust-social.jpg">
+    
+    <!-- Facebook OpenGraph -->
+    <meta property="og:title" content="Google Summer of Code 2026 results | Rust Blog" />
+    <meta property="og:description" content="Empowering everyone to build reliable and efficient software.">
+    <meta property="og:image" content="https://www.rust-lang.org/static/images/rust-social-wide.jpg" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_US" />
+    
+    <!-- styles -->
+    <link rel="stylesheet" href="https://blog.rust-lang.org/styles/skeleton.css"/>
+    <link rel="stylesheet" href="https://blog.rust-lang.org/styles/tachyons.css"/>
+    <link rel="stylesheet" href="https://blog.rust-lang.org/styles/fonts.css"/>
+    <link rel="stylesheet" href="https://blog.rust-lang.org/styles/app.css"/>
+    <link rel="stylesheet" type="text/css" id="syntax-theme" />
+    
+    <!-- stylesheet for user agents without js -->
+    <noscript>
+        <link rel="stylesheet" href="https://blog.rust-lang.org/styles/noscript.css">
+        <link rel="stylesheet" type="text/css" href="/giallo-dark.css" media="(prefers-color-scheme: dark)" />
+        <link rel="stylesheet" type="text/css" href="/giallo-light.css" media="(prefers-color-scheme: light)" />
+    </noscript>
+    
+    <!-- favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="https://blog.rust-lang.org/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://blog.rust-lang.org/images/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://blog.rust-lang.org/images/favicon-32x32.png">
+    <link rel="icon" type="image/svg+xml" href="https://blog.rust-lang.org/images/favicon.svg">
+    <link rel="manifest" href="https://blog.rust-lang.org/images/site.webmanifest">
+    <link rel="mask-icon" href="https://blog.rust-lang.org/images/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#00aba9">
+    <meta name="theme-color" content="#ffffff">
+    
+     <!-- atom -->
+     <link type="application/atom+xml" rel="alternate" href="https://blog.rust-lang.org/feed.xml" title="Rust Blog" />
+    
+    <!-- theme switcher -->
+    <script src="https://blog.rust-lang.org/scripts/theme-switch.js"></script>
+  </head>
+  <body>
+    <nav class="flex flex-row justify-center justify-end-l items-center flex-wrap ph2 pl3-ns pr4-ns">
+      <div class="brand flex-auto w-100 w-auto-l self-start tc tl-l">
+        <a href="https://blog.rust-lang.org/">
+          <img class="v-mid ml0-l rust-logo" alt="" src="https://blog.rust-lang.org/images/rust-logo-blk.svg">
+          <span class="dib ml1 ml0-l">Rust Blog</span>
+        </a>
+      </div>
+    
+      <ul class="nav list w-100 w-auto-l flex flex-none flex-row flex-wrap justify-center justify-end-l items-center pv2 ph0 ph4-ns">
+        <li class="tc pv2 ph2 ph4-ns flex-20-s"><a href="https://www.rust-lang.org">Rust</a></li>
+        <li class="tc pv2 ph2 ph4-ns flex-20-s"><a href="https://www.rust-lang.org/tools/install">Install</a></li>
+        <li class="tc pv2 ph2 ph4-ns flex-20-s"><a href="https://www.rust-lang.org/learn">Learn</a></li>
+        <li class="tc pv2 ph2 ph4-ns flex-20-s"><a href="https://www.rust-lang.org/tools">Tools</a></li>
+        <li class="tc pv2 ph2 ph4-ns flex-20-s"><a href="https://www.rust-lang.org/governance">Governance</a></li>
+        <li class="tc pv2 ph2 ph4-ns flex-20-s"><a href="https://www.rust-lang.org/community">Community</a></li>
+        <button class="theme-icon" onclick="dropdown();">🖌
+          <ul id="theme-choice">
+            <li class="theme-item" onclick="changeThemeTo('light');">Light</li>
+            <li class="theme-item" onclick="changeThemeTo('dark');">Dark</li>
+            <li class="theme-item" onclick="changeThemeTo('system');">System</li>
+          </ul>
+        </button>
+        <script src="https://blog.rust-lang.org/scripts/theme-switch-post.js"></script>
+      </ul>
+    </nav><section id="Google Summer of Code 2026 results" class="white">
+  <div class="w-100 mw-none ph3 mw8-m mw8-l center f3">
+    <header>
+      <h2>Google Summer of Code 2026 results</h2>
+      <div class="highlight mt2 mb3"></div>
+    </header>
+
+    <div class="publish-date-author">Nov. 11, 2026 &middot; Jakub Beránek
+     on behalf of <a href="https://www.rust-lang.org/governance/teams/launching-pad#team-mentorship">the mentorship team</a> 
+    </div>
+
+    <div class="post">
+      <p>The Rust Project <a rel="external" href="https://blog.rust-lang.org/2026/04/30/gsoc-2026-selected-projects/">participated</a> in <a rel="external" href="https://summerofcode.withgoogle.com">Google Summer of Code (GSoC)</a> for the third time this year. This time we had 13 projects, and our dear contributors have been working very hard on them for several months. As usual, the projects had various durations, so while some of them have ended in August, the last one has only finished in November, so we have been waiting until we have all the results before publishing this blog post.</p>
+<p><strong>We are very happy to announce that all 13 projects were successful and passed their final evaluation!</strong> We consider it to be a testament to the diligence of our contributors, and the helpfulness of our mentors, that we are able to keep a very high rate<sup class="footnote-reference" id="fr-success-rate-1"><a href="https://blog.rust-lang.org/2026/11/11/gsoc-2026-results/#fn-success-rate">[1]</a></sup> of successful GSoC projects several years in a row.</p>
+<p>At the start of summer, we had a video call with our contributors, so that we could all get to know each other a bit, and learn about their projects. Over the following few months, we continuously communicated with the contributors, provided guidance and answered their questions and reviewed their pull requests. And most importantly, we learned many new things together! It was an overall great experience. We are grateful for all Rust contributions done by our GSoC participants and for the time we spent working together, and we hope that we will continue seeing at least some of them around in the future.</p>
+<p><strong>We would like to thank all our Rust GSoC 2026 contributors. You did a great job!</strong></p>
+<p>Even though this year we had fewer projects than in 2025, mostly due to limited mentoring capacity, Google Summer of Code 2026 was again a success for the Rust Project. We think that GSoC is a great way of introducing new contributors to our community, and we are looking forward to participating in GSoC (and other mentorship programs, such as <a rel="external" href="https://blog.rust-lang.org/2026/05/04/outreachy-2026-may/">Outreachy</a>) again in the near future. If you are interested in becoming a (GSoC) contributor, check out our <a rel="external" href="https://github.com/rust-lang/google-summer-of-code">GSoC project idea list</a> and our <a rel="external" href="https://forge.rust-lang.org/how-to-start-contributing.html">guide for new contributors</a>.</p>
+<p>Below you can find a brief summary of our GSoC 2026 projects. You can find more information about the original goals of the projects <a rel="external" href="https://github.com/rust-lang/google-summer-of-code/blob/main/gsoc/runs/2026.md">here</a>. For easier navigation, here is an index of the project descriptions in alphabetical order:</p>
+<ul>
+<li><a href="https://blog.rust-lang.org/2026/11/11/gsoc-2026-results/#a-frontend-for-safe-gpu-offloading-in-rust">A Frontend for Safe GPU Offloading in Rust</a> by <a rel="external" href="https://github.com/sa4dus">Marcelo Domínguez</a></li>
+<li><a href="https://blog.rust-lang.org/2026/11/11/gsoc-2026-results/#adding-webassembly-linking-support-to-wild">Adding WebAssembly Linking Support to Wild</a> by <a rel="external" href="https://github.com/lapla-cogito">Kei Akiyama</a></li>
+<li><a href="https://blog.rust-lang.org/2026/11/11/gsoc-2026-results/#bringing-autodiff-and-offload-into-rust-ci">Bringing autodiff and offload into Rust CI</a> by <a rel="external" href="https://github.com/sgasho">Shota Sugano</a></li>
+<li><a href="https://blog.rust-lang.org/2026/11/11/gsoc-2026-results/#debugger-for-miri">Debugger for Miri</a> by <a rel="external" href="https://github.com/moabo3li">Mohamed Ali</a></li>
+<li><a href="https://blog.rust-lang.org/2026/11/11/gsoc-2026-results/#implementing-impl-and-mut-restrictions">Implementing impl and mut restrictions</a> by <a rel="external" href="https://github.com/CoCo-Japan-pan">Ryosuke Yamano</a></li>
+<li><a href="https://blog.rust-lang.org/2026/11/11/gsoc-2026-results/#improving-ergonomics-and-safety-of-serialport-rs">Improving Ergonomics and Safety of serialport-rs</a> by <a rel="external" href="https://github.com/NONnonHere">Tanmay</a></li>
+<li><a href="https://blog.rust-lang.org/2026/11/11/gsoc-2026-results/#libc-transition-differing-bit-width-time-and-offset-variants-and-deprecate-bug-prone-constants">libc: transition differing bit-width time and offset variants and deprecate bug-prone constants</a> by <a rel="external" href="https://github.com/dybucc">Adam Martinez</a></li>
+<li><a href="https://blog.rust-lang.org/2026/11/11/gsoc-2026-results/#link-linux-kernel-and-its-modules-with-wild">Link Linux kernel and its Modules with Wild</a> by <a rel="external" href="https://github.com/vishruth-thimmaiah">Vishruth Thimmaiah</a></li>
+<li><a href="https://blog.rust-lang.org/2026/11/11/gsoc-2026-results/#migrating-rust-analyzer-assists-to-syntaxeditor">Migrating rust-analyzer assists to SyntaxEditor</a> by <a rel="external" href="https://github.com/bit-aloo">bit-aloo</a></li>
+<li><a href="https://blog.rust-lang.org/2026/11/11/gsoc-2026-results/#port-std-arch-test-suite-to-rust-lang-rust">Port std::arch test suite to rust-lang/rust</a> by <a rel="external" href="https://github.com/xonx4l">Sumit Kumar</a></li>
+<li><a href="https://blog.rust-lang.org/2026/11/11/gsoc-2026-results/#reorganizing-tests-ui-issues">Reorganizing tests/ui/issues</a> by <a rel="external" href="https://github.com/zedddie">zedddie</a></li>
+<li><a href="https://blog.rust-lang.org/2026/11/11/gsoc-2026-results/#utilize-debugger-apis-to-improve-debug-info-test-accuracy-and-error-reporting">Utilize debugger APIs to improve debug info test accuracy and error reporting</a> by <a rel="external" href="https://github.com/Walnut356">Anthony Bolden</a></li>
+<li><a href="https://blog.rust-lang.org/2026/11/11/gsoc-2026-results/#xdg-path-support-for-rustup">XDG path support for rustup</a> by <a rel="external" href="https://github.com/Cloud0310">Guicheng Liu</a></li>
+</ul>
+<p>And now strap in, as there is a ton of great content to read about here!</p>
+<h3 id="a-frontend-for-safe-gpu-offloading-in-rust"><a class="anchor" href="#a-frontend-for-safe-gpu-offloading-in-rust" aria-hidden="true"></a>
+A Frontend for Safe GPU Offloading in Rust</h3>
+<ul>
+<li>Contributor: <a rel="external" href="https://github.com/sa4dus">Marcelo Domínguez</a></li>
+<li>Mentor: <a rel="external" href="https://github.com/ZuseZ4">Manuel Drehwald</a></li>
+<li><a rel="external" href="https://sa4dus.github.io/posts/gsoc2026-final-report/">Final report</a></li>
+</ul>
+<p>Marcelo worked on improving the usability of cross-vendor GPU programs in Rust using the <code>std::offload</code> module. At the start of the project, the offload prototype was only a proof of concept. It assumed that the offloaded code was bug-free, and it required users to write a lot of boilerplate code. Marcelo resolved both issues over the summer.</p>
+<p>First, he implemented proper type checking. Marcelo extended the compiler to verify that the arguments passed to any offload call are of the correct type, as expected by the GPU kernel. Kernel launches are thus now safe.</p>
+<p>After that, he added support for generic kernels. The compiler now collects all generic instantiations launched from the CPU side, and loads that info later when compiling GPU kernels to make sure we instantiate them as needed. Marcelo also added support to select which GPU to use, which is helpful for laptops with both an integrated and a dedicated GPU, as well as for servers with multiple GPUs. He also added two macros that removed the need for any boilerplate when writing and launching GPU kernels.</p>
+<p>The hardest part of this project by far was dealing with references. Due to Rust semantics, we cannot just map types containing mutable references to GPUs and then process them using multiple threads. Previous Rust GPU projects used raw pointers as a workaround, but we obviously wanted to avoid those. Marcelo managed to implement a sound abstraction so that users can now safely declare how their kernels will access mutable arguments.</p>
+<p>As a cherry on top, Marcelo also ported the <a rel="external" href="https://github.com/llnl/rajaperf">RajaPerf</a> performance suite from C++ to Rust and used it to benchmark his pull requests. His safe Rust version matches the performance of the original C++ code, and is now described in a <a rel="external" href="https://arxiv.org/abs/2608.13759">GPU offload paper</a> that he is working on together with his mentor, Manuel. This was Marcelo's <a rel="external" href="https://blog.rust-lang.org/2025/11/18/gsoc-2025-results/#abi-layout-handling-for-the-automatic-differentiation-feature">second</a> Rust GSoC project, and same as last year, we are very happy with the results. Great job!</p>
+<h3 id="adding-webassembly-linking-support-to-wild"><a class="anchor" href="#adding-webassembly-linking-support-to-wild" aria-hidden="true"></a>
+Adding WebAssembly Linking Support to Wild</h3>
+<ul>
+<li>Contributor: <a rel="external" href="https://github.com/lapla-cogito">Kei Akiyama</a></li>
+<li>Mentor: <a rel="external" href="https://github.com/davidlattimore">David Lattimore</a></li>
+<li><a rel="external" href="https://lapla.dev/posts/gsoc_final2">Final report</a></li>
+</ul>
+<p>The goal of this project was simple on paper: teach the <a rel="external" href="https://github.com/davidlattimore/wild">Wild</a> linker to link WebAssembly (Wasm) programs. However, adding support for a new linker target is of course far from simple. Luckily, Kei already had a lot of experience with Wild, as this was his second <a rel="external" href="https://blog.rust-lang.org/2025/11/18/gsoc-2025-results/#improve-wild-linker-test-suites">GSoC project</a> working on the Wild linker.</p>
+<p>And as expected, Kei did a great job! Prior to GSoC 2026, Wild had no Wasm output support. Now, the Wasm support is sufficiently good that Wild can link a range of complex programs to Wasm. For example, it is able to link itself, SQLite, ripgrep, CPython and even the SpiderMonkey JavaScript engine.</p>
+<p>And the linking performance is excellent! When compared to <code>wasm-ld</code>, the de-facto standard Wasm linker, which is based on the LLD linker, Wild is 2-15x faster, and uses 2-5x less memory. You can find more benchmarks in his <a rel="external" href="https://lapla.dev/posts/gsoc_final2#link-performance">final report</a>, where he also explains that achieving this performance took quite some work, because Wild's ELF linking performance did not immediately translate to being fast when linking Wasm.</p>
+<p>Even after this GSoC project ended, Kei has continued improving Wild's Wasm support, as well as contributing to other parts of Wild. Thank you for bringing fast linking to a new set of use-cases, Kei! You are a valued member of the Wild team.</p>
+<h3 id="bringing-autodiff-and-offload-into-rust-ci"><a class="anchor" href="#bringing-autodiff-and-offload-into-rust-ci" aria-hidden="true"></a>
+Bringing autodiff and offload into Rust CI</h3>
+<ul>
+<li>Contributor: <a rel="external" href="https://github.com/sgasho">Shota Sugano</a></li>
+<li>Mentor: <a rel="external" href="https://github.com/ZuseZ4">Manuel Drehwald</a></li>
+<li><a rel="external" href="https://sgasho.github.io/posts/gsoc-2026-final-report/">Final report</a></li>
+</ul>
+<p>The goal of this project was to build the experimental <code>std::autodiff</code> module, which implements automatic differentiation of Rust code, and the <code>std::offload</code> module, which allows offloading Rust code to GPUs, in the CI of the Rust compiler.</p>
+<p>Shota has already been contributing to this area in the months leading up to this year's GSoC, so he had no issues getting started. After valiantly fighting with our CI, he made both modules available in the official <code>nightly</code> compiler channel. Rust users can thus now simply install them with a single rustup command, rather than having to compile rustc from source! This is a huge benefit for gathering feedback on these features in the wild, as it makes it much easier to experiment with them.</p>
+<p>Beyond making these projects available via rustup, he also worked on making it simpler to build projects that use <code>std::offload</code>. The original compilation pipeline was derived from Clang's support for GPU offload, so it involved calling clang helper binaries. That is clearly not optimal, so Shota worked on replacing it by directly calling the underlying LLVM APIs from rustc.</p>
+<p>The last piece of his project was enabling testing in CI for both offload and autodiff, which already helped prevent multiple regressions. Right now, the GPU offload pipeline only tests the CPU setup side, but his work allowed us to talk to GPU hardware vendors, two of which already agreed to provide the Rust Project with GPU hardware so that in the future we can also run those tests on dedicated GPUs.</p>
+<p>Overall, the project was a success. Shota had to show a lot of patience and endurance when working with various CMake quirks and CI challenges. We would like to extend a special thank you for that!</p>
+<h3 id="debugger-for-miri"><a class="anchor" href="#debugger-for-miri" aria-hidden="true"></a>
+Debugger for Miri</h3>
+<ul>
+<li>Contributor: <a rel="external" href="https://github.com/moabo3li">Mohamed Ali</a></li>
+<li>Mentor: <a rel="external" href="https://github.com/oli-obk">Oli Scherer</a></li>
+<li><a rel="external" href="https://gist.github.com/moabo3li/10b6ca701cb998ab36781e81ac0f100d">Final report</a></li>
+</ul>
+<p>miri is a tool that can detect undefined behavior (UB) in unsafe Rust code. It used to have a prototype of an interactive debugger called <code>priroda</code>, but it became unmaintained some time ago. The goal of this project was to re-establish <code>priroda</code>, to make it easier to use miri interactively, debug how and why is UB introduced in Rust programs, and also help rustc developers analyse MIR, one of the intermediate representations of Rust programs.</p>
+<p>Mohamed successfully reached both main goals of this project. He created a miri interface for the gdb debugger, which allows debugging programs executed by miri. You can set breakpoints, step through individual instructions, analyse MIR local variables and inspect the debugged program's state, with miri acting as a "virtual CPU". So when you encounter your next miri UB report, you can actually debug the program state that caused UB by running <code>priroda</code>! Mohamed also created a command-line interface for <code>priroda</code>, which is used to test it in miri's CI. This will ensure that it keeps working properly and will not bitrot again.</p>
+<p>Mohamed also added basic support for the Debugger Adapter Protocol, which allows using <code>priroda</code> together with IDEs such as Visual Studio Code. Currently, connecting priroda to an IDE is a bit involved, so the next step would be to build a plugin for an IDE that would allow showing all the extra state that miri has, which gdb doesn't know how to interpret.</p>
+<p>Debugging programs executed by miri is very exciting. Thank you for all your work!</p>
+<h3 id="implementing-impl-and-mut-restrictions"><a class="anchor" href="#implementing-impl-and-mut-restrictions" aria-hidden="true"></a>
+Implementing impl and mut restrictions</h3>
+<ul>
+<li>Contributor: <a rel="external" href="https://github.com/CoCo-Japan-pan">Ryosuke Yamano</a></li>
+<li>Mentors: <a rel="external" href="https://github.com/jhpratt">Jacob Pratt</a>, <a rel="external" href="https://github.com/Urgau">Urgau</a></li>
+<li><a rel="external" href="https://gist.github.com/CoCo-Japan-pan/ced54db688080b94ec777bd750e87b34">Final report</a></li>
+</ul>
+<p>The goal of this project was to implement two new language features that were accepted in <a rel="external" href="https://rust-lang.github.io/rfcs/3323-restrictions.html">RFC 3323</a>:</p>
+<ul>
+<li>Impl restrictions (<code>impl(crate) trait Foo {}</code>), which allow restricting in which modules you are able to implement a given trait.</li>
+<li>Mut restrictions (<code>struct Foo { pub mut(crate) bar: u8 }</code>), which allow restricting in which modules you are able to mutate a given field.</li>
+</ul>
+<p>Ryosuke had to familiarize himself with the compiler's codebase and do a lot of implementation work to get both features working. This included implementing parsing of the new syntax, recording its metadata in the compiler's Abstract Syntax Tree, implementing resolution of the restricted crate paths, and finally adding checks to enforce both restriction rules. This all amounted to around five thousand lines of Rust code!</p>
+<p>Once the new features were implemented and available on nightly, Ryosuke wrote a <a rel="external" href="https://blog.rust-lang.org/inside-rust/2026/08/10/call-for-testing-impl-and-mut-restrictions/">Call for Testing</a> blog post. It had to be very exciting to announce to the world that he implemented two new features from scratch, and people can now play with them on the nightly channel! After the blog post was published, users reported a few issues, which Ryosuke promptly fixed. He also contributed to rustdoc to improve how the impl and mut restrictions are rendered in the generated documentation pages.</p>
+<p>Now that the features are available on nightly, feedback is being gathered on them, with the plan being to stabilize them in 2027. If you would like to provide feedback on the impl and mut restrictions, you can do so in <a rel="external" href="https://github.com/rust-lang/rust/issues/160614">this issue</a>.</p>
+<p>The goal of this project was clear, and Ryosuke achieved it completely. Awesome work!</p>
+<h3 id="improving-ergonomics-and-safety-of-serialport-rs"><a class="anchor" href="#improving-ergonomics-and-safety-of-serialport-rs" aria-hidden="true"></a>
+Improving Ergonomics and Safety of serialport-rs</h3>
+<ul>
+<li>Contributor: <a rel="external" href="https://github.com/NONnonHere">Tanmay</a></li>
+<li>Mentor: <a rel="external" href="https://github.com/sirhcel">Christian Meusel</a></li>
+<li><a rel="external" href="https://nonnonhere.github.io/posts/gsoc2026-report/">Final report</a></li>
+</ul>
+<p>The goal of this project, which was done in collaboration with the <a rel="external" href="https://rust-embedded.org">Rust Embedded Working Group</a>, was to improve the API ergonomics and type safety of the <a rel="external" href="https://github.com/serialport/serialport-rs">serialport-rs</a> crate.</p>
+<p>The serialport project is a bit different from some other projects which participated in this year's Google Summer of Code. It is more on the side of "facility management" than rocket science. Its challenges are taming finicky operating system APIs and making good abstractions, rather than full-blown software engineering.</p>
+<p>Tanmay led many fruitful discussions about potential design decisions, and did a lot of field research on how other crates that depend on serialport actually use its API, to figure out how to make the upcoming breaking API changes less disruptive and painful for them.</p>
+<p>Tanmay also worked on sanding off some rough edges of the serialport API, such as replacing Boxed trait objects with enums, and making errors explicit in places where the legacy API used to panic. Some of the work still waits for integration. It is targeting the upcoming serialport 5.0 release.</p>
+<p>Christian (Tanmay's mentor) found working alongside Tanmay very motivational, and he was able to catch up with a lot of other unrelated work in order to integrate Tanmay's changes. He noted that working with Tanmay was fun and productive, and that it was pure joy to see him grow from his first contribution in the bonding phase to seasoned contributions. Thank you, Tanmay!</p>
+<blockquote>
+<p>This was my first Google Summer of Code as well. It was challenging, motivating, fun and definitely worth it. I would show up again.</p>
+<p>Christian Meusel</p>
+</blockquote>
+<h3 id="libc-transition-differing-bit-width-time-and-offset-variants-and-deprecate-bug-prone-constants"><a class="anchor" href="#libc-transition-differing-bit-width-time-and-offset-variants-and-deprecate-bug-prone-constants" aria-hidden="true"></a>
+libc: transition differing bit-width time and offset variants and deprecate bug-prone constants</h3>
+<ul>
+<li>Contributor: <a rel="external" href="https://github.com/dybucc">Adam Martinez</a></li>
+<li>Mentor: <a rel="external" href="https://github.com/tgross35">Trevor Gross</a></li>
+<li><a rel="external" href="https://dybucc.github.io/gsoc-2026-report/">Final report</a></li>
+</ul>
+<p><a rel="external" href="https://github.com/rust-lang/libc"><code>libc</code></a> is a foundational crate that is used by thousands of other crates across the Rust ecosystem. For the past several years, its maintainers have been attempting to publish a stable 1.0 release of the crate. Because this crate has to support interoperating with C on many compilation targets with weird quirks, this requires an enormous amount of work. We already had a GSoC project for moving <code>libc</code> towards 1.0 <a rel="external" href="https://blog.rust-lang.org/2025/11/18/gsoc-2025-results/#modernising-the-libc-crate">last year</a>, and the goal of Adam's project was to make more progress in that direction.</p>
+<p>And we can happily say that progress was indeed made! The original goal of Adam's project was to deprecate a number of constants that were difficult to maintain and cleanup inconsistencies in handling 32-bit/64-bit variants of file and time handling functions<sup class="footnote-reference" id="fr-2038-1"><a href="https://blog.rust-lang.org/2026/11/11/gsoc-2026-results/#fn-2038">[2]</a></sup>. Adam was able to resolve that in a few weeks, and then he moved on to resolve a number of various issues blocking the <a rel="external" href="https://github.com/rust-lang/libc/issues/3248">1.0 milestone</a>.</p>
+<p>Saying that Adam was productive would be… an understatement. We could follow his work in real-time, because he was posting <a rel="external" href="https://dybucc.github.io/gsoc-2026-report/daily-reports/">daily GSoC reports</a> for <em>116 days (!) in a row</em>. The diligence and consistency with which he tackled so many complicated issues was an inspiration to us. In fact, sometimes the <code>libc</code> reviewers were not able to keep up!</p>
+<p>You can find all Adam's <code>libc</code> pull requests <a rel="external" href="https://github.com/rust-lang/libc/pulls?q=is%3Apr+author%3Adybucc">here</a>. You might notice that many of them have lots of comments, and even more discussions happened in GitHub issues and on Zulip. In addition to implementing the necessary code, making changes that affect interesting C platforms and architectures also required him to do a ton of research, and a lot of considerations of edge cases and possible backwards compatibility breakages. His work also took him on a whirlwind tour of diverse platforms; Adam's contributions spanned FreeBSD, NetBSD, Android, Hurd, NuttX, AIX, VxWorks, Fuchsia, L4Re and more.</p>
+<p>Even though more work will still be required to get <code>libc</code> to 1.0, Adam's contributions made a significant dent in this effort. Thank you very much for all your work!</p>
+<h3 id="link-linux-kernel-and-its-modules-with-wild"><a class="anchor" href="#link-linux-kernel-and-its-modules-with-wild" aria-hidden="true"></a>
+Link Linux kernel and its Modules with Wild</h3>
+<ul>
+<li>Contributor: <a rel="external" href="https://github.com/vishruth-thimmaiah">Vishruth Thimmaiah</a></li>
+<li>Mentor: <a rel="external" href="https://github.com/davidlattimore">David Lattimore</a></li>
+<li><a rel="external" href="https://vishthimmaiah.dev/blog/gsoc-26/">Final report</a></li>
+</ul>
+<p>Linker scripts are arcane commands that can be used to instruct a linker to construct the final binary in a custom way. The <a rel="external" href="https://github.com/davidlattimore/wild">Wild</a> linker used to implement only basic linker script functionality, which Vishruth greatly expanded during his GSoC project.</p>
+<p>Thanks to that, Wild can now successfully link Linux kernel modules, and it's even close to being able to link the Linux kernel itself! Vishruth's work involved greatly expanding expression evaluation support, location counters, program headers, etc. In addition to adding support for many missing bits of linker script support, Vishruth implemented support for partial linking (-r) as this is needed in order to link Linux kernel modules. You can find all the linker script features that he implemented <a rel="external" href="https://github.com/wild-linker/wild/blob/main/LINKER_SCRIPT_SUPPORT.md">here</a>.</p>
+<p>Adding all those peculiar features to Wild required performing many cross-cutting changes to its codebase, which Vishruth managed to do really well. And it was not at the cost of performance! Wild now manages to link Linux kernel modules such as <code>btrfs</code> or <code>amdgpu</code> 2-4x faster than the BFD (GNU ld) or LLD linkers<sup class="footnote-reference" id="fr-mold-1"><a href="https://blog.rust-lang.org/2026/11/11/gsoc-2026-results/#fn-mold">[3]</a></sup>. You can find more benchmarks in his <a rel="external" href="https://vishthimmaiah.dev/blog/gsoc-26#benchmarks">final report</a>.</p>
+<p>Vishruth has continued to contribute to Wild even after his GSoC project ended and has become a valued contributor to the project. Thank you very much for making Wild better, Vishruth!</p>
+<h3 id="migrating-rust-analyzer-assists-to-syntaxeditor"><a class="anchor" href="#migrating-rust-analyzer-assists-to-syntaxeditor" aria-hidden="true"></a>
+Migrating rust-analyzer assists to SyntaxEditor</h3>
+<ul>
+<li>Contributor: <a rel="external" href="https://github.com/bit-aloo">bit-aloo</a></li>
+<li>Mentors: <a rel="external" href="https://github.com/ChayimFriedman2">Chayim Refael Friedman</a>, <a rel="external" href="https://github.com/Veykril">Lukas Wirth</a></li>
+<li><a rel="external" href="https://gist.github.com/bit-aloo/b960133f349ab8a63de63bfbc35d3b8e">Final report</a></li>
+</ul>
+<p>rust-analyzer uses <a rel="external" href="https://github.com/rust-analyzer/rowan">rowan</a> for its syntax trees, a library for Concrete Syntax Trees. <code>rowan</code> has served us well over the years, but it has some downsides that cause major performance problems and also smaller convenience issues. In particular, memory fragmentation causes rust-analyzer to consume much more memory than it actually needs (in the order of redundant gigabytes).</p>
+<p>We wanted to rewrite <code>rowan</code> to change that. The problem was that many parts in rust-analyzer touch syntax trees, and in particular assists (code actions) of which we have a lot. They also use mutable tree editing, a feature of <code>rowan</code> that can be convenient but was a major obstacle in rewriting it to be more efficient.</p>
+<p>During his project, bit-aloo first migrated all rust-analyzer code from mutable tree editing to <code>SyntaxEditor</code>, a new abstraction that was created specifically to avoid mutation. After that, he removed mutable editing from <code>rowan</code> altogether.</p>
+<p>The migration process is incremental and <code>rowan</code> is still inefficient in various aspects. However, we believe that the parts which required changes to large amounts of code are behind us, and we can complete the migration with more focused changes. bit-aloo is continuing to work on that even after his GSoC project ended. And he was also accepted as a member of the rust-analyzer team, so congratulations! We would like to thank him for his work, and hope to continue working with him to improve rust-analyzer for everyone.</p>
+<h3 id="port-std-arch-test-suite-to-rust-lang-rust"><a class="anchor" href="#port-std-arch-test-suite-to-rust-lang-rust" aria-hidden="true"></a>
+Port std::arch test suite to rust-lang/rust</h3>
+<ul>
+<li>Contributor: <a rel="external" href="https://github.com/xonx4l">Sumit Kumar</a></li>
+<li>Mentors: <a rel="external" href="https://github.com/Kobzol">Jakub Beránek</a>, <a rel="external" href="https://github.com/folkertdev">Folkert de Vries</a></li>
+<li><a rel="external" href="https://hackmd.io/@7qtUS4O9Qqadcel1SvxXiQ/BySYQX7vMe">Final report</a></li>
+</ul>
+<p>The <code>std::arch</code> module of the Rust standard library contains various intrinsic functions that provide architecture and vendor-specific functionality. Their implementation lives in the <a rel="external" href="https://github.com/rust-lang/stdarch">stdarch</a> repository, which is included as a <a rel="external" href="https://blog.rust-lang.org/inside-rust/2026/06/04/how-josh-helps-rust-manage-code-across-multiple-repositories/">Josh</a> subtree in the main compiler repo (<code>rust-lang/rust</code>).</p>
+<p>When someone changes the intrinsics in the main repo, breakages can silently creep in, because the main repo does not execute all the <code>stdarch</code> tests in its CI. That can cause friction when we synchronize the changes between the two repositories. Ideally, we would run all of <code>stdarch</code>'s tests in the main repo to detect any issues as soon as possible.</p>
+<p>And that is where Sumit came in! Over the course of his GSoC project, he examined the (very!) complex ways the intrinsics are tested in <code>stdarch</code>, and started porting them over to the main repo. But this was not a matter of copying over a few lines of YAML. The compiler repo uses its own build system (called <code>bootstrap</code>) and a CI workflow structure that is quite different from the <code>stdarch</code> repository. Sumit thus had to first understand what is each test suite doing, reimplement it as a part of bootstrap and finally integrate it into the compiler's CI workflows.</p>
+<p>We run ~90 CI jobs across several hardware architectures, operating systems and <em>OS versions</em>. Getting all that to work while testing <em>vendor-specific</em> intrinsics required a lot of diligent work… and a lot of patience. It took <em>five months</em> for <a rel="external" href="https://github.com/rust-lang/rust/pull/156674">one</a> of the test suites to finally succeed on the main repo's CI, and it required Sumit to completely refactor how the suite worked, for it to be more compatible with bootstrap. As another example, a <a rel="external" href="https://github.com/rust-lang/rust/pull/156356">different</a> test suite that Sumit also got to work required running the tests in an Intel CPU emulator on CI.</p>
+<p>Sumit ported most of the <code>stdarch</code> test suites to <code>bootstrap</code>, including intrinsics verification against reference <em>C</em> implementations, checks for automatically generated source code being up-to-date, and various unit tests for individual intrinsics and CPU feature detection logic. There is one <a rel="external" href="https://github.com/rust-lang/rust/pull/160850">remaining</a> test suite to port, but the ported tests are already helping us find issues, which is great.</p>
+<p>You can check Sumit's <code>rust-lang</code> PRs <a rel="external" href="https://github.com/search?q=author%3Axonx4l+org%3Arust-lang&amp;type=pullrequests">here</a>; notice that he was also contributing to other parts of Rust in the meantime! Sumit's work will help us make LLVM upgrades and land intrinsics changes more easily. Thank you, Sumit!</p>
+<h3 id="reorganizing-tests-ui-issues"><a class="anchor" href="#reorganizing-tests-ui-issues" aria-hidden="true"></a>
+Reorganizing tests/ui/issues</h3>
+<ul>
+<li>Contributor: <a rel="external" href="https://github.com/zedddie">zedddie</a></li>
+<li>Mentors: <a rel="external" href="https://github.com/Teapot4195">Teapot</a>, <a rel="external" href="https://github.com/Kivooeo">Kivooeo</a></li>
+<li><a rel="external" href="https://gist.github.com/zedddie/7170d2280bc9e19da84cd7eb4e3b32e0">Final report</a></li>
+</ul>
+<p>The goal of this project was to get rid of a very scary place in the Rust compiler's test suite: a directory called <code>tests/ui/issues</code>. It contained thousands of test files based on historical Rust issues, dating back all the way to 2012. The problem with those tests was that they were named only with an issue number (e.g. <code>issue-37291</code>). When such a test would break, it was quite difficult to figure out what was it even supposed to test, because there was little context attached to it.</p>
+<p>Even though we already had a GSoC project to tackle this problem <a rel="external" href="https://blog.rust-lang.org/2025/11/18/gsoc-2025-results/#mapping-the-maze-of-rust-s-ui-test-suite-with-established-continuous-integration-practices">last year</a>, due to the sheer amount of uncategorized tests, there were still over four hundred tests left in this directory by the time zedddie started working on this project.</p>
+<p>For each test in this directory, zedddie had to first understand what was the test doing and dig through its original GitHub issue and any other related issues and pull requests. Then they had to figure out what would be the best location to move the test under, search for any possible duplicates, come up with a descriptive name for the test (that tends to be very difficult!), and finally add a short description to the test that explains the context of why the test was added in the first place. Rinse and repeat, for hundreds of tests.</p>
+<p>zedddie rolled up their sleeves, and categorized over 300 tests in 30 pull requests. Together with other contributors helping out over this summer, zedddie was finally able to remove the last batch of <a rel="external" href="https://github.com/rust-lang/rust/pull/160176">uncategorized tests</a> at the start of August. As zedddie said in their <a rel="external" href="https://gist.github.com/zedddie/7170d2280bc9e19da84cd7eb4e3b32e0">final report</a>: "What is left to do: nothing, tests/ui/issues is gone".</p>
+<p>While this work might sound a bit bland, its positive effect on the maintainability of our test suite, and improving the lives of Rust compiler contributors, is considerable. It is also apparently a great way to learn about cool niche edge cases of Rust that most Rust developers might not know about! After migrating the remaining uncategorized UI tests, zedddie continued contributing to the next trait solver and const generics. Thank you very much for helping us finally get rid of <code>tests/ui/issues</code>, zedddie!</p>
+<h3 id="utilize-debugger-apis-to-improve-debug-info-test-accuracy-and-error-reporting"><a class="anchor" href="#utilize-debugger-apis-to-improve-debug-info-test-accuracy-and-error-reporting" aria-hidden="true"></a>
+Utilize debugger APIs to improve debug info test accuracy and error reporting</h3>
+<ul>
+<li>Contributor: <a rel="external" href="https://github.com/Walnut356">Anthony Bolden</a></li>
+<li>Mentors: <a rel="external" href="https://github.com/Kobzol">Jakub Beránek</a>, <a rel="external" href="https://github.com/jieyouxu">Jieyou Xu</a></li>
+<li><a rel="external" href="https://walnut356.github.io/posts/gsoc-2026-final-report/">Final report</a></li>
+</ul>
+<p>The Rust debugging experience leaves a <a rel="external" href="https://blog.rust-lang.org/2026/09/07/rust-debugging-survey-2026-results/">lot to be desired</a>. One reason why we struggled to improve it is that many of our debuginfo test suites did not even run in CI for the past few years, as they were difficult to maintain. When something changed in the type visualizers, the implementation details of a standard library type or in debugger internals, someone had to go through tens of tests and manually update them. This was not sustainable, so the test suite rotted.</p>
+<p>Luckily for us, Anthony took that affront personally. Even before his GSoC project, he spent considerable effort on improving the quality of debug visualizers of various Rust standard library types, and gained an impressive amount of knowledge about debuggers.</p>
+<p>During his GSoC project, he completely overhauled how our debuginfo test infrastructure works, both for <a rel="external" href="https://github.com/rust-lang/rust/pull/158298">LLDB</a> and <a rel="external" href="https://github.com/rust-lang/rust/pull/160377">GDB</a>. Thanks to his improvements, we can now easily "rebless" the reference output when something changes, which makes it much easier to keep our test suite up-to-date. The new tests also record much more information about the internal state of the debugger recorded during the test, which helps with diagnosing issues that cause type visualizers to stop working.</p>
+<p>In addition to redesigning the test suite, Anthony also actually managed to re-enable the LLDB tests on both Windows and Linux in our CI again (after several years of being skipped there!). This will allow us to avoid debuginfo regressions and make it easier to improve the Rust debugging experience. Oh, and it goes without saying that while doing all that, he also made numerous improvements to Rust type visualizers. You can find his PRs <a rel="external" href="https://github.com/rust-lang/rust/pulls?q=is%3Apr+state%3Amerged+author%3Awalnut356">here</a>.</p>
+<p>Anthony's amazing contributions and his deep expertise in debuggers led to him being invited to the Rust <a rel="external" href="https://rust-lang.org/governance/teams/compiler/#team-compiler">Compiler team</a>, which was much deserved. What else can we add, other than: thank you for your awesome work!</p>
+<h3 id="xdg-path-support-for-rustup"><a class="anchor" href="#xdg-path-support-for-rustup" aria-hidden="true"></a>
+XDG path support for rustup</h3>
+<ul>
+<li>Contributor: <a rel="external" href="https://github.com/Cloud0310">Guicheng Liu</a></li>
+<li>Mentor: <a rel="external" href="https://github.com/rami3l">rami3l</a></li>
+<li><a rel="external" href="https://cloud0310.github.io/posts/2026-GSoC-project-report.html">Final report</a></li>
+</ul>
+<p>The support for platform-specific directories (platformdirs) has been a long-standing feature request for rustup, to have more fine-grained filesystem directory choices. This project investigated how that issue could be resolved.</p>
+<p>The real complexity of this feature request lies within a decade worth of different assumptions that previous iterations of rustup and cargo have made: it turns out that quite a lot of them are no longer true if we were to implement platformdirs support truly faithfully.</p>
+<p>Guicheng first worked on cleaning up the interactions between <code>rustup self uninstall</code> and <code>$CARGO_HOME/bin</code> as a warmup. This issue itself is a very good demonstration of all that compatibility baggage: somehow <code>$CARGO_HOME/bin</code> has become the default binary directory for all things Rust, so rustup ended up installing itself and all its proxies into it. As a result, it has been super annoying to many that everything in <code>$CARGO_HOME</code> is gone with <code>rustup self uninstall</code>.</p>
+<p>After that, he started the actual implementation of platformdirs support in rustup. This was no easy task! Not because the code itself was hard to write, but because it takes a lot of effort to figure out what should be the desired behavior in the first place. Also, in order to determine the appropriate platformdirs semantics, some prior research is often required to see how things became what they are today, so the decoupling of different concerns could proceed, and migration paths could be designed accordingly. It was in this sense that this is different from a typical GSoC project, and luckily thanks to the effort he has put into this project, we have not only come up with the final patch, but also discovered and fixed some tiny preexisting issues with this long-untouched aspect of the rustup codebase along the way.</p>
+<p>Thank you for digging into this complex topic, Guicheng!</p>
+<h2 id="conclusion"><a class="anchor" href="#conclusion" aria-hidden="true"></a>
+Conclusion</h2>
+<p>We would like to thank all contributors who have participated in Google Summer of Code 2026 with us! Your contributions helped make Rust better, and introduced you as new members of our community, which is a reason to celebrate. We are looking forward to participating in GSoC again next year!</p>
+<p>We would also like to thank Google for organizing the Google Summer of Code program and for allowing us to host a large number of projects every year. And last, but not least, we would like to thank all the Rust mentors who were tirelessly helping our contributors to complete their projects. Without you, Rust GSoC would not be possible.</p>
+<section class="footnotes">
+<ol class="footnotes-list">
+<li id="fn-success-rate">
+<p>97.5% over a three-year period, if you are wondering (40 out of 41 projects were successful so far). <a href="https://blog.rust-lang.org/2026/11/11/gsoc-2026-results/#fr-success-rate-1">↩</a></p>
+</li>
+<li id="fn-2038">
+<p>If you were wondering, then yes, this is actually related to the famous <a rel="external" href="https://en.wikipedia.org/wiki/Year_2038_problem">2038 problem</a> :) <a href="https://blog.rust-lang.org/2026/11/11/gsoc-2026-results/#fr-2038-1">↩</a></p>
+</li>
+<li id="fn-mold">
+<p>In case you were wondering, the <code>mold</code> linker does not support linker scripts required to link Linux kernel modules at the moment, so Vishruth did not compare the performance of Wild against <code>mold</code> here. <a href="https://blog.rust-lang.org/2026/11/11/gsoc-2026-results/#fr-mold-1">↩</a></p>
+</li>
+</ol>
+</section>
+
+    </div>
+  </div>
+</section>
+    <footer class="footer">
+      <div class="w-100 mw-none ph3 mw8-m mw9-l center f3">
+        <div class="row">
+          <div class="four columns mt3 mt0-l" id="get-help">
+            <h4>Get help!</h4>
+            <ul>
+              <li><a href="https://doc.rust-lang.org" target="_blank" rel="noopener">Documentation</a></li>
+              <li><a href="mailto:core-team@rust-lang.org">Contact the Rust Team</a></li>
+            </ul>
+          </div>
+          <div class="four columns mt3 mt0-l">
+            <h4>Terms and policies</h4>
+            <ul>
+              <li><a href="https://www.rust-lang.org/policies/code-of-conduct">Code of Conduct</a></li>
+              <li><a href="https://www.rust-lang.org/policies/licenses">Licenses</a></li>
+              <li><a href="https://rustfoundation.org/policy/rust-trademark-policy">Logo Policy and Media Guide</a></li>
+              <li><a href="https://www.rust-lang.org/policies/security">Security Disclosures</a></li>
+              <li><a href="https://www.rust-lang.org/policies">All Policies</a></li>
+            </ul>
+          </div>
+          <div class="four columns mt3 mt0-l">
+            <h4>Social</h4>
+            <div class="flex flex-row flex-wrap">
+              <a rel="me" href="https://social.rust-lang.org/@rust" target="_blank" rel="noopener"><img src="https://blog.rust-lang.org/images/mastodon.svg" alt="Mastodon"/></a>
+              <a rel="me" href="https://bsky.app/profile/rust-lang.org" target="_blank" rel="noopener"><img src="https://blog.rust-lang.org/images/bluesky.svg" alt="Bluesky"/></a>
+              <a href="https://www.youtube.com/channel/UCaYhcUwRBNscFNUKTjgPFiA" target="_blank" rel="noopener"><img style="padding-top: 6px; padding-bottom:6px" src="https://blog.rust-lang.org/images/youtube.svg" alt="YouTube"/></a>
+              <a href="https://discord.gg/rust-lang" target="_blank" rel="noopener"><img src="https://blog.rust-lang.org/images/discord.svg" alt="Discord"/></a>
+              <a href="https://github.com/rust-lang" target="_blank" rel="noopener"><img src="https://blog.rust-lang.org/images/github.svg" alt="GitHub"/></a>
+            </div>
+            <h4 class="mt4 mb3">RSS</h4>
+            <ul>
+              <li><a href="https://blog.rust-lang.org/feed.xml">Main Blog</a></li>
+              <li><a href="https://blog.rust-lang.org/inside-rust/feed.xml">"Inside Rust" Blog</a></li>
+            </ul>
+          </div>
+    
+        </div>
+        <div class="attribution">
+          Maintained by the Rust Team. See a typo?
+          <a href="https://github.com/rust-lang/blog.rust-lang.org/edit/main/content/gsoc-2026-results.md" target="_blank" rel="noopener">Send a fix here</a>!
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

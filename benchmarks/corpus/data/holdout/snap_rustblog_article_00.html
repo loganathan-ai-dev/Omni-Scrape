@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Enabling the parallel frontend on nightly | Rust Blog</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="description" content="Empowering everyone to build reliable and efficient software.">
+     <!-- Twitter card -->
+     <meta name="twitter:card" content="summary">
+     <meta name="twitter:site" content="@rustlang">
+     <meta name="twitter:creator" content="@rustlang">
+     <meta name="twitter:title" content="Enabling the parallel frontend on nightly | Rust Blog">
+     <meta name="twitter:description" content="Empowering everyone to build reliable and efficient software.">
+    <meta name="twitter:image" content="https://www.rust-lang.org/static/images/rust-social.jpg">
+    
+    <!-- Facebook OpenGraph -->
+    <meta property="og:title" content="Enabling the parallel frontend on nightly | Rust Blog" />
+    <meta property="og:description" content="Empowering everyone to build reliable and efficient software.">
+    <meta property="og:image" content="https://www.rust-lang.org/static/images/rust-social-wide.jpg" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_US" />
+    
+    <!-- styles -->
+    <link rel="stylesheet" href="https://blog.rust-lang.org/styles/skeleton.css"/>
+    <link rel="stylesheet" href="https://blog.rust-lang.org/styles/tachyons.css"/>
+    <link rel="stylesheet" href="https://blog.rust-lang.org/styles/fonts.css"/>
+    <link rel="stylesheet" href="https://blog.rust-lang.org/styles/app.css"/>
+    <link rel="stylesheet" type="text/css" id="syntax-theme" />
+    
+    <!-- stylesheet for user agents without js -->
+    <noscript>
+        <link rel="stylesheet" href="https://blog.rust-lang.org/styles/noscript.css">
+        <link rel="stylesheet" type="text/css" href="/giallo-dark.css" media="(prefers-color-scheme: dark)" />
+        <link rel="stylesheet" type="text/css" href="/giallo-light.css" media="(prefers-color-scheme: light)" />
+    </noscript>
+    
+    <!-- favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="https://blog.rust-lang.org/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://blog.rust-lang.org/images/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://blog.rust-lang.org/images/favicon-32x32.png">
+    <link rel="icon" type="image/svg+xml" href="https://blog.rust-lang.org/images/favicon.svg">
+    <link rel="manifest" href="https://blog.rust-lang.org/images/site.webmanifest">
+    <link rel="mask-icon" href="https://blog.rust-lang.org/images/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#00aba9">
+    <meta name="theme-color" content="#ffffff">
+    
+     <!-- atom -->
+     <link type="application/atom+xml" rel="alternate" href="https://blog.rust-lang.org/feed.xml" title="Rust Blog" />
+    
+    <!-- theme switcher -->
+    <script src="https://blog.rust-lang.org/scripts/theme-switch.js"></script>
+  </head>
+  <body>
+    <nav class="flex flex-row justify-center justify-end-l items-center flex-wrap ph2 pl3-ns pr4-ns">
+      <div class="brand flex-auto w-100 w-auto-l self-start tc tl-l">
+        <a href="https://blog.rust-lang.org/">
+          <img class="v-mid ml0-l rust-logo" alt="" src="https://blog.rust-lang.org/images/rust-logo-blk.svg">
+          <span class="dib ml1 ml0-l">Rust Blog</span>
+        </a>
+      </div>
+    
+      <ul class="nav list w-100 w-auto-l flex flex-none flex-row flex-wrap justify-center justify-end-l items-center pv2 ph0 ph4-ns">
+        <li class="tc pv2 ph2 ph4-ns flex-20-s"><a href="https://www.rust-lang.org">Rust</a></li>
+        <li class="tc pv2 ph2 ph4-ns flex-20-s"><a href="https://www.rust-lang.org/tools/install">Install</a></li>
+        <li class="tc pv2 ph2 ph4-ns flex-20-s"><a href="https://www.rust-lang.org/learn">Learn</a></li>
+        <li class="tc pv2 ph2 ph4-ns flex-20-s"><a href="https://www.rust-lang.org/tools">Tools</a></li>
+        <li class="tc pv2 ph2 ph4-ns flex-20-s"><a href="https://www.rust-lang.org/governance">Governance</a></li>
+        <li class="tc pv2 ph2 ph4-ns flex-20-s"><a href="https://www.rust-lang.org/community">Community</a></li>
+        <button class="theme-icon" onclick="dropdown();">🖌
+          <ul id="theme-choice">
+            <li class="theme-item" onclick="changeThemeTo('light');">Light</li>
+            <li class="theme-item" onclick="changeThemeTo('dark');">Dark</li>
+            <li class="theme-item" onclick="changeThemeTo('system');">System</li>
+          </ul>
+        </button>
+        <script src="https://blog.rust-lang.org/scripts/theme-switch-post.js"></script>
+      </ul>
+    </nav><section id="Enabling the parallel frontend on nightly" class="white">
+  <div class="w-100 mw-none ph3 mw8-m mw8-l center f3">
+    <header>
+      <h2>Enabling the parallel frontend on nightly</h2>
+      <div class="highlight mt2 mb3"></div>
+    </header>
+
+    <div class="publish-date-author">Nov. 16, 2026 &middot; Jakub Beránek
+     on behalf of <a href="https://www.rust-lang.org/governance/teams/compiler">the Compiler Team</a> 
+    </div>
+
+    <div class="post">
+      <p>TL;DR: We are enabling the parallel frontend of the Rust compiler on nightly by default,
+to find remaining issues in preparation for its stabilization.</p>
+<h2 id="context"><a class="anchor" href="#context" aria-hidden="true"></a>
+Context</h2>
+<p>The Rust compiler has been using multiple threads to compile code in its "backend" part (using LLVM) for a long time. However, its "frontend" part (which includes type checking and borrow checking) has been executing sequentially, on a single thread, which of course limits the performance of the compiler. If you are interested in a more in-depth explanation of parallelism in the Rust compiler, see this <a rel="external" href="https://blog.rust-lang.org/2023/11/09/parallel-rustc/#existing-intraprocess-parallelism-the-back-end">previous post</a>.</p>
+<p>The compiler frontend actually had support for running in parallel for a long time, but it was not enabled by default due to various issues. <a rel="external" href="https://blog.rust-lang.org/2023/11/09/parallel-rustc/">Three years ago</a>, we made it possible to opt into the parallel frontend on the nightly channel, with the plan to stabilize it in 2024. Clearly, we did not achieve that goal, but work on the parallel frontend was still slowly progressing in the meantime.</p>
+<p>Last year, <a rel="external" href="https://github.com/petrochenkov">Vadim Petrochenkov</a>, together with several other contributors, started a coordinated effort to finally get the parallel frontend over the finish line. Since then, many long-standing issues were fixed, and its performance was improved. Now we are at a point where we would like to make it widely available. But before that, we want to find out if people encounter issues with it in the wild, which is why we are enabling it by default only on the nightly channel. Once we will be confident enough that it is working well, we want to stabilize it.</p>
+<p>The parallel frontend has been enabled on the nightly channel by default since <code>nightly-2026-11-14</code>.</p>
+<h2 id="benefits"><a class="anchor" href="#benefits" aria-hidden="true"></a>
+Benefits</h2>
+<p>The primary benefit of enabling the parallel frontend is, of course, faster compilation of Rust programs.</p>
+<p>We benchmarked the parallel frontend in our <a rel="external" href="https://github.com/rust-lang/rustc-perf">benchmark suite</a>, which measures the duration to compile the <em>leaf</em> crate in a crate graph. As usual, the results were varied. In some benchmarks, the parallel frontend barely helped. In others, for example when performing a <code>cargo check</code> of the <code>nalgebra</code>, <code>cargo</code> or <code>diesel</code> crates, the compilation was almost three times faster, using 8 threads.</p>
+<p>In the table below, you can find the aggregated wall-time mean change for the real-world benchmarks in our suite, when building a single crate from scratch across several configurations, compared to the same build using a sequential frontend.</p>
+<table><thead><tr><th style="text-align: center">Frontend threads / Profile</th><th style="text-align: right"><code>check</code></th><th style="text-align: right"><code>clippy</code></th><th style="text-align: right"><code>debug</code></th><th style="text-align: right"><code>opt</code></th></tr></thead><tbody>
+<tr><td style="text-align: center">2</td><td style="text-align: right">-21.95 %</td><td style="text-align: right">-20.74 %</td><td style="text-align: right">-14.2 %</td><td style="text-align: right">-12.51 %</td></tr>
+<tr><td style="text-align: center">4</td><td style="text-align: right">-37.99 %</td><td style="text-align: right">-36.01 %</td><td style="text-align: right">-29.14 %</td><td style="text-align: right">-23.67 %</td></tr>
+<tr><td style="text-align: center">8</td><td style="text-align: right">-44.23 %</td><td style="text-align: right">-41.76 %</td><td style="text-align: right">-36.1 %</td><td style="text-align: right">-27.88 %</td></tr>
+</tbody></table>
+<p>It is clear that the parallelization is not perfect, and we definitely plan to invest more effort into improving its performance. Nevertheless, with 8 threads, it can make the end-to-end compilation time of <code>cargo check</code> ~2x faster for several crates that we tested, which is still quite an improvement.</p>
+<p>The performance benefits for incremental rebuilds are much more modest, and also very hard to compare, because the performance of rebuilds depends on what was changed and how were the codegen units laid out. In our benchmark suite, we saw a mean improvement of 3-5% for incremental rebuilds. But we currently do not have great benchmarks for this use-case, so your results might vary.</p>
+<p>We can also zoom in on an individual crate. Here is a chart of how the wall-time scales when compiling the <code>nalgebra 0.33</code> crate, for a full non-incremental build (<code>full</code>), full incremental build (<code>incr-full</code>) and an incremental rebuild (<code>incr-patched</code>) across several build configurations:</p>
+<p><img src="https://blog.rust-lang.org/2026/11/16/enabling-parallel-frontend-on-nightly/nalgebra-0.33.png" alt="Nalgebra benchmark results" /></p>
+<p>What is interesting to note is that enabling the parallel frontend can actually also make the backend faster, for reasons explained <a rel="external" href="https://blog.rust-lang.org/2023/11/09/parallel-rustc/#new-intraprocess-parallelism-the-front-end">here</a>.</p>
+<p>It is important to note that all benchmark results presented above measured only the compilation of a single crate. When compiling a whole crate graph, your CPU cores might already be saturated because of backend (LLVM) parallelism or by Cargo compiling multiple crates in parallel. So the final performance effect will vary heavily based on the workload that you are running, and on the number of cores that you have available.</p>
+<p>We also benchmarked <code>cargo check</code> end-to-end (checking the whole crate graph) on the <code>cargo</code> crate itself on a machine with 8 CPU cores. With 8 threads, it resulted in a ~15% end-to-end improvement:</p>
+<ul>
+<li>36.7s with 1 frontend thread</li>
+<li>35.1s with 2 frontend threads</li>
+<li>31.9s with 4 frontend threads</li>
+<li>30.8s with 8 frontend threads</li>
+</ul>
+<p>As can be seen from the results above, when the CPU cores are already saturated with parallel crate compilation and LLVM, the positive effect of the parallel frontend is reduced.</p>
+<h2 id="tuning-the-thread-count"><a class="anchor" href="#tuning-the-thread-count" aria-hidden="true"></a>
+Tuning the thread count</h2>
+<p>At the start, the nightly toolchain will default to the parallel frontend using only <code>2</code> threads. This is a conservative choice that should still allow us to find potential issues while not increasing memory usage a lot at the same time.</p>
+<p>If you want to test out the performance with different thread counts, you can override the number of threads used for the frontend using the <code>--jobs-frontend</code> compiler flag. It can be specified either in the <code>RUSTFLAGS</code> environment variable, or you can put it into a <a rel="external" href="https://doc.rust-lang.org/cargo/reference/config.html"><code>.cargo/config.toml</code></a> file:</p>
+<pre class="giallo z-l-code z-d-code" ><code data-lang="toml"><span class="giallo-l"><span>[</span><span>build</span><span>]</span></span>
+<span class="giallo-l"><span class="z-l-4 z-d-9">rustflags</span><span> =</span><span> [</span><span class="z-l-2 z-d-13">&quot;</span><span class="z-l-19 z-d-13">-Zunstable-options</span><span class="z-l-2 z-d-13">&quot;</span><span>,</span><span class="z-l-2 z-d-13"> &quot;</span><span class="z-l-19 z-d-13">--jobs-frontend=8</span><span class="z-l-2 z-d-13">&quot;</span><span>]</span></span></code></pre>
+<p>Currently, the performance of the parallel frontend will likely not scale very well above ~8 threads, but you can try it on your workload to test what happens. Note that using higher thread counts will likely lead to higher memory usage of the compiler, and in extreme cases it might cause you to run out of memory.</p>
+<h2 id="limitations-and-known-issues"><a class="anchor" href="#limitations-and-known-issues" aria-hidden="true"></a>
+Limitations and known issues</h2>
+<p>Due to the used parallelism, the produced order of diagnostics might not be deterministic when using the parallel frontend.</p>
+<p>In some situations, the generated binary might also not be reproducible, though we currently consider these cases bugs, and we would like to identify them and fix them.</p>
+<p>There are currently some <a rel="external" href="https://github.com/rust-lang/rust/issues?q=state%3Aopen%20label%3AA-reproducibility%20label%3AA-parallel-compiler">known issues</a> related to the reproducibility of the Rust compiler when using the parallel frontend, which are being worked on.</p>
+<h2 id="how-do-i-opt-out"><a class="anchor" href="#how-do-i-opt-out" aria-hidden="true"></a>
+How do I opt out?</h2>
+<p>To reiterate: this is only being enabled on nightly for now. If you are using the stable toolchain, you will still be using the sequential frontend by default.</p>
+<p>If you want to disable the parallel frontend on the nightly channel, pass <code>-Zunstable-options --jobs-frontend=1</code> to <code>rustc</code>, either via the <code>RUSTFLAGS</code> environment variable, or with the <a rel="external" href="https://doc.rust-lang.org/cargo/reference/config.html"><code>.cargo/config.toml</code></a> configuration file:</p>
+<pre class="giallo z-l-code z-d-code" ><code data-lang="toml"><span class="giallo-l"><span>[</span><span>build</span><span>]</span></span>
+<span class="giallo-l"><span class="z-l-4 z-d-9">rustflags</span><span> =</span><span> [</span><span class="z-l-2 z-d-13">&quot;</span><span class="z-l-19 z-d-13">-Zunstable-options</span><span class="z-l-2 z-d-13">&quot;</span><span>,</span><span class="z-l-2 z-d-13"> &quot;</span><span class="z-l-19 z-d-13">--jobs-frontend=1</span><span class="z-l-2 z-d-13">&quot;</span><span>]</span></span></code></pre>
+<p>If you have to do this for some reason, please do tell us why <a rel="external" href="https://github.com/rust-lang/rust/issues/113349">on GitHub</a> or <a rel="external" href="https://rust-lang.zulipchat.com/#narrow/channel/187679-t-compiler.2Fparallel-rustc/topic/Parallel.20frontend.20issues/with/624551811">on Zulip</a>. We would especially like to know about any compiler crashes that you encounter, or the produced binaries not being reproducible when the parallel frontend is enabled.</p>
+<h2 id="what-s-next"><a class="anchor" href="#what-s-next" aria-hidden="true"></a>
+What's next?</h2>
+<p>Over the next few months, we will be monitoring GitHub and Zulip for any reported issues about the parallel frontend. Once we have enough confidence that it is working well, and there are no major issues, we would like to move forward and finally stabilize it.</p>
+<p>We would also like to improve its performance, and make more things parallel. So far, a lot of the work on the parallel frontend has been focused on making it work correctly, rather than tuning its performance down to the last percent. We thus expect that we might still be able to make further performance improvements to it.</p>
+<p>We would also like to make more parts of the frontend actually parallel, as some parts are currently still sequential even if parallelism is enabled. There is some ongoing work on this. Last year, we had a Google Summer of Code project focused on enabling <a rel="external" href="https://blog.rust-lang.org/2025/11/18/gsoc-2025-results/#improving-the-rustc-parallel-frontend-parallel-macro-expansion">parallel macro expansion and name resolution</a>, and there is also an open <a rel="external" href="https://github.com/rust-lang/rust/pull/163495">pull request</a> for parallelizing the lowering of the Abstract Syntax Tree (AST) to the High-Level Intermediate Representation (HIR). More work remains to be done on this front.</p>
+
+    </div>
+  </div>
+</section>
+    <footer class="footer">
+      <div class="w-100 mw-none ph3 mw8-m mw9-l center f3">
+        <div class="row">
+          <div class="four columns mt3 mt0-l" id="get-help">
+            <h4>Get help!</h4>
+            <ul>
+              <li><a href="https://doc.rust-lang.org" target="_blank" rel="noopener">Documentation</a></li>
+              <li><a href="mailto:core-team@rust-lang.org">Contact the Rust Team</a></li>
+            </ul>
+          </div>
+          <div class="four columns mt3 mt0-l">
+            <h4>Terms and policies</h4>
+            <ul>
+              <li><a href="https://www.rust-lang.org/policies/code-of-conduct">Code of Conduct</a></li>
+              <li><a href="https://www.rust-lang.org/policies/licenses">Licenses</a></li>
+              <li><a href="https://rustfoundation.org/policy/rust-trademark-policy">Logo Policy and Media Guide</a></li>
+              <li><a href="https://www.rust-lang.org/policies/security">Security Disclosures</a></li>
+              <li><a href="https://www.rust-lang.org/policies">All Policies</a></li>
+            </ul>
+          </div>
+          <div class="four columns mt3 mt0-l">
+            <h4>Social</h4>
+            <div class="flex flex-row flex-wrap">
+              <a rel="me" href="https://social.rust-lang.org/@rust" target="_blank" rel="noopener"><img src="https://blog.rust-lang.org/images/mastodon.svg" alt="Mastodon"/></a>
+              <a rel="me" href="https://bsky.app/profile/rust-lang.org" target="_blank" rel="noopener"><img src="https://blog.rust-lang.org/images/bluesky.svg" alt="Bluesky"/></a>
+              <a href="https://www.youtube.com/channel/UCaYhcUwRBNscFNUKTjgPFiA" target="_blank" rel="noopener"><img style="padding-top: 6px; padding-bottom:6px" src="https://blog.rust-lang.org/images/youtube.svg" alt="YouTube"/></a>
+              <a href="https://discord.gg/rust-lang" target="_blank" rel="noopener"><img src="https://blog.rust-lang.org/images/discord.svg" alt="Discord"/></a>
+              <a href="https://github.com/rust-lang" target="_blank" rel="noopener"><img src="https://blog.rust-lang.org/images/github.svg" alt="GitHub"/></a>
+            </div>
+            <h4 class="mt4 mb3">RSS</h4>
+            <ul>
+              <li><a href="https://blog.rust-lang.org/feed.xml">Main Blog</a></li>
+              <li><a href="https://blog.rust-lang.org/inside-rust/feed.xml">"Inside Rust" Blog</a></li>
+            </ul>
+          </div>
+    
+        </div>
+        <div class="attribution">
+          Maintained by the Rust Team. See a typo?
+          <a href="https://github.com/rust-lang/blog.rust-lang.org/edit/main/content/enabling-parallel-frontend-on-nightly/index.md" target="_blank" rel="noopener">Send a fix here</a>!
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

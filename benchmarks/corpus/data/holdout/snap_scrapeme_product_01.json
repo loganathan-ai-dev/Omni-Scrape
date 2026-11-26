@@ -1,0 +1,29 @@
+{
+ "type": "product",
+ "url": "https://scrapeme.live/shop/Venusaur/index.html",
+ "template": "woocommerce_scrapeme",
+ "structured_mode": "jsonld",
+ "fields": {
+  "title": "Venusaur",
+  "price": 105.0,
+  "currency": "GBP",
+  "sku": "7036",
+  "availability": "InStock"
+ },
+ "main_text": "Venusaur\nThere is a large flower on Venusaur’s back. The flower is said to take on vivid colors if it gets plenty of nutrition and sunlight. The flower’s aroma soothes the emotions of people.",
+ "targets": {
+  "title": {
+   "selector": "div.summary > h1.product_title",
+   "text": "Venusaur"
+  },
+  "price": {
+   "selector": "p.price > span.woocommerce-Price-amount",
+   "text": "£105.00"
+  },
+  "stock": {
+   "selector": "div.summary > p.stock",
+   "text": "30 in stock"
+  }
+ },
+ "real_world": true
+}
