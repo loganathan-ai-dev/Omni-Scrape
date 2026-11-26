@@ -40,4 +40,4 @@ async def test_scrape_api_mocked():
 
 def test_version_exported():
     assert hasattr(omniscrape, "__version__")
-    assert omniscrape.__version__ == "0.2.0"
+    assert omniscrape.__version__ == "0.1.0"

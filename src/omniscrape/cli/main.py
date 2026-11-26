@@ -4,7 +4,6 @@ import asyncio
 import json
 import click
 from rich.console import Console
-from rich.panel import Panel
 from rich.table import Table
 
 console = Console()
@@ -55,11 +54,14 @@ def get(url: str, format: str, tier: int):
 
 
 @cli.command()
-@click.option("--port", "-p", default=8080, help="MCP server port")
-def mcp(port: int):
+@click.option("--transport", type=click.Choice(["stdio", "http"]), default="stdio", show_default=True,
+              help="stdio for desktop agents; http serves streamable HTTP at /mcp")
+@click.option("--host", default="127.0.0.1", show_default=True, help="Host for --transport http")
+@click.option("--port", "-p", default=8000, show_default=True, help="Port for --transport http")
+def mcp(transport: str, host: str, port: int):
     """Start the Model Context Protocol (MCP) server for AI agents."""
     from omniscrape.mcp.server import run_mcp_server
-    run_mcp_server(port=port)
+    run_mcp_server(transport=transport, host=host, port=port)
 
 
 if __name__ == "__main__":
