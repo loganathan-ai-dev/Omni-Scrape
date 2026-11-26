@@ -55,34 +55,22 @@ class OmniScrapeAdapter(ToolAdapter):
         return md.html_to_markdown(html)
 
     # -------------------------------------------------------------- adaptive
-    def _engine(self, storage_dir: str):
-        from omniscrape.parsers.adaptive import AdaptiveEngine
+    def _page(self, html: str, url: str, storage_dir: str):
+        from omniscrape.parsers.selector import Selector
 
-        return AdaptiveEngine(db_path=f"{storage_dir}/omniscrape_fp.db")
+        return Selector(html, url=url, adaptive=True, storage=f"{storage_dir}/omniscrape_fp.db")
 
     def adaptive_save(self, html, url, selectors, storage_dir):
-        from omniscrape.parsers.adaptive import NodeFingerprint
-        from omniscrape.parsers.selector import Selector
-
-        engine, page, domain = self._engine(storage_dir), Selector(html), urlsplit(url).hostname
+        page = self._page(html, url, storage_dir)
         for name, sel in selectors.items():
-            found = page.css(sel)
-            if found:
-                engine.save_fingerprint(domain, name, NodeFingerprint.from_element(found[0]))
+            page.css(sel, identifier=name, auto_save=True)
 
     def adaptive_find(self, html, url, selectors, storage_dir) -> dict[str, Optional[str]]:
-        from omniscrape.parsers.selector import Selector
-
-        engine, page, domain = self._engine(storage_dir), Selector(html), urlsplit(url).hostname
+        page = self._page(html, url, storage_dir)
         out: dict[str, Optional[str]] = {}
         for name, sel in selectors.items():
-            found = page.css(sel)
-            if found:
-                out[name] = found[0].text
-                continue
-            fp = engine.load_fingerprint(domain, name)
-            el = engine.relocate(page, fp) if fp else None
-            out[name] = el.text if el is not None else None
+            found = page.css(sel, identifier=name, adaptive=True)
+            out[name] = found[0].text if found else None
         return out
 
     # -------------------------------------------------------------- render
