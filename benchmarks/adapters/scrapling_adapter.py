@@ -73,8 +73,9 @@ class ScraplingAdapter(ToolAdapter):
     def crawl(self, start_url, max_pages, concurrency, obey_robots, workdir):
         from scrapling.spiders import Spider
 
-        host = urlsplit(start_url).hostname
+        host = urlsplit(start_url).netloc  # Scrapling compares host:port, so a bare hostname drops local-port links
         pages: list[dict[str, Any]] = []
+        scheduled = {start_url}
 
         class BenchSpider(Spider):
             name = "bench"
@@ -87,11 +88,15 @@ class ScraplingAdapter(ToolAdapter):
             async def parse(self, response):
                 pages.append({"url": str(response.url), "status": response.status,
                               "title": response.css("title::text").get() or ""})
-                if len(pages) >= max_pages:
-                    return
                 for href in response.css("a::attr(href)").getall():
-                    if href and not href.startswith("#"):
-                        yield response.follow(href.split("#")[0])
+                    if not href or href.startswith("#"):
+                        continue
+                    target = response.urljoin(href.split("#")[0])
+                    if urlsplit(target).netloc != host or target in scheduled:
+                        continue
+                    if len(scheduled) < max_pages:
+                        scheduled.add(target)  # hard cap on scheduled URLs
+                        yield response.follow(target)
 
         BenchSpider().start()
         return pages

@@ -5,7 +5,6 @@ import os
 import platform
 import subprocess
 import sys
-import tempfile
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -48,18 +47,20 @@ class RunContext:
             return None, "missing-env"
         return sys.executable, "current"
 
-    def run_worker(self, tool: str, suite: str, params: dict[str, Any], timeout: int = 1200) -> dict[str, Any]:
+    def run_worker(self, tool: str, suite: str, params: dict[str, Any], timeout: int = 1200,
+                   tag: str = "") -> dict[str, Any]:
         py, where = self.python_for(tool)
         if py is None:
             return {"tool": tool, "suite": suite, "ok": False, "skipped": True,
                     "error": f"environment for '{tool}' not found; run: python -m benchmarks envs"}
         jobs = self.out_dir / "jobs"
         jobs.mkdir(parents=True, exist_ok=True)
-        job_path, out_path = jobs / f"{suite}__{tool}.json", jobs / f"{suite}__{tool}.result.json"
+        stem = f"{suite}__{tool}" + (f"__{tag}" if tag else "")
+        job_path, out_path = jobs / f"{stem}.json", jobs / f"{stem}.result.json"
+        out_path.unlink(missing_ok=True)  # never mistake an earlier job's output for this one's
         job_path.write_text(json.dumps({"tool": tool, "suite": suite, "params": params}), encoding="utf-8")
         env = dict(os.environ, PYTHONPATH=str(REPO_ROOT), PYTHONIOENCODING="utf-8", PYTHONUTF8="1")
         start = time.perf_counter()
-        workdir = tempfile.mkdtemp(prefix=f"omnibench-{tool}-")
         try:
             proc = subprocess.run([py, "-m", "benchmarks.worker", str(job_path), str(out_path)],
                                   cwd=str(REPO_ROOT), env=env, timeout=timeout, capture_output=True, text=True,
@@ -72,7 +73,6 @@ class RunContext:
                     "error": f"worker crashed (exit {proc.returncode}): {proc.stderr[-1500:]}"}
         result = json.loads(out_path.read_text(encoding="utf-8"))
         result["where"], result["wall_seconds"] = where, round(wall, 3)
-        result["workdir"] = workdir
         if not result.get("ok"):
             self.say(f"  {tool}: FAILED {result.get('error', '')[:300]}")
         return result

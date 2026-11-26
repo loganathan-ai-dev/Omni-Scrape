@@ -1,5 +1,6 @@
 """Tier 2: Dynamic headless Chromium JS execution fetcher."""
 
+import asyncio
 import time
 from typing import Optional
 from omniscrape.exceptions import ConnectionTimeoutError, NetworkError
@@ -23,8 +24,16 @@ class DynamicFetcher(BaseFetcher):
         self.block_resources = block_resources
         self._playwright = None
         self._browser = None
+        self._launch_lock = asyncio.Lock()
 
     async def _init_browser(self):
+        if self._browser is not None:
+            return
+        async with self._launch_lock:  # concurrent first requests must share one browser
+            if self._browser is None:
+                await self._launch()
+
+    async def _launch(self):
         if self._browser is None:
             from playwright.async_api import async_playwright
             self._playwright = await async_playwright().start()

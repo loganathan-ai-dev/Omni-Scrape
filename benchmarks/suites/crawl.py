@@ -73,7 +73,7 @@ def run(ctx) -> dict[str, Any]:
             for i in range(repeats):
                 ctx.say(f"  crawl: {tool} run {i + 1}/{repeats}")
                 server.get("/__reset")
-                res = ctx.run_worker(tool, "crawl", params, timeout=900)
+                res = ctx.run_worker(tool, "crawl", params, timeout=900, tag=f"run{i + 1}")
                 entry = tool_summary(res)
                 if not res.get("ok"):
                     break
