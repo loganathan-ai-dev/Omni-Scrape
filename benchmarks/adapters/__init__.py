@@ -9,6 +9,8 @@ from benchmarks.adapters.base import ToolAdapter
 # every tool still runs in its own subprocess.
 TOOLS: dict[str, dict[str, Any]] = {
     "omniscrape": {"module": "omniscrape_adapter", "cls": "OmniScrapeAdapter", "env": "omniscrape"},
+    "omniscrape-isolated": {"module": "omniscrape_adapter", "cls": "OmniScrapeAdapter", "kwargs": {"isolate": True},
+                            "env": "omniscrape"},
     "lxml": {"module": "parsers_adapter", "cls": "LxmlAdapter", "env": "parsers"},
     "bs4-lxml": {"module": "parsers_adapter", "cls": "Bs4Adapter", "kwargs": {"parser": "lxml"}, "env": "parsers"},
     "bs4-html.parser": {"module": "parsers_adapter", "cls": "Bs4Adapter", "kwargs": {"parser": "html.parser"}, "env": "parsers"},
@@ -30,7 +32,7 @@ SUITE_TOOLS: dict[str, list[str]] = {
     "extract": ["omniscrape", "trafilatura"],
     "markdown": ["omniscrape", "trafilatura", "crawl4ai", "crawl4ai-fit", "markdownify", "html2text"],
     "adaptive": ["omniscrape", "scrapling"],
-    "render": ["omniscrape", "crawl4ai", "scrapling"],
+    "render": ["omniscrape", "omniscrape-isolated", "crawl4ai", "scrapling"],
     "crawl": ["omniscrape", "scrapy", "crawlee", "scrapling", "crawl4ai"],
     "live": ["omniscrape", "scrapy", "crawlee", "scrapling"],
 }

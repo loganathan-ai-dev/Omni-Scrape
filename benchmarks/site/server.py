@@ -134,6 +134,34 @@ def build_app(site: Site) -> web.Application:
                 f"</script></body></html>")
         return web.Response(text=html, content_type="text/html")
 
+    async def interactive(_: web.Request) -> web.Response:
+        html = ("<!DOCTYPE html><html><head><title>Interactive</title></head><body><h1>Offers</h1>"
+                "<button id='more' onclick=\"document.getElementById('hidden').innerHTML="
+                "'<p class=\\'deal\\'>Secret deal unlocked</p>'\">Show deals</button><div id='hidden'></div>"
+                "<input id='q' name='q'><button id='go' onclick=\"document.getElementById('out').textContent="
+                "'You searched: ' + document.getElementById('q').value\">Go</button><p id='out'></p></body></html>")
+        return web.Response(text=html, content_type="text/html")
+
+    async def infinite(_: web.Request) -> web.Response:
+        html = ("<!DOCTYPE html><html><head><title>Feed</title><style>.item{height:400px}</style></head><body>"
+                "<div id='feed'></div><script>let n=0;function more(){if(n>=50)return;for(let i=0;i<10;i++){"
+                "const d=document.createElement('div');d.className='item';d.textContent='Item '+(++n);"
+                "document.getElementById('feed').appendChild(d);}}more();"
+                "window.addEventListener('scroll',()=>{if(window.innerHeight+window.scrollY>=document.body.offsetHeight-50)"
+                "setTimeout(more,100);});</script></body></html>")
+        return web.Response(text=html, content_type="text/html")
+
+    async def spa(_: web.Request) -> web.Response:
+        html = ("<!DOCTYPE html><html><head><title>Catalog</title></head><body><div id='app'>Loading</div><script>"
+                "fetch('/api/items').then(r=>r.json()).then(d=>{document.getElementById('app').innerHTML="
+                "d.items.map(i=>'<div class=\"product\"><h2>'+i.name+'</h2><span class=\"price\">$'+i.price+'</span></div>').join('');});"
+                "</script></body></html>")
+        return web.Response(text=html, content_type="text/html")
+
+    async def api_items(_: web.Request) -> web.Response:
+        await asyncio.sleep(0.05)
+        return web.json_response({"items": [{"name": f"Lamp {i}", "price": 10 + i} for i in range(5)]})
+
     async def robots(_: web.Request) -> web.Response:
         return web.Response(text="User-agent: *\nDisallow: /private/\n\nSitemap: /sitemap.xml\n")
 
@@ -160,6 +188,10 @@ def build_app(site: Site) -> web.Application:
     app.router.add_get("/private/{k}", page)
     app.router.add_get("/flaky/{k}", flaky)
     app.router.add_get("/js/{i}", js_page)
+    app.router.add_get("/interactive", interactive)
+    app.router.add_get("/infinite", infinite)
+    app.router.add_get("/spa", spa)
+    app.router.add_get("/api/items", api_items)
     app.router.add_get("/robots.txt", robots)
     app.router.add_get("/sitemap.xml", sitemap)
     app.router.add_get("/__stats", stats)

@@ -44,6 +44,12 @@ class FetchResult(BaseModel):
     latency_ms: float = 0.0
     fetcher_tier: int = 1
     defense_detected: DefenseSystem = DefenseSystem.NONE
+    # Browser-only extras (empty for HTTP fetchers)
+    screenshot: Optional[bytes] = None
+    pdf: Optional[bytes] = None
+    network: list[dict[str, Any]] = Field(default_factory=list)   # captured XHR/fetch JSON responses
+    actions_log: list[dict[str, Any]] = Field(default_factory=list)
+    action_results: list[Any] = Field(default_factory=list)
 
     @property
     def ok(self) -> bool:
