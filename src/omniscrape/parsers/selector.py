@@ -396,17 +396,57 @@ def _parse(html: Union[str, bytes]) -> lxml.html.HtmlElement:
 
 
 class Selector(Element):
-    """Root selector for an HTML document. Use ``Selector(html, url=...)`` or ``Selector(root=tree)``."""
+    """Root selector for an HTML document. Use ``Selector(html, url=...)`` or ``Selector(root=tree)``.
 
-    __slots__ = ("raw_html", "root", "url")
+    Self-healing selectors: ``Selector(html, url=..., adaptive=True)`` then ``css(q, auto_save=True)``
+    remembers the matched element and ``css(q, adaptive=True)`` relocates it when ``q`` stops matching.
+    ``storage`` is an ``AdaptiveEngine`` or a SQLite path (default ~/.omniscrape/fingerprints.db).
+    """
 
-    def __init__(self, html: Union[str, bytes] = "", root: Optional[lxml.html.HtmlElement] = None, url: str = ""):
+    __slots__ = ("raw_html", "root", "url", "adaptive", "_storage", "_engine")
+
+    def __init__(self, html: Union[str, bytes] = "", root: Optional[lxml.html.HtmlElement] = None, url: str = "",
+                 adaptive: bool = False, storage: Any = None):
         self.raw_html = html
         self.url = url
+        self.adaptive = adaptive
+        self._storage = storage
+        self._engine = None
         if root is None:
             root = _parse(html)
         self.root = root
         super().__init__(root, url)
+
+    def _adaptive_engine(self) -> Any:
+        if self._engine is None:
+            from omniscrape.parsers.adaptive import AdaptiveEngine
+
+            self._engine = self._storage if isinstance(self._storage, AdaptiveEngine) else AdaptiveEngine(self._storage)
+        return self._engine
+
+    def css(self, query: str, identifier: str = "", auto_save: bool = False, adaptive: bool = False) -> SelectorList:
+        found = super().css(query)
+        if not (auto_save or adaptive) or not self.adaptive:
+            return found
+        from urllib.parse import urlsplit
+
+        from omniscrape.parsers.adaptive import NodeFingerprint
+
+        m = _PSEUDO.search(query) if "," not in query else None
+        base = query[: m.start()].strip() if m else query
+        elements = [e for e in (super().css(base) if m else found) if isinstance(e, Element)]
+        engine, domain, key = self._adaptive_engine(), urlsplit(self.url).hostname or "default", identifier or query
+        if elements and auto_save:
+            engine.save_fingerprint(domain, key, NodeFingerprint.from_element(elements[0]))
+        if not elements and adaptive:
+            stored = engine.load_fingerprint(domain, key)
+            el = engine.relocate(self, stored) if stored else None
+            if el is not None:
+                if not m:
+                    return SelectorList([el])
+                return el.xpath("text()") if m.group(1) == "text" else SelectorList(
+                    [v for v in [el.get(m.group(2))] if v is not None])
+        return found
 
     def find_by_text(self, text: str, exact: bool = False) -> list[Element]:
         pattern = text.strip()
