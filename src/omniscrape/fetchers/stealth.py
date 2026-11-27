@@ -10,7 +10,9 @@ import time
 from typing import Any, Optional
 
 from omniscrape.classifier.detector import detect_defense
+from omniscrape.fetchers.actions import run_playwright_fetch
 from omniscrape.fetchers.base import DEFAULT_USER_AGENT, BaseFetcher, playwright_proxy
+from omniscrape.fetchers.browser import BLOCKED_TYPES
 from omniscrape.fetchers.http import wrap_network_error
 from omniscrape.models import FetchResult
 from omniscrape.observability.logging import get_logger
@@ -29,9 +31,21 @@ class StealthFetcher(BaseFetcher):
 
     tier = 3
 
-    def __init__(self, headless: bool = True, settle_ms: int = 2000):
+    def __init__(
+        self,
+        headless: bool = True,
+        block_resources: bool = False,
+        wait_until: str = "domcontentloaded",
+        settle_ms: int = 120,
+        max_settle_ms: int = 2500,
+        capture_network: bool = False,
+    ):
         self.headless = headless
+        self.block_resources = block_resources
+        self.wait_until = wait_until
         self.settle_ms = settle_ms
+        self.max_settle_ms = max_settle_ms
+        self.capture_network = capture_network
         self._camoufox_cm: Any = None
         self._playwright: Any = None
         self._browser: Any = None
@@ -75,6 +89,13 @@ class StealthFetcher(BaseFetcher):
         proxy: Optional[str] = None,
         timeout: float = 45.0,
         follow_redirects: bool = True,
+        wait_until: Optional[str] = None,
+        wait_for: Optional[str] = None,
+        actions: Optional[list[dict[str, Any]]] = None,
+        screenshot: bool = False,
+        full_page: bool = True,
+        pdf: bool = False,
+        capture_network: Optional[bool] = None,
         **kwargs: Any,
     ) -> FetchResult:
         await self._ensure_browser()
@@ -87,20 +108,34 @@ class StealthFetcher(BaseFetcher):
         try:
             if not self._camoufox_available:
                 await context.add_init_script(_INIT_SCRIPT)
+            if self.block_resources:
+                async def route_filter(route: Any) -> None:
+                    if route.request.resource_type in BLOCKED_TYPES:
+                        await route.abort()
+                    else:
+                        await route.continue_()
+
+                await context.route("**/*", route_filter)
             if cookies:
                 await context.add_cookies([{"name": k, "value": v, "url": url} for k, v in cookies.items()])
 
             page = await context.new_page()
-            resp = await page.goto(url, timeout=int(timeout * 1000), wait_until="domcontentloaded")
-            try:
-                await page.wait_for_load_state("networkidle", timeout=self.settle_ms)
-            except Exception:
-                pass  # long-polling pages never go idle; settle time is best-effort
-
-            content = await page.content()
-            status = resp.status if resp else 200
-            resp_headers = await resp.all_headers() if resp else {}
-            page_cookies = {c["name"]: c["value"] for c in await context.cookies()}
+            data = await run_playwright_fetch(
+                context,
+                page,
+                url,
+                timeout=timeout,
+                wait_until=wait_until or self.wait_until,
+                wait_for=wait_for,
+                settle_ms=self.settle_ms,
+                max_settle_ms=self.max_settle_ms,
+                actions=actions,
+                screenshot=screenshot,
+                full_page=full_page,
+                pdf=pdf,
+                headless=self.headless,
+                capture_network=capture_network if capture_network is not None else self.capture_network,
+            )
         except Exception as exc:
             global_metrics.inc("fetch_tier3_errors")
             raise wrap_network_error(3, url, exc) from exc
@@ -111,14 +146,19 @@ class StealthFetcher(BaseFetcher):
         global_metrics.inc("fetch_tier3_requests")
         global_metrics.observe_latency("fetch_tier3_latency", elapsed_ms)
         return FetchResult(
-            url=page.url,
-            status_code=status,
-            headers=resp_headers,
-            html=content,
-            cookies=page_cookies,
+            url=data["url"],
+            status_code=data["status_code"],
+            headers=data["headers"],
+            html=data["html"],
+            cookies=data["cookies"],
             latency_ms=round(elapsed_ms, 2),
             fetcher_tier=3,
-            defense_detected=detect_defense(status, resp_headers, content),
+            defense_detected=detect_defense(data["status_code"], data["headers"], data["html"]),
+            screenshot=data["screenshot"],
+            pdf=data["pdf"],
+            network=data["network"],
+            actions_log=data["actions_log"],
+            action_results=data["action_results"],
         )
 
     async def close(self) -> None:

@@ -1,0 +1,24 @@
+{
+ "type": "product",
+ "url": "https://webscraper.io/test-sites/e-commerce/allinone/product/116",
+ "template": "webscraper_testsite",
+ "structured_mode": "microdata",
+ "fields": {
+  "title": "Acer TravelMate P645-S-511A Black",
+  "price": 1170.1,
+  "currency": "USD",
+  "review_count": 0
+ },
+ "main_text": "Acer TravelMate P645-S-511A Black\nAcer TravelMate P645-S-511A Black, 14\" FHD IPS, Core i5-5200U, 8GB, 256GB SSD, 3G, Windows 10 Pro",
+ "targets": {
+  "title": {
+   "selector": "div.caption > h4.title",
+   "text": "Acer TravelMate P645-S-511A Black"
+  },
+  "price": {
+   "selector": "div.caption > h4.price",
+   "text": "$1170.1"
+  }
+ },
+ "real_world": true
+}

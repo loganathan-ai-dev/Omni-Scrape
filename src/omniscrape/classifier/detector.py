@@ -61,11 +61,31 @@ def detect_defense(status_code: int, headers: Mapping[str, str], body: str) -> D
     A CDN header alone (e.g. ``cf-ray`` on a normal 200 page) is NOT a detection: most of the
     web sits behind Cloudflare/Akamai and serves content normally.
     """
-    h = {k.lower(): str(v).lower() for k, v in (headers or {}).items()}
     body = body or ""
     head = body[:20000]
-    server = h.get("server", "")
     blocked = status_code in BLOCK_STATUSES
+    if not blocked:
+        # Fast path for normal 2xx/3xx pages: only short interstitial/captcha shells can trigger on 200 OK.
+        head_low = head.lower()
+        has_cf = ("/cdn-cgi/challenge-platform" in head_low or "cf_chl_opt" in head_low
+                  or "just a moment" in head_low or "attention required" in head_low)
+        has_other = ("captcha-delivery.com" in head_low or "geo.captcha-delivery" in head_low
+                     or "px-captcha" in head_low or "_pxhd" in head_low
+                     or "kpsdk" in head_low or "ips.js" in head_low)
+        if not has_cf and not has_other:
+            return DefenseSystem.NONE
+        if not has_cf and visible_text_length(head) < 1500:
+            if _DATADOME.search(head):
+                return DefenseSystem.DATADOME
+            if _PERIMETERX.search(head):
+                return DefenseSystem.PERIMETERX
+            if _KASADA.search(head):
+                return DefenseSystem.KASADA
+        if not has_cf:
+            return DefenseSystem.NONE
+
+    h = {k.lower(): str(v).lower() for k, v in (headers or {}).items()}
+    server = h.get("server", "")
 
     # Interstitials are sometimes served with 200, so that check stands alone. A Turnstile widget alone
     # (a protected login form on a normal page) is not a block.

@@ -1,0 +1,11 @@
+{
+ "type": "article",
+ "url": "https://docs.bench.local/worker/config",
+ "template": "dev_docs_sidebar",
+ "structured_mode": "none",
+ "fields": {
+  "title": "Worker configuration"
+ },
+ "main_text": "Worker configuration\nThe configuration file controls how the worker connects to the queue and how many jobs it runs at once.\nOptions\nOption Default Meaning\nconcurrency 4 Jobs processed in parallel\ntimeout 30 Seconds before a job is cancelled\nExample\nworker:\n  concurrency: 8\n  timeout: 60\nRestart the worker after changing the file, because settings are read only at startup.",
+ "handwritten": true
+}

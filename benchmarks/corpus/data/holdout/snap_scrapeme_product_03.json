@@ -1,0 +1,29 @@
+{
+ "type": "product",
+ "url": "https://scrapeme.live/shop/Squirtle/index.html",
+ "template": "woocommerce_scrapeme",
+ "structured_mode": "jsonld",
+ "fields": {
+  "title": "Squirtle",
+  "price": 130.0,
+  "currency": "GBP",
+  "sku": "6094",
+  "availability": "InStock"
+ },
+ "main_text": "Squirtle\nSquirtle’s shell is not merely used for protection. The shell’s rounded shape and the grooves on its surface help minimize resistance in water, enabling this Pokémon to swim at high speeds.",
+ "targets": {
+  "title": {
+   "selector": "div.summary > h1.product_title",
+   "text": "Squirtle"
+  },
+  "price": {
+   "selector": "p.price > span.woocommerce-Price-amount",
+   "text": "£130.00"
+  },
+  "stock": {
+   "selector": "div.summary > p.stock",
+   "text": "178 in stock"
+  }
+ },
+ "real_world": true
+}

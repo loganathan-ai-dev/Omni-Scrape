@@ -1,0 +1,24 @@
+{
+ "type": "product",
+ "url": "https://webscraper.io/test-sites/e-commerce/allinone/product/31",
+ "template": "webscraper_testsite",
+ "structured_mode": "microdata",
+ "fields": {
+  "title": "Packard 255 G2",
+  "price": 416.99,
+  "currency": "USD",
+  "review_count": 2
+ },
+ "main_text": "Packard 255 G2\n15.6\", AMD E2-3800 1.3GHz, 4GB, 500GB, Windows 8.1",
+ "targets": {
+  "title": {
+   "selector": "div.caption > h4.title",
+   "text": "Packard 255 G2"
+  },
+  "price": {
+   "selector": "div.caption > h4.price",
+   "text": "$416.99"
+  }
+ },
+ "real_world": true
+}

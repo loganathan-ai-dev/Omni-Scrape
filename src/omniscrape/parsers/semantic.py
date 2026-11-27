@@ -1,165 +1,124 @@
-"""Zero-config semantic data extractor (JSON-LD, Microdata, OpenGraph)."""
+"""Zero-config semantic extraction (structured data, product, article) over a single parsed tree."""
 
-import json
-import re
 from typing import Any, Optional
-from bs4 import BeautifulSoup
+
 from omniscrape.models import Article, Product
 from omniscrape.observability.logging import get_logger
+from omniscrape.parsers.structured import as_root, extract_structured, find_items
 
 logger = get_logger("omniscrape.parsers.semantic")
 
+ARTICLE_SIGNAL_TYPES = {"Article", "NewsArticle", "BlogPosting", "TechArticle", "ScholarlyArticle", "Report",
+                        "LiveBlogPosting", "OpinionNewsArticle", "AnalysisNewsArticle"}
+
+
+_UNSET = object()
+
 
 class SemanticExtractor:
-    """Extracts structured schema without needing manual CSS/XPath locators."""
+    """Extracts structured data, products and articles without site-specific selectors.
 
-    def __init__(self, html: str, url: str = ""):
+    Pass ``root`` (an lxml element) to reuse an already-parsed document.
+    """
+
+    def __init__(self, html: str = "", url: str = "", root: Optional[Any] = None):
         self.html = html
         self.url = url
-        self.soup = BeautifulSoup(html, "html.parser")
+        self.root = root if root is not None else as_root(html)
+        self._structured: Optional[dict[str, Any]] = None
+        self._main: Optional[Any] = None
+        self._metadata: Any = _UNSET
+        self._product: Any = _UNSET
+        self._article: Any = _UNSET
+
+    @property
+    def structured(self) -> dict[str, Any]:
+        if self._structured is None:
+            self._structured = extract_structured(self.root, self.url)
+        return self._structured
+
+    @property
+    def main(self) -> Any:
+        if self._main is None:
+            from omniscrape.content.extract import extract_main
+
+            self._main = extract_main(self.root, self.url, self.structured)
+        return self._main
+
+    @property
+    def metadata(self) -> dict[str, Any]:
+        if self._metadata is _UNSET:
+            from omniscrape.content.metadata import extract_metadata
+
+            self._metadata = extract_metadata(self.root, self.url, self.structured)
+        return self._metadata
 
     def extract_all(self) -> dict[str, Any]:
+        s = self.structured
         return {
-            "json_ld": self.extract_json_ld(),
-            "opengraph": self.extract_opengraph(),
-            "meta_tags": self.extract_meta_tags(),
+            "json_ld": s["json-ld"],
+            "microdata": s["microdata"],
+            "rdfa": s["rdfa"],
+            "opengraph": s["opengraph"],
+            "meta_tags": s["meta"],
+            "dublincore": s["dublincore"],
             "product": self.extract_product(),
             "article": self.extract_article(),
         }
 
     def extract_json_ld(self) -> list[dict[str, Any]]:
-        scripts = self.soup.find_all("script", type="application/ld+json")
-        items = []
-        for s in scripts:
-            try:
-                raw_text = s.string or s.get_text()
-                if not raw_text or not raw_text.strip():
-                    continue
-                data = json.loads(raw_text.strip())
-                if isinstance(data, list):
-                    items.extend(data)
-                elif isinstance(data, dict):
-                    # Handle @graph patterns
-                    if "@graph" in data and isinstance(data["@graph"], list):
-                        items.extend(data["@graph"])
-                    else:
-                        items.append(data)
-            except Exception as e:
-                logger.debug(f"JSON-LD parse failure: {e}")
-        return items
+        return self.structured["json-ld"]
 
-    def extract_opengraph(self) -> dict[str, str]:
-        og = {}
-        for tag in self.soup.find_all("meta"):
-            prop = tag.get("property", "") or tag.get("name", "")
-            if prop.startswith("og:") or prop.startswith("twitter:"):
-                content = tag.get("content", "")
-                if content:
-                    og[prop] = content
-        return og
+    def extract_microdata(self) -> list[dict[str, Any]]:
+        return self.structured["microdata"]
+
+    def extract_opengraph(self) -> dict[str, Any]:
+        return {k: v for k, v in self.structured["opengraph"].items() if k.startswith(("og:", "twitter:"))}
 
     def extract_meta_tags(self) -> dict[str, str]:
-        meta = {}
-        for tag in self.soup.find_all("meta"):
-            name = tag.get("name")
-            content = tag.get("content")
-            if name and content:
-                meta[name.lower()] = content
-        return meta
+        return dict(self.structured["meta"])
 
     def extract_product(self) -> Optional[Product]:
-        """Tries to find schema.org/Product from JSON-LD or Microdata."""
-        for item in self.extract_json_ld():
-            item_type = item.get("@type", "")
-            if isinstance(item_type, list):
-                item_type = item_type[0] if item_type else ""
+        if self._product is _UNSET:
+            from omniscrape.extract.product import extract_product
 
-            if item_type.lower() == "product":
-                title = item.get("name") or self.extract_opengraph().get("og:title") or ""
-                offers = item.get("offers", {})
-                if isinstance(offers, list) and offers:
-                    offers = offers[0]
+            self._product = extract_product(self.root, self.url, self.structured)
+        return self._product
 
-                price_val = None
-                currency_val = "USD"
-                availability_val = "in_stock"
-
-                if isinstance(offers, dict):
-                    raw_price = offers.get("price")
-                    if raw_price is not None:
-                        try:
-                            price_val = float(str(raw_price).replace(",", ""))
-                        except ValueError:
-                            pass
-                    currency_val = offers.get("priceCurrency", "USD")
-                    avail = str(offers.get("availability", "")).lower()
-                    if "outofstock" in avail or "discontinued" in avail:
-                        availability_val = "out_of_stock"
-
-                images = item.get("image", [])
-                if isinstance(images, str):
-                    images = [images]
-                elif isinstance(images, list):
-                    images = [img if isinstance(img, str) else img.get("url", "") for img in images if img]
-
-                brand_val = None
-                brand = item.get("brand")
-                if isinstance(brand, dict):
-                    brand_val = brand.get("name")
-                elif isinstance(brand, str):
-                    brand_val = brand
-
-                rating_val = None
-                review_count_val = None
-                agg = item.get("aggregateRating", {})
-                if isinstance(agg, dict):
-                    try:
-                        rating_val = float(agg.get("ratingValue", 0))
-                    except (ValueError, TypeError):
-                        pass
-                    try:
-                        review_count_val = int(agg.get("reviewCount", 0))
-                    except (ValueError, TypeError):
-                        pass
-
-                return Product(
-                    url=self.url or item.get("url", ""),
-                    title=title,
-                    price=price_val,
-                    currency=currency_val,
-                    brand=brand_val,
-                    sku=item.get("sku"),
-                    rating=rating_val,
-                    review_count=review_count_val,
-                    availability=availability_val,
-                    in_stock=(availability_val == "in_stock"),
-                    images=images,
-                    description=item.get("description"),
-                )
-        return None
+    def is_article_like(self) -> bool:
+        if find_items(self.structured, ARTICLE_SIGNAL_TYPES):
+            return True
+        if "article" in str(self.structured["opengraph"].get("og:type", "")).lower():
+            return True
+        if self.root.find(".//article") is not None:
+            return True
+        if find_items(self.structured, {"Product", "ProductGroup", "Offer"}):
+            return False
+        # short news items and docs pages are articles too; product pages are excluded above
+        return len(self.main.text) >= 200
 
     def extract_article(self) -> Optional[Article]:
-        """Tries to find schema.org/Article from JSON-LD or OpenGraph."""
-        for item in self.extract_json_ld():
-            item_type = str(item.get("@type", "")).lower()
-            if item_type in ("article", "newsarticle", "blogposting"):
-                title = item.get("headline") or item.get("name") or ""
-                author_val = None
-                author = item.get("author")
-                if isinstance(author, dict):
-                    author_val = author.get("name")
-                elif isinstance(author, list) and author:
-                    author_val = author[0].get("name") if isinstance(author[0], dict) else str(author[0])
-                elif isinstance(author, str):
-                    author_val = author
-
-                return Article(
-                    url=self.url or item.get("url", ""),
-                    title=title,
-                    author=author_val,
-                    published_date=item.get("datePublished"),
-                    modified_date=item.get("dateModified"),
-                    body_text=item.get("articleBody", ""),
-                    summary=item.get("description"),
-                )
-        return None
+        if self._article is not _UNSET:
+            return self._article
+        if not self.is_article_like():
+            self._article = None
+            return None
+        meta = self.metadata
+        if not meta.get("title"):
+            self._article = None
+            return None
+        body = self.main.text
+        words = len(body.split())
+        self._article = Article(
+            url=self.url,
+            title=meta["title"],
+            author=meta.get("author"),
+            published_date=meta.get("published_date"),
+            modified_date=meta.get("modified_date"),
+            body_text=body,
+            summary=meta.get("description"),
+            images=[meta["image"]] if meta.get("image") else [],
+            tags=meta.get("tags") or [],
+            reading_time_minutes=max(1, round(words / 230)) if words else None,
+        )
+        return self._article

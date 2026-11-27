@@ -1,0 +1,3 @@
+# Exclude benchmark fixture HTML/JSON data from GitHub Linguist language statistics
+benchmarks/corpus/data/** linguist-vendored
+benchmarks/results/** linguist-vendored

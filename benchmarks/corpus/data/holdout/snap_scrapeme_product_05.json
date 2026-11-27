@@ -1,0 +1,29 @@
+{
+ "type": "product",
+ "url": "https://scrapeme.live/shop/Metapod/index.html",
+ "template": "woocommerce_scrapeme",
+ "structured_mode": "jsonld",
+ "fields": {
+  "title": "Metapod",
+  "price": 148.0,
+  "currency": "GBP",
+  "sku": "2072",
+  "availability": "InStock"
+ },
+ "main_text": "Metapod\nThe shell covering this Pokémon’s body is as hard as an iron slab. Metapod does not move very much. It stays still because it is preparing its soft innards for evolution inside the hard shell.",
+ "targets": {
+  "title": {
+   "selector": "div.summary > h1.product_title",
+   "text": "Metapod"
+  },
+  "price": {
+   "selector": "p.price > span.woocommerce-Price-amount",
+   "text": "£148.00"
+  },
+  "stock": {
+   "selector": "div.summary > p.stock",
+   "text": "285 in stock"
+  }
+ },
+ "real_world": true
+}

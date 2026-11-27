@@ -1,7 +1,7 @@
 """In-memory telemetry and Prometheus-compatible metrics tracker."""
 
 import time
-from collections import defaultdict
+from collections import defaultdict, deque
 from threading import Lock
 from typing import Any
 
@@ -12,7 +12,7 @@ class MetricsTracker:
     def __init__(self):
         self._lock = Lock()
         self.counters: dict[str, int] = defaultdict(int)
-        self.latencies: dict[str, list[float]] = defaultdict(list)
+        self.latencies: dict[str, deque[float]] = defaultdict(lambda: deque(maxlen=1000))
         self.gauges: dict[str, float] = {}
 
     def inc(self, metric: str, amount: int = 1):
@@ -21,11 +21,7 @@ class MetricsTracker:
 
     def observe_latency(self, metric: str, duration_ms: float):
         with self._lock:
-            # keep last 1000 measurements for statistics
-            bucket = self.latencies[metric]
-            bucket.append(duration_ms)
-            if len(bucket) > 1000:
-                bucket.pop(0)
+            self.latencies[metric].append(duration_ms)
 
     def set_gauge(self, metric: str, value: float):
         with self._lock:

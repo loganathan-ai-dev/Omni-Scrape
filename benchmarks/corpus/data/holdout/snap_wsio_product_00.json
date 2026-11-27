@@ -1,0 +1,24 @@
+{
+ "type": "product",
+ "url": "https://webscraper.io/test-sites/e-commerce/allinone/product/60",
+ "template": "webscraper_testsite",
+ "structured_mode": "microdata",
+ "fields": {
+  "title": "Asus VivoBook X441NA-GA190",
+  "price": 295.99,
+  "currency": "USD",
+  "review_count": 14
+ },
+ "main_text": "Asus VivoBook X441NA-GA190\nAsus VivoBook X441NA-GA190 Chocolate Black, 14\", Celeron N3450, 4GB, 128GB SSD, Endless OS, ENG kbd",
+ "targets": {
+  "title": {
+   "selector": "div.caption > h4.title",
+   "text": "Asus VivoBook X441NA-GA190"
+  },
+  "price": {
+   "selector": "div.caption > h4.price",
+   "text": "$295.99"
+  }
+ },
+ "real_world": true
+}
