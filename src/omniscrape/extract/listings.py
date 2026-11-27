@@ -19,16 +19,8 @@ def extract_listings(
     min_repetition: int = 3,
 ) -> list[dict[str, Any]]:
     """Extract structured items from repeated cards on category, catalog, or search pages."""
-    if isinstance(html_or_root, (str, bytes)):
-        sel = Selector(html_or_root, url=url)
-        root = sel.root
-        html = html_or_root.decode("utf-8", errors="replace") if isinstance(html_or_root, bytes) else html_or_root
-    else:
-        root = as_root(html_or_root)
-        sel = Selector(root=root, url=url)
-        html = sel.html
-
-    cards = DensityAnalyzer(html).detect_repeated_cards(min_repetition=min_repetition)
+    root = Selector(html_or_root, url=url).root if isinstance(html_or_root, (str, bytes)) else as_root(html_or_root)
+    cards = DensityAnalyzer(root=root).detect_repeated_cards(min_repetition=min_repetition)
     if not cards:
         return []
 

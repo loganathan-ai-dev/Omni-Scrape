@@ -117,6 +117,13 @@ Use `await engine.run() -> CrawlStats` or `async for item in engine.stream(): ..
 - `scrape_url(url: str, allow_stealth: bool = False) -> str` (JSON without raw `html` or `structured_data`)
 - `scrape_product(url: str) -> str`
 - `scrape_article(url: str) -> str`
+- `extract_entities(url, allow_stealth=False)` -> `{url, content_type, entities}`
+- `extract_schema(url, schema: dict, allow_stealth=False)` -> JSON of `Selector.extract(schema)`
+- `extract_listings(url, allow_stealth=False)` -> cards `[{title, url, price, currency, image}]`
+- `get_links(url, same_domain=True, pattern=None, limit=200, allow_stealth=False)`
+- `crawl_site(url, max_pages=20, pattern=None)` (same domain, robots.txt obeyed, at most 50 pages)
+- `screenshot(url, full_page=False, wait_for=None)` -> PNG image (needs the `browser` extra)
+- Error and anti-bot pages (including challenge pages served with HTTP 200) never reach the agent as content: `scrape_url`, `scrape_product`, `scrape_article`, `extract_*`, `get_links` and `screenshot` return a tool error, `get_markdown` returns a message starting with `Error:`, and `crawl_site` lists such pages with an `error` field instead of their content.
 - `get_markdown(url: str, query: Optional[str] = None, max_tokens: Optional[int] = None, allow_stealth: bool = False) -> str` (returns an `Error: ... HTTP <status>` message for non-2xx responses)
 - `map_site(url: str, search: Optional[str] = None, limit: int = 200) -> str`
 
@@ -129,13 +136,44 @@ Use `await engine.run() -> CrawlStats` or `async for item in engine.stream(): ..
 
 ## CLI (`omniscrape`)
 
-- `get URL [-f summary|json|markdown] [--css SEL (incl. ::text / ::attr(x))] [-o FILE] [-t TIER] [--stealth] [--proxy URL] [-H "K: v"] [--timeout S] [--wait-for SEL]`
+- `get URL [-f summary|json|markdown|html|text] [--impersonate PROFILE] [--http-version 1.1|2|3] [--css SEL (incl. ::text / ::attr(x))] [-o FILE] [-t TIER] [--stealth] [--proxy URL] [-H "K: v"] [--timeout S] [--wait-for SEL]`
 - `crawl URL [--max-pages N] [--depth N] [-c N] [--delay S] [-o FILE.jsonl|.duckdb] [--allow RE] [--deny RE] [--resume] [--append] [--no-robots] [--sitemap] [-t TIER]`
 - `map URL [-q TERMS] [--limit N] [-f text|json]`
 - `extract URL --schema schema.json [-o FILE] [-t TIER] ...` (schema = `Selector.extract` dict as JSON)
-- `shell [URL] [--plain]`: REPL with `omniscrape`, `Selector`, `fetch_sync`, `scrape_sync` (and `response`, `page` when URL given)
+- `curl "curl ..." [-f ...] [-o FILE] [-t TIER] [--impersonate PROFILE]`: replay a *Copy as cURL* command
+- `shell [URL] [--plain]`: REPL with `omniscrape`, `Selector`, `fetch_sync`, `scrape_sync`, `curl(cmd)`, `uncurl(cmd)`, `entities(html, url)` (and `response`, `page` when URL given)
+- `get -o page.md|.json|.html|.txt` picks the format from the extension when `-f` is not given.
 - `mcp [--transport stdio|http] [--host H] [-p PORT]`
 
 `crawl` replaces an existing output file unless `--resume` or `--append` is given; output must be `.jsonl`, `.ndjson` or `.duckdb`.
 
 Data goes to stdout; logs and tables go to stderr, so `omniscrape get URL -f json | jq .` is safe.
+
+## Page entities and page type (`omniscrape.extract.entities`)
+
+- `extract_entities(html_or_root, url="", structured=None) -> PageEntities`
+  (`recipe`, `events`, `jobs`, `reviews`, `rating`, `rating_count`, `faq`, `organization`, `breadcrumbs`, `next_page`, `tables`)
+- `detect_content_type(html_or_root, url="", structured=None, *, entities=None, product=..., article=...) -> str`
+  one of `product, article, recipe, event, job, listing, faq, organization, other`
+- `extract_recipe`, `extract_events`, `extract_jobs`, `extract_faq`, `extract_organization`, `extract_breadcrumbs`
+  take `(html_or_root, url="", structured=None)`; `extract_reviews(...)` returns `(reviews, rating, rating_count)`
+- `find_next_page(html_or_root, url="") -> Optional[str]`; `extract_tables(html_or_root, max_tables=10, max_rows=200)`
+- `ScrapeResult.content_type` and `ScrapeResult.entities` carry the same data.
+
+## Browser profiles (`FastFetcher`, tier 1)
+
+`FastFetcher(impersonate="chrome" | [profiles], rotate="domain" | "request", http_version=None | "1.1" | "2" | "3", verify=True)`;
+per request `fetch(url, impersonate=..., http_version=...)`. Configure on a client with
+`OmniClient(fetcher_options={1: {"impersonate": [...], "rotate": "request"}})`.
+
+## Multi-session spiders
+
+`Spider.sessions: dict[str, dict]` (keys: `tier`, `headers`, `proxy`, `timeout`, `allow_stealth`, plus fetcher options such as
+`impersonate`, `http_version`, `wait_for`, `actions`), `Spider.default_session`, `Request(url, session="name")`.
+An unknown `default_session` raises `ConfigError` before any request; sessions persist with `--resume` / `queue_path`.
+
+## curl import (`omniscrape.curl`)
+
+- `parse_curl(command) -> {url, method, headers, cookies, data, proxy, timeout, http_version, insecure}`
+- `await fetch_curl(command, **overrides) -> FetchResult` (tier 1 by default; `overrides` such as `impersonate="safari"`, `retries=`; browser tiers replay GET only; non-GET/HEAD/OPTIONS requests are not retried unless you pass `retries=`)
+- Supports `-X -H -b -d/--data* --data-urlencode --json -A -e -u -x -G -I -m -k --http1.1/2/3 --url`; rejects `-d @file` and `-F`.

@@ -21,12 +21,14 @@ Read [references/api_cheatsheet.md](./references/api_cheatsheet.md) when you nee
 | Long-lived session / custom config | `async with OmniClient(...) as client:` | Reuses TLS session, browser instance, `cache_responses=True` (304) |
 | Custom HTML parsing / CSS / XPath | `Selector(html, url=url)` | Supports `::text`, `::attr(href)`, `.re()`, `.extract(schema)`, `adaptive=True` |
 | High-speed pure CSS parsing | `Selector(html, backend="selectolax")` | Requires `omni-scraper[fast]` (`selectolax`) |
+| Any page type (recipe, event, job, reviews, FAQ, contacts, breadcrumbs, next page, tables) | `page.content_type` / `page.entities` from `scrape()`, or `extract_entities(html, url)` | Structured data first, DOM fallbacks; `detect_content_type` classifies the page |
 | Zero-config commerce / news | `extract_product(html, url)` / `extract_listings(html, url)` / `scrape_article(url)` | Uses JSON-LD (`@id` resolved), Microdata, RDFa, OG, Shopify JSON, DOM |
 | RAG / LLM context | `fit_markdown(html, url=url, query=..., links=True, citations=True, max_tokens=...)` + `chunk_markdown(md)` | Strips nav/footer/boilerplate and filters blocks with BM25 |
 | Multi-page crawl | `CrawlEngine(spider, storage=..., max_pages=..., queue_path=...)` | Obeys `robots.txt`, `Crawl-delay`, dedup, SQLite pause/resume |
 | URL discovery | `await omniscrape.map_site(url, search=..., limit=...)` | Reads `robots.txt` sitemaps + `/sitemap.xml` + start page links |
 | Quick CLI | `omniscrape get <url> -f markdown` / `crawl` / `map` / `extract --schema f.json` / `shell` | Data on stdout, logs on stderr |
-| Agent MCP | `omniscrape mcp` | Tools: `scrape_url`, `scrape_product`, `scrape_article`, `get_markdown`, `map_site` |
+| Replay a dev-tools request | `await fetch_curl("curl ...")` / `omniscrape curl "curl ..."` | Paste a browser's *Copy as cURL* (bash or cmd style) |
+| Agent MCP | `omniscrape mcp` | 11 tools: `scrape_url`, `scrape_product`, `scrape_article`, `get_markdown`, `map_site`, `extract_entities`, `extract_schema`, `extract_listings`, `get_links`, `crawl_site`, `screenshot` |
 
 ---
 
@@ -56,6 +58,16 @@ async with OmniClient(
 ### Guardrails
 - **Never** bypass login walls, paywalls, or solve/bypass CAPTCHAs or anti-bot challenges. If `res.defense_detected != DefenseSystem.NONE` and `allow_stealth=True` still lands on a challenge, report the access restriction and stop.
 - For multiple URLs, always reuse `OmniClient` or call `fetch_many` / `scrape_many` instead of calling `omniscrape.scrape()` in a loop (which tears down sessions and browsers on every URL).
+
+### Browser identity (tier 1)
+Each curl_cffi profile sends a coherent TLS fingerprint *and* headers. Pick one or rotate:
+
+```python
+await omniscrape.fetch(url, impersonate="safari", http_version="3")
+OmniClient(fetcher_options={1: {"impersonate": ["chrome", "safari", "firefox"]}})          # one identity per host
+OmniClient(fetcher_options={1: {"impersonate": ["chrome", "edge"], "rotate": "request"}})  # cycle per request
+```
+Profiles: `chrome`, `edge`, `safari`, `firefox`, `chrome_android`, `safari_ios` (or pinned, e.g. `chrome131`).
 
 ---
 
@@ -127,6 +139,37 @@ stats = asyncio.run(
     ).run()
 )
 ```
+
+Mix fetch configurations in one spider with named sessions (persisted across resume):
+
+```python
+class Shop(Spider):
+    sessions = {"http": {"tier": 1, "impersonate": "chrome"}, "browser": {"tier": 2, "wait_for": ".price"}}
+    default_session = "http"
+
+    async def parse(self, response, selector):
+        for href in selector.css("a.product::attr(href)").getall():
+            yield Request(href, session="browser", callback=self.parse_product)
+        if (nxt := omniscrape.find_next_page(response.html, response.url)):
+            yield Request(nxt)
+```
+
+---
+
+## 4b. Any Page Type Without Selectors
+
+```python
+page = await omniscrape.scrape(url)
+page.content_type          # product | article | recipe | event | job | listing | faq | organization | other
+page.entities.recipe       # Recipe: ingredients, instructions, times in minutes, servings, rating
+page.entities.jobs         # [JobPosting]: company, location, remote, salary_min/max/currency/period
+page.entities.events       # [Event]: start/end date, location, organizer, price, ticket_url
+page.entities.reviews, page.entities.rating, page.entities.faq
+page.entities.organization # emails, phones, address, social_profiles
+page.entities.breadcrumbs, page.entities.next_page, page.entities.tables
+```
+`scrape()` only reports `product` on product pages (or pages with Product markup) and no `article` on
+product/listing pages, so check `content_type` before trusting either.
 
 ---
 

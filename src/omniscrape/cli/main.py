@@ -25,6 +25,7 @@ from omniscrape._version import __version__
 console = Console(stderr=True)
 
 _HEADER_HELP = "Extra request header 'Name: value' (repeatable)"
+NEWLINE = chr(10)
 
 
 def _parse_headers(values: tuple[str, ...]) -> dict[str, str]:
@@ -38,11 +39,16 @@ def _parse_headers(values: tuple[str, ...]) -> dict[str, str]:
 
 
 def _fetch_options(tier: Optional[int], stealth: bool, proxy: Optional[str], header: tuple[str, ...],
-                   timeout: float, wait_for: Optional[str]) -> dict[str, Any]:
+                   timeout: float, wait_for: Optional[str], impersonate: Optional[str] = None,
+                   http_version: Optional[str] = None) -> dict[str, Any]:
     opts: dict[str, Any] = {"tier": tier, "allow_stealth": stealth, "proxy": proxy,
                             "headers": _parse_headers(header) or None, "timeout": timeout}
     if wait_for:
         opts["wait_for"] = wait_for
+    if impersonate:
+        opts["impersonate"] = impersonate
+    if http_version:
+        opts["http_version"] = http_version
     return opts
 
 
@@ -77,6 +83,10 @@ _common_fetch_options = [
     click.option("--header", "-H", multiple=True, help=_HEADER_HELP),
     click.option("--timeout", type=float, default=30.0, show_default=True, help="Request timeout in seconds"),
     click.option("--wait-for", default=None, help="CSS selector to wait for (browser tiers)"),
+    click.option("--impersonate", default=None,
+                 help="Browser profile for the HTTP tier: chrome, edge, safari, firefox, chrome_android, safari_ios"),
+    click.option("--http-version", type=click.Choice(["1.1", "2", "3"]), default=None,
+                 help="HTTP version for the HTTP tier (3 = HTTP/3)"),
 ]
 
 
@@ -90,59 +100,145 @@ def _with_fetch_options(fn):
 @click.version_option(__version__, prog_name="omniscrape")
 def cli():
     """OmniScrape: adaptive web scraping for Python."""
+    # Pages contain any script; a redirected stdout on Windows defaults to cp1252 and would crash on them.
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            try:
+                reconfigure(encoding="utf-8", errors="replace")
+            except (ValueError, OSError):
+                pass
 
 
 # ------------------------------------------------------------------------------------------ get
-@cli.command()
-@click.argument("url")
-@click.option("--format", "-f", "fmt", type=click.Choice(["json", "markdown", "summary"]), default="summary",
-              show_default=True)
-@click.option("--css", "-s", default=None, help="CSS selector; print the matching elements' text instead")
-@click.option("--output", "-o", default=None, type=click.Path(dir_okay=False), help="Write output to a file")
-@_with_fetch_options
-def get(url: str, fmt: str, css: Optional[str], output: Optional[str], tier, stealth, proxy, header, timeout,
-        wait_for):
-    """Scrape and extract data from a single URL."""
-    import omniscrape
+_FORMATS = ["summary", "json", "markdown", "html", "text"]
+_EXT_FORMAT = {".json": "json", ".md": "markdown", ".markdown": "markdown", ".html": "html", ".htm": "html",
+               ".txt": "text"}
 
-    opts = _fetch_options(tier, stealth, proxy, header, timeout, wait_for)
 
-    async def _go():
-        with console.status(f"[bold green]Scraping {url}..."):
-            return await omniscrape.scrape(url, **opts)
+def _resolve_format(fmt: Optional[str], output: Optional[str]) -> str:
+    """Explicit ``-f`` wins; otherwise the ``-o`` file extension picks the format; otherwise a summary table."""
+    if fmt:
+        return fmt
+    if output:
+        return _EXT_FORMAT.get(Path(output).suffix.lower(), "summary")
+    return "summary"
 
-    result = _run(_go())
 
+def _summary_table(result: Any) -> Table:
+    table = Table(title=f"Scrape Result: {result.title or result.url}")
+    table.add_column("Property", style="cyan")
+    table.add_column("Value", style="magenta")
+    table.add_row("Status", str(result.status_code))
+    table.add_row("Page type", result.content_type)
+    table.add_row("Latency", f"{result.latency_ms:.1f}ms")
+    table.add_row("Fetcher Tier", f"Tier {result.fetcher_tier}")
+    if result.product:
+        table.add_row("Product Title", result.product.title)
+        table.add_row("Price", f"{result.product.price} {result.product.currency}")
+        table.add_row("Availability", str(result.product.availability))
+    if result.article:
+        table.add_row("Article Headline", result.article.title)
+        table.add_row("Author", str(result.article.author))
+    ents = result.entities
+    if ents.recipe:
+        table.add_row("Recipe", f"{ents.recipe.title} ({len(ents.recipe.ingredients)} ingredients)")
+    for job in ents.jobs[:3]:
+        table.add_row("Job", f"{job.title} at {job.company or 'unknown company'}")
+    for event in ents.events[:3]:
+        table.add_row("Event", f"{event.title} ({event.start_date or 'date unknown'})")
+    if ents.rating is not None:
+        table.add_row("Rating", f"{ents.rating} ({ents.rating_count or 0} ratings, {len(ents.reviews)} reviews)")
+    if ents.faq:
+        table.add_row("FAQ", f"{len(ents.faq)} questions")
+    if ents.organization and (ents.organization.emails or ents.organization.phones):
+        org = ents.organization
+        table.add_row("Contact", ", ".join(org.emails[:2] + org.phones[:2]))
+    if ents.breadcrumbs:
+        table.add_row("Breadcrumbs", " > ".join(c.name for c in ents.breadcrumbs))
+    if ents.next_page:
+        table.add_row("Next page", ents.next_page)
+    if ents.tables:
+        table.add_row("Tables", str(len(ents.tables)))
+    table.add_row("Links", str(len(result.links)))
+    return table
+
+
+def _output_result(result: Any, fmt: str, output: Optional[str], css: Optional[str]) -> None:
     if css:
         from omniscrape.parsers.selector import Selector
 
         found = Selector(result.html, url=result.url).css(css)
         # `::text` / `::attr()` selectors yield strings; element selectors yield Elements.
-        _emit("\n".join(el if isinstance(el, str) else el.text for el in found), output)
+        _emit(NEWLINE.join(el if isinstance(el, str) else el.text for el in found), output)
         if not found:
             raise _fail(f"selector {css!r} matched nothing")
         return
-
     if fmt == "json":
-        _emit(json.dumps(result.model_dump(), indent=2, default=str), output)
+        _emit(json.dumps(result.model_dump(mode="json"), indent=2, ensure_ascii=False), output)
     elif fmt == "markdown":
         _emit(result.markdown, output)
+    elif fmt == "html":
+        _emit(result.html, output)
+    elif fmt == "text":
+        from omniscrape.content import extract_main
+
+        _emit(extract_main(result.html, result.url).text, output)
+    elif output:
+        raise _fail("with --output use -f json/markdown/html/text, or a .json/.md/.html/.txt file name")
     else:
-        table = Table(title=f"Scrape Result: {result.title or url}")
-        table.add_column("Property", style="cyan")
-        table.add_column("Value", style="magenta")
-        table.add_row("Status", str(result.status_code))
-        table.add_row("Latency", f"{result.latency_ms:.1f}ms")
-        table.add_row("Fetcher Tier", f"Tier {result.fetcher_tier}")
-        if result.product:
-            table.add_row("Product Title", result.product.title)
-            table.add_row("Price", f"{result.product.price} {result.product.currency}")
-            table.add_row("Availability", str(result.product.availability))
-        if result.article:
-            table.add_row("Article Headline", result.article.title)
-            table.add_row("Author", str(result.article.author))
-        table.add_row("Links", str(len(result.links)))
-        console.print(table)
+        console.print(_summary_table(result))
+
+
+@cli.command()
+@click.argument("url")
+@click.option("--format", "-f", "fmt", type=click.Choice(_FORMATS), default=None,
+              help="Output format (default: from the --output extension, else summary)")
+@click.option("--css", "-s", default=None, help="CSS selector; print the matching elements' text instead")
+@click.option("--output", "-o", default=None, type=click.Path(dir_okay=False),
+              help="Write output to a file; .json/.md/.html/.txt choose the format")
+@_with_fetch_options
+def get(url: str, fmt: Optional[str], css: Optional[str], output: Optional[str], tier, stealth, proxy, header,
+        timeout, wait_for, impersonate, http_version):
+    """Scrape and extract data from a single URL."""
+    import omniscrape
+
+    opts = _fetch_options(tier, stealth, proxy, header, timeout, wait_for, impersonate, http_version)
+
+    async def _go():
+        with console.status(f"[bold green]Scraping {url}..."):
+            return await omniscrape.scrape(url, **opts)
+
+    _output_result(_run(_go()), _resolve_format(fmt, output), output, css)
+
+
+# ------------------------------------------------------------------------------------------ curl
+@cli.command("curl")
+@click.argument("command")
+@click.option("--format", "-f", "fmt", type=click.Choice(_FORMATS), default=None,
+              help="Output format (default: from the --output extension, else summary)")
+@click.option("--css", "-s", default=None, help="CSS selector; print the matching elements' text instead")
+@click.option("--output", "-o", default=None, type=click.Path(dir_okay=False), help="Write output to a file")
+@click.option("--tier", "-t", type=int, default=1, show_default=True, help="Fetcher tier to replay with")
+@click.option("--impersonate", default=None, help="Browser profile, e.g. chrome, safari, firefox, edge")
+def curl_cmd(command: str, fmt: Optional[str], css: Optional[str], output: Optional[str], tier: int,
+             impersonate: Optional[str]):
+    """Replay a curl command (e.g. a browser's "Copy as cURL") and extract the response.
+
+    Pass the whole command as one quoted argument: omniscrape curl "curl 'https://x' -H 'Accept: ...'"
+    """
+    from omniscrape.client import build_scrape_result
+    from omniscrape.curl import fetch_curl
+
+    overrides: dict[str, Any] = {"tier": tier}
+    if impersonate:
+        overrides["impersonate"] = impersonate
+
+    async def _go():
+        with console.status("[bold green]Replaying curl command..."):
+            return await fetch_curl(command, **overrides)
+
+    _output_result(build_scrape_result(_run(_go())), _resolve_format(fmt, output), output, css)
 
 
 # ---------------------------------------------------------------------------------------- crawl
@@ -197,7 +293,10 @@ def crawl(url: str, max_pages: int, max_depth: Optional[int], concurrency: int, 
         async def parse(self, response, selector):
             page = build_scrape_result(response)
             item: dict[str, Any] = {"url": response.url, "status": response.status_code, "title": page.title,
-                                    "markdown": page.fit_markdown}
+                                    "content_type": page.content_type, "markdown": page.fit_markdown}
+            entities = page.entities.model_dump(mode="json", exclude_defaults=True)
+            if entities:
+                item["entities"] = entities
             if page.product:
                 item["product"] = page.product.model_dump(mode="json", exclude={"scraped_at"})
             if page.article:
@@ -250,7 +349,8 @@ def map_(url: str, search: Optional[str], limit: int, fmt: str):
               help="JSON file with a declarative schema (see Selector.extract)")
 @click.option("--output", "-o", default=None, type=click.Path(dir_okay=False), help="Write JSON to a file")
 @_with_fetch_options
-def extract(url: str, schema_path: str, output: Optional[str], tier, stealth, proxy, header, timeout, wait_for):
+def extract(url: str, schema_path: str, output: Optional[str], tier, stealth, proxy, header, timeout, wait_for,
+            impersonate, http_version):
     """Extract fields from URL using a JSON schema of CSS/XPath selectors."""
     import omniscrape
     from omniscrape.exceptions import SchemaValidationError
@@ -262,7 +362,7 @@ def extract(url: str, schema_path: str, output: Optional[str], tier, stealth, pr
         raise _fail(f"{schema_path} is not valid JSON: {exc}")
     if not isinstance(schema, dict):
         raise _fail("the schema file must contain a JSON object")
-    opts = _fetch_options(tier, stealth, proxy, header, timeout, wait_for)
+    opts = _fetch_options(tier, stealth, proxy, header, timeout, wait_for, impersonate, http_version)
     opts.pop("allow_stealth")
 
     async def _go():
@@ -284,14 +384,20 @@ def extract(url: str, schema_path: str, output: Optional[str], tier, stealth, pr
 def shell(url: Optional[str], plain: bool):
     """Interactive shell with omniscrape preloaded; pass URL to start with `page` fetched."""
     import omniscrape
+    from omniscrape.curl import fetch_curl, parse_curl
     from omniscrape.parsers.selector import Selector
 
     namespace: dict[str, Any] = {
         "omniscrape": omniscrape, "Selector": Selector, "scrape_sync": omniscrape.scrape_sync,
         "fetch_sync": lambda u, **kw: asyncio.run(omniscrape.fetch(u, **kw)),
+        "uncurl": parse_curl,
+        "curl": lambda command, **kw: asyncio.run(fetch_curl(command, **kw)),
+        "entities": omniscrape.extract_entities,
     }
     banner = ["OmniScrape shell", "  fetch_sync(url)   -> FetchResult", "  scrape_sync(url)  -> ScrapeResult",
-              "  Selector(html)    -> parse and query with .css() / .xpath() / .find_all()"]
+              "  Selector(html)    -> parse and query with .css() / .xpath() / .find_all()",
+              "  curl('curl ...')  -> FetchResult from a pasted 'Copy as cURL' command (uncurl() just parses it)",
+              "  entities(html, url) -> recipes, events, jobs, reviews, FAQ, contacts, breadcrumbs, next page"]
     if url:
         try:
             namespace["response"] = namespace["fetch_sync"](url)

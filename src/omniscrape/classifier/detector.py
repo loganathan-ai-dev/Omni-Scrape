@@ -161,7 +161,7 @@ class PageClassifier:
 
         start_time = time.perf_counter()
         try:
-            async with AsyncSession(impersonate="chrome124") as session:
+            async with AsyncSession(impersonate="chrome") as session:
                 resp = await session.get(url, timeout=timeout, allow_redirects=True)
             latency_ms = (time.perf_counter() - start_time) * 1000
             result = FetchResult(

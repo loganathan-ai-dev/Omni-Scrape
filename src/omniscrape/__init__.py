@@ -21,6 +21,20 @@ if TYPE_CHECKING:
     from omniscrape.crawler.links import LinkExtractor
     from omniscrape.crawler.sitemap import map_site
     from omniscrape.crawler.spider import Request, Spider
+    from omniscrape.curl import fetch_curl, parse_curl
+    from omniscrape.extract.entities import (
+        detect_content_type,
+        extract_breadcrumbs,
+        extract_entities,
+        extract_events,
+        extract_faq,
+        extract_jobs,
+        extract_organization,
+        extract_recipe,
+        extract_reviews,
+        extract_tables,
+        find_next_page,
+    )
     from omniscrape.extract.listings import extract_listings
     from omniscrape.extract.product import extract_product
     from omniscrape.fetchers.base import BaseFetcher
@@ -29,7 +43,20 @@ if TYPE_CHECKING:
     from omniscrape.fetchers.pool import ProxyPoolManager
     from omniscrape.fetchers.registry import available_fetchers, create_fetcher, register_fetcher
     from omniscrape.fetchers.stealth import StealthFetcher
-    from omniscrape.models import Article, FetchResult, Product, ScrapeResult
+    from omniscrape.models import (
+        Article,
+        Breadcrumb,
+        Event,
+        FAQItem,
+        FetchResult,
+        JobPosting,
+        Organization,
+        PageEntities,
+        Product,
+        Recipe,
+        Review,
+        ScrapeResult,
+    )
     from omniscrape.normalizers.currency import parse_price
     from omniscrape.normalizers.dates import parse_date
     from omniscrape.normalizers.markdown import html_to_markdown
@@ -52,11 +79,24 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "extract_metadata": ("omniscrape.content", "extract_metadata"),
     "fit_markdown": ("omniscrape.content", "fit_markdown"),
     "CrawlEngine": ("omniscrape.crawler.engine", "CrawlEngine"),
+    "parse_curl": ("omniscrape.curl", "parse_curl"),
+    "fetch_curl": ("omniscrape.curl", "fetch_curl"),
     "CrawlStats": ("omniscrape.crawler.engine", "CrawlStats"),
     "LinkExtractor": ("omniscrape.crawler.links", "LinkExtractor"),
     "map_site": ("omniscrape.crawler.sitemap", "map_site"),
     "Request": ("omniscrape.crawler.spider", "Request"),
     "Spider": ("omniscrape.crawler.spider", "Spider"),
+    "extract_entities": ("omniscrape.extract.entities", "extract_entities"),
+    "detect_content_type": ("omniscrape.extract.entities", "detect_content_type"),
+    "extract_recipe": ("omniscrape.extract.entities", "extract_recipe"),
+    "extract_events": ("omniscrape.extract.entities", "extract_events"),
+    "extract_jobs": ("omniscrape.extract.entities", "extract_jobs"),
+    "extract_reviews": ("omniscrape.extract.entities", "extract_reviews"),
+    "extract_faq": ("omniscrape.extract.entities", "extract_faq"),
+    "extract_organization": ("omniscrape.extract.entities", "extract_organization"),
+    "extract_breadcrumbs": ("omniscrape.extract.entities", "extract_breadcrumbs"),
+    "find_next_page": ("omniscrape.extract.entities", "find_next_page"),
+    "extract_tables": ("omniscrape.extract.entities", "extract_tables"),
     "extract_listings": ("omniscrape.extract.listings", "extract_listings"),
     "extract_product": ("omniscrape.extract.product", "extract_product"),
     "BaseFetcher": ("omniscrape.fetchers.base", "BaseFetcher"),
@@ -71,6 +111,14 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "FetchResult": ("omniscrape.models", "FetchResult"),
     "Product": ("omniscrape.models", "Product"),
     "ScrapeResult": ("omniscrape.models", "ScrapeResult"),
+    "Recipe": ("omniscrape.models", "Recipe"),
+    "Event": ("omniscrape.models", "Event"),
+    "JobPosting": ("omniscrape.models", "JobPosting"),
+    "Review": ("omniscrape.models", "Review"),
+    "FAQItem": ("omniscrape.models", "FAQItem"),
+    "Organization": ("omniscrape.models", "Organization"),
+    "Breadcrumb": ("omniscrape.models", "Breadcrumb"),
+    "PageEntities": ("omniscrape.models", "PageEntities"),
     "parse_price": ("omniscrape.normalizers.currency", "parse_price"),
     "parse_date": ("omniscrape.normalizers.dates", "parse_date"),
     "html_to_markdown": ("omniscrape.normalizers.markdown", "html_to_markdown"),
@@ -94,8 +142,21 @@ __all__ = [
     "fetch_many",
     "scrape_many",
     "map_site",
+    "parse_curl",
+    "fetch_curl",
     "extract_listings",
     "extract_product",
+    "extract_entities",
+    "detect_content_type",
+    "extract_recipe",
+    "extract_events",
+    "extract_jobs",
+    "extract_reviews",
+    "extract_faq",
+    "extract_organization",
+    "extract_breadcrumbs",
+    "find_next_page",
+    "extract_tables",
     "extract_main",
     "extract_metadata",
     "fit_markdown",
@@ -132,6 +193,14 @@ __all__ = [
     "Article",
     "ScrapeResult",
     "FetchResult",
+    "Recipe",
+    "Event",
+    "JobPosting",
+    "Review",
+    "FAQItem",
+    "Organization",
+    "Breadcrumb",
+    "PageEntities",
     "parse_price",
     "parse_unit",
     "parse_date",
@@ -200,15 +269,19 @@ def scrape_sync(url: str, **kwargs) -> ScrapeResult:
 
 
 async def scrape_product(url: str, **kwargs) -> Optional[Product]:
-    """Specialized product extraction from an e-commerce URL."""
-    res = await scrape(url, **kwargs)
-    return res.product
+    """Product extraction from a URL you know is a product page (no page-type filtering is applied)."""
+    from omniscrape.parsers.semantic import SemanticExtractor
+
+    res = await fetch(url, **kwargs)
+    return SemanticExtractor(res.html, url=res.url).extract_product()
 
 
 async def scrape_article(url: str, **kwargs) -> Optional[Article]:
-    """Specialized article extraction from a news/blog URL."""
-    res = await scrape(url, **kwargs)
-    return res.article
+    """Article extraction from a URL you know is a news/blog page (no page-type filtering is applied)."""
+    from omniscrape.parsers.semantic import SemanticExtractor
+
+    res = await fetch(url, **kwargs)
+    return SemanticExtractor(res.html, url=res.url).extract_article()
 
 
 async def fetch_many(

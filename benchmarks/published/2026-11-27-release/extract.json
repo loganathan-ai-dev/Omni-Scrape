@@ -1,0 +1,205 @@
+{
+ "suite": "extract",
+ "params": {
+  "docs": 126
+ },
+ "notes": [
+  "Field F1 = harmonic mean of precision (correct/predicted) and recall (correct/ground-truth).",
+  "Trafilatura is scored on article metadata only (title, author, date)."
+ ],
+ "tools": {
+  "omniscrape": {
+   "ok": true,
+   "version": "0.1.0",
+   "python": "3.12.13",
+   "where": "env:omniscrape",
+   "peak_rss_mb": 57.6,
+   "rss_after_import_mb": 26.6,
+   "import_seconds": 0.0037,
+   "wall_seconds": 6.011,
+   "memory_sampled": true,
+   "groups": {
+    "all": {
+     "precision": 1.0,
+     "recall": 0.9656,
+     "f1": 0.9825,
+     "n_fields": 610
+    },
+    "all:article": {
+     "precision": 1.0,
+     "recall": 0.8901,
+     "f1": 0.9418,
+     "n_fields": 191
+    },
+    "all:product": {
+     "precision": 1.0,
+     "recall": 1.0,
+     "f1": 1.0,
+     "n_fields": 419
+    },
+    "dev": {
+     "precision": 1.0,
+     "recall": 1.0,
+     "f1": 1.0,
+     "n_fields": 271
+    },
+    "dev:article": {
+     "precision": 1.0,
+     "recall": 1.0,
+     "f1": 1.0,
+     "n_fields": 79
+    },
+    "dev:product": {
+     "precision": 1.0,
+     "recall": 1.0,
+     "f1": 1.0,
+     "n_fields": 192
+    },
+    "holdout": {
+     "precision": 1.0,
+     "recall": 0.9381,
+     "f1": 0.968,
+     "n_fields": 339
+    },
+    "holdout:article": {
+     "precision": 1.0,
+     "recall": 0.8125,
+     "f1": 0.8966,
+     "n_fields": 112
+    },
+    "holdout:product": {
+     "precision": 1.0,
+     "recall": 1.0,
+     "f1": 1.0,
+     "n_fields": 227
+    },
+    "mode:jsonld": {
+     "precision": 1.0,
+     "recall": 1.0,
+     "f1": 1.0,
+     "n_fields": 156
+    },
+    "mode:microdata": {
+     "precision": 1.0,
+     "recall": 1.0,
+     "f1": 1.0,
+     "n_fields": 188
+    },
+    "mode:none": {
+     "precision": 1.0,
+     "recall": 0.9485,
+     "f1": 0.9736,
+     "n_fields": 136
+    },
+    "mode:og_only": {
+     "precision": 1.0,
+     "recall": 0.8923,
+     "f1": 0.9431,
+     "n_fields": 130
+    }
+   },
+   "fields": {
+    "article.author": 0.8333,
+    "article.published_date": 0.8308,
+    "article.title": 1.0,
+    "product.availability": 1.0,
+    "product.brand": 1.0,
+    "product.currency": 1.0,
+    "product.price": 1.0,
+    "product.rating": 1.0,
+    "product.review_count": 1.0,
+    "product.sku": 1.0,
+    "product.title": 1.0
+   },
+   "kinds": [
+    "article",
+    "product"
+   ],
+   "ms_per_doc": 43.269,
+   "errors": []
+  },
+  "trafilatura": {
+   "ok": true,
+   "version": "2.4.0",
+   "python": "3.12.13",
+   "where": "env:parsers",
+   "peak_rss_mb": 101.0,
+   "rss_after_import_mb": 39.4,
+   "import_seconds": 0.6896,
+   "wall_seconds": 8.847,
+   "memory_sampled": true,
+   "groups": {
+    "all": {
+     "precision": 0.9278,
+     "recall": 0.8743,
+     "f1": 0.9003,
+     "n_fields": 191
+    },
+    "all:article": {
+     "precision": 0.9278,
+     "recall": 0.8743,
+     "f1": 0.9003,
+     "n_fields": 191
+    },
+    "dev": {
+     "precision": 1.0,
+     "recall": 0.9494,
+     "f1": 0.974,
+     "n_fields": 79
+    },
+    "dev:article": {
+     "precision": 1.0,
+     "recall": 0.9494,
+     "f1": 0.974,
+     "n_fields": 79
+    },
+    "holdout": {
+     "precision": 0.8762,
+     "recall": 0.8214,
+     "f1": 0.8479,
+     "n_fields": 112
+    },
+    "holdout:article": {
+     "precision": 0.8762,
+     "recall": 0.8214,
+     "f1": 0.8479,
+     "n_fields": 112
+    },
+    "mode:jsonld": {
+     "precision": 1.0,
+     "recall": 1.0,
+     "f1": 1.0,
+     "n_fields": 46
+    },
+    "mode:microdata": {
+     "precision": 1.0,
+     "recall": 1.0,
+     "f1": 1.0,
+     "n_fields": 36
+    },
+    "mode:none": {
+     "precision": 1.0,
+     "recall": 0.8776,
+     "f1": 0.9348,
+     "n_fields": 49
+    },
+    "mode:og_only": {
+     "precision": 0.7636,
+     "recall": 0.7,
+     "f1": 0.7304,
+     "n_fields": 60
+    }
+   },
+   "fields": {
+    "article.author": 0.75,
+    "article.published_date": 0.9231,
+    "article.title": 0.9394
+   },
+   "kinds": [
+    "article"
+   ],
+   "ms_per_doc": 59.816,
+   "errors": []
+  }
+ }
+}

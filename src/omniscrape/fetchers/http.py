@@ -1,7 +1,15 @@
-"""Tier 1: High-speed HTTP/2 fetcher with browser TLS fingerprints (curl_cffi)."""
+"""Tier 1: High-speed HTTP/2 (and optional HTTP/3) fetcher with browser TLS fingerprints (curl_cffi).
 
+Each request impersonates a real browser end to end: TLS/JA3 and HTTP/2 fingerprints *and* the matching
+User-Agent and client-hint headers come from the same curl_cffi profile, so they never contradict each other.
+Pass several profiles to rotate between them (sticky per domain by default).
+"""
+
+import itertools
 import time
-from typing import Any, Optional
+import zlib
+from typing import Any, Optional, Sequence, Union, cast
+from urllib.parse import urlsplit
 
 from curl_cffi.requests import AsyncSession
 
@@ -19,6 +27,16 @@ from omniscrape.observability.metrics import global_metrics
 
 logger = get_logger("omniscrape.fetchers.http")
 
+# Browser families curl_cffi can impersonate; each alias tracks the newest version of that browser it ships.
+BROWSER_PROFILES = ("chrome", "edge", "safari", "firefox", "chrome_android", "safari_ios")
+_HTTP_VERSIONS = {"1": "v1", "1.1": "v1", "http1": "v1", "v1": "v1", "2": "v2", "h2": "v2", "http2": "v2", "v2": "v2",
+                  "3": "v3", "h3": "v3", "http3": "v3", "v3": "v3", "3only": "v3only", "v3only": "v3only"}
+
+# Extra headers sent on top of the impersonated browser's own headers (curl_cffi supplies User-Agent,
+# Accept, Sec-Ch-Ua, Sec-Fetch-* to match each profile).
+BASE_HEADERS = {"Accept-Language": "en-US,en;q=0.9"}
+
+# Legacy fixed Chrome 124 header set, kept for callers that import it; no longer sent by default.
 DEFAULT_HEADERS = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
     "Accept-Language": "en-US,en;q=0.9",
@@ -47,23 +65,73 @@ def wrap_network_error(tier: int, url: str, exc: Exception) -> NetworkError:
     return NetworkError(f"Tier {tier} network error for {url}: {msg}")
 
 
+def _curl_http_version(name: Optional[str]) -> Any:
+    """curl_cffi's ``CurlHttpVersion`` constant for a normalised name. Passing the enum (rather than the "v3"
+    string, which only curl_cffi >= 0.11.4 accepts) works on every supported curl_cffi version."""
+    if name is None:
+        return None
+    from curl_cffi.const import CurlHttpVersion
+
+    member = {"v1": "V1_1", "v2": "V2_0", "v3": "V3", "v3only": "V3ONLY"}[name]
+    if not hasattr(CurlHttpVersion, member):
+        raise ValueError(f"http_version {name!r} needs a newer curl_cffi (pip install -U curl_cffi)")
+    return getattr(CurlHttpVersion, member)
+
+
+def normalize_http_version(value: Any) -> Optional[str]:
+    """``3`` / ``"h3"`` / ``"http3"`` -> ``"v3"`` (curl_cffi's spelling); ``None`` keeps the default (HTTP/2)."""
+    if value is None or value == "":
+        return None
+    key = str(value).strip().lower()
+    if key not in _HTTP_VERSIONS:
+        raise ValueError(f"unknown http_version {value!r}; use 1.1, 2, 3 or 3only")
+    return _HTTP_VERSIONS[key]
+
+
 class FastFetcher(BaseFetcher):
-    """Tier 1: curl_cffi fetcher with TLS browser impersonation and connection reuse."""
+    """Tier 1: curl_cffi fetcher with browser impersonation, profile rotation and connection reuse.
+
+    ``impersonate`` is one curl_cffi profile (``"chrome"``, ``"safari"``, ``"firefox"``, ``"edge"``,
+    ``"chrome_android"``, ``"safari_ios"`` or a pinned version such as ``"chrome131"``) or a list of them.
+    With a list, ``rotate="domain"`` (default) gives each host one stable browser identity and
+    ``rotate="request"`` cycles through the list on every request. ``http_version="3"`` enables HTTP/3.
+    Per request, ``fetch(url, impersonate="safari", http_version="3")`` overrides both.
+    """
 
     tier = 1
 
     def __init__(
         self,
-        impersonate: str = "chrome124",
+        impersonate: Union[str, Sequence[str]] = "chrome",
         max_connections: int = 25,
         default_headers: Optional[dict[str, str]] = None,
         verify: bool = True,
+        rotate: str = "domain",
+        http_version: Any = None,
     ):
-        self.impersonate = impersonate
+        profiles = [impersonate] if isinstance(impersonate, str) else [p for p in impersonate if p]
+        if not profiles:
+            raise ValueError("impersonate needs at least one browser profile")
+        if rotate not in ("domain", "request"):
+            raise ValueError("rotate must be 'domain' or 'request'")
+        self.profiles = profiles
+        self.impersonate = profiles[0]
+        self.rotate = rotate
+        self.http_version = normalize_http_version(http_version)
         self.max_connections = max_connections
-        self.default_headers = dict(default_headers or DEFAULT_HEADERS)
+        self.default_headers = dict(BASE_HEADERS if default_headers is None else default_headers)
         self.verify = verify
+        self._cycle = itertools.cycle(profiles)
         self._session: Optional[AsyncSession] = None
+
+    def profile_for(self, url: str) -> str:
+        """The browser profile this fetcher uses for ``url``."""
+        if len(self.profiles) == 1:
+            return self.profiles[0]
+        if self.rotate == "request":
+            return next(self._cycle)
+        host = (urlsplit(url).hostname or "").lower()
+        return self.profiles[zlib.crc32(host.encode()) % len(self.profiles)]
 
     async def _get_session(self) -> AsyncSession:
         if self._session is None:
@@ -91,6 +159,10 @@ class FastFetcher(BaseFetcher):
         **kwargs: Any,
     ) -> FetchResult:
         session = await self._get_session()
+        profile = kwargs.pop("impersonate", None) or self.profile_for(url)
+        http_version = normalize_http_version(kwargs.pop("http_version", None)) or self.http_version
+        if http_version in ("v3", "v3only") and not url.lower().startswith("https://"):
+            http_version = None  # HTTP/3 runs over QUIC, which is TLS-only: plain http:// keeps the default
         start_time = time.perf_counter()
         if headers:
             req_headers = dict(self.default_headers)
@@ -110,6 +182,8 @@ class FastFetcher(BaseFetcher):
                 data=data,
                 json=json,
                 params=params,
+                impersonate=cast(Any, profile),        # validated by curl_cffi at request time
+                http_version=_curl_http_version(http_version),
             )
         except Exception as exc:
             global_metrics.inc("fetch_tier1_errors")

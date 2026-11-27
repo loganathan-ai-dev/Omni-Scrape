@@ -84,3 +84,36 @@ links = LinkExtractor(
 
 - [[Selectors-and-Extraction]]: schemas to use inside `parse`.
 - [[FAQ-and-Troubleshooting]]: `robots.txt` blocks and resuming crawls.
+
+## Multi-Session Spiders
+
+One spider can mix fetch configurations: fast HTTP for listing pages, a real browser for JavaScript pages, another
+browser identity or proxy for a particular section. Declare named sessions and pick one per request:
+
+```python
+from omniscrape import Request, Spider, find_next_page, build_scrape_result
+
+class Shop(Spider):
+    name = "shop"
+    start_urls = ["https://shop.example/catalog"]
+    sessions = {
+        "http": {"tier": 1, "impersonate": "chrome"},
+        "browser": {"tier": 2, "wait_for": ".price"},
+        "mobile": {"tier": 1, "impersonate": "safari_ios", "proxy": "http://p:8080"},
+    }
+    default_session = "http"
+
+    async def parse(self, response, selector):
+        for href in selector.css("a.product::attr(href)").getall():
+            yield Request(href, session="browser", callback=self.parse_product)
+        if (nxt := find_next_page(response.html, response.url)):
+            yield Request(nxt)
+
+    async def parse_product(self, response, selector):
+        yield build_scrape_result(response).product
+```
+
+A session is a dict of `OmniClient.fetch` options: `tier`, `headers`, `proxy`, `timeout`, `allow_stealth`, and any
+fetcher option (`impersonate`, `http_version`, `wait_for`, `actions`, ...). `Request(tier=...)` and request headers
+still override the session. A misspelt `default_session` raises `ConfigError` before any request is sent, and the
+session of every pending request is saved in the queue, so `--resume` keeps it.

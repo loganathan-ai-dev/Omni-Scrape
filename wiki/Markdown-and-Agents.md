@@ -81,6 +81,14 @@ Exposed tools:
 - `scrape_article(url)` — Extracts `Article` fields.
 - `get_markdown(url, query=None, max_tokens=None, allow_stealth=False)` — Main-content Markdown with optional BM25 filtering and token cap; returns an `Error: ... HTTP <status>` message instead of Markdown for failed or blocked pages.
 - `map_site(url, search=None, limit=200)` — Sitemap + link URL discovery.
+- `extract_entities(url, allow_stealth=False)` — Page type plus recipe, events, jobs, reviews, FAQ, contacts, breadcrumbs, next page and tables.
+- `extract_schema(url, schema, allow_stealth=False)` — Fields from a `Selector.extract` schema of CSS selectors.
+- `extract_listings(url, allow_stealth=False)` — Cards on category, search or catalogue pages.
+- `get_links(url, same_domain=True, pattern=None, limit=200)` — Absolute, de-duplicated links.
+- `crawl_site(url, max_pages=20, pattern=None)` — Bounded same-domain crawl (robots.txt obeyed, at most 50 pages); URL, title, page type and the start of the Markdown per page.
+- `screenshot(url, full_page=False, wait_for=None)` — PNG screenshot from a real browser (needs the `browser` extra).
+
+Error and anti-bot pages (including challenge pages served with HTTP 200) never reach the agent as content: `scrape_url`, `scrape_product`, `scrape_article`, `extract_*`, `get_links` and `screenshot` return a tool error, `get_markdown` returns a message starting with `Error:`, and `crawl_site` lists such pages with an `error` field instead of their content.
 
 ---
 

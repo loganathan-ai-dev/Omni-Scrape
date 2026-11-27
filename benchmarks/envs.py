@@ -36,6 +36,15 @@ def env_python(group: str) -> Path:
     return base / ("Scripts/python.exe" if sys.platform == "win32" else "bin/python")
 
 
+_OWN_PACKAGE_NAMES = ("omniscrape", "omni-scraper", "omni_scraper")
+
+
+def lock_lines(frozen: str) -> list[str]:
+    """``uv pip freeze`` output -> lock file lines, without the project itself (installed editable, never pinned)."""
+    return [ln for ln in frozen.splitlines()
+            if ln and not ln.startswith("-e") and not any(name in ln.lower() for name in _OWN_PACKAGE_NAMES)]
+
+
 def python_for_group(group: str) -> Optional[str]:
     py = env_python(group)
     return str(py) if py.exists() else None
@@ -65,7 +74,7 @@ def create(group: str, locked: bool = False) -> None:
         LOCK_DIR.mkdir(parents=True, exist_ok=True)
         frozen = subprocess.run(["uv", "pip", "freeze", "--python", str(py)], check=True,
                                 capture_output=True, text=True).stdout
-        lines = [ln for ln in frozen.splitlines() if ln and not ln.startswith("-e") and "omniscrape" not in ln]
+        lines = lock_lines(frozen)
         lock.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 

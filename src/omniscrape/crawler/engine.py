@@ -19,6 +19,7 @@ from omniscrape.crawler.queue import RequestQueue
 from omniscrape.crawler.robots import RobotsCache
 from omniscrape.crawler.spider import Request, Spider
 from omniscrape.crawler.throttle import DomainThrottle
+from omniscrape.exceptions import ConfigError
 from omniscrape.models import FetchResult
 from omniscrape.observability.logging import get_logger
 from omniscrape.parsers.selector import Selector
@@ -43,6 +44,7 @@ class CrawlStats:
     filtered_depth: int = 0
     filtered_budget: int = 0
     duplicates: int = 0
+    invalid_requests: int = 0   # yielded Requests that could not be scheduled (e.g. unknown session name)
     status_counts: Counter = field(default_factory=Counter)
 
     @property
@@ -57,7 +59,8 @@ class CrawlStats:
         return {"pages": self.pages, "items": self.items, "failed": self.failed, "dropped_items": self.dropped_items,
                 "robots_blocked": self.robots_blocked, "filtered_offsite": self.filtered_offsite,
                 "filtered_depth": self.filtered_depth, "filtered_budget": self.filtered_budget,
-                "duplicates": self.duplicates, "status_counts": dict(self.status_counts),
+                "duplicates": self.duplicates, "invalid_requests": self.invalid_requests,
+                "status_counts": dict(self.status_counts),
                 "elapsed_s": round(self.elapsed, 3), "pages_per_sec": round(self.pages_per_sec, 2)}
 
 
@@ -120,6 +123,7 @@ class CrawlEngine:
     async def run(self) -> CrawlStats:
         from omniscrape.client import OmniClient
 
+        self._check_session(self.spider.default_session)  # fail fast on a typo, before any request is sent
         self.client = self.client or OmniClient(retries=self.retries, retry_delay=0.1)
         self.queue = RequestQueue(self.queue_path)
         self.robots = RobotsCache(self.client, self.user_agent) if self.obey_robots else None
@@ -154,17 +158,49 @@ class CrawlEngine:
         return self.stats
 
     async def stream(self) -> AsyncIterator[Any]:
-        """Run the crawl and yield items as they are scraped."""
+        """Run the crawl and yield items as they are scraped.
+
+        If the crawl fails before it starts (e.g. an unknown ``default_session``), the error is raised here
+        instead of leaving the consumer waiting forever; breaking out of the loop early cancels the crawl.
+        """
         self._item_queue = asyncio.Queue()
         task = asyncio.create_task(self.run())
-        while True:
-            item = await self._item_queue.get()
-            if item is _DONE:
+        try:
+            while True:
+                getter = asyncio.ensure_future(self._item_queue.get())
+                await asyncio.wait({getter, task}, return_when=asyncio.FIRST_COMPLETED)
+                if getter.done():
+                    item = getter.result()
+                    if item is _DONE:
+                        break
+                    yield item
+                    continue
+                getter.cancel()
+                # run() finished without signalling completion: it failed before the crawl started.
+                task.result()
                 break
-            yield item
-        await task
+            await task
+        finally:
+            if not task.done():
+                task.cancel()
+                await asyncio.gather(task, return_exceptions=True)
+
+    def _session_options(self, req: Request) -> tuple[Any, Optional[dict[str, str]], dict[str, Any]]:
+        """``(tier, headers, extra fetch kwargs)`` for a request, from its session and its own overrides."""
+        name = req.session or self.spider.default_session
+        opts = dict((self.spider.sessions or {}).get(name, {})) if name else {}
+        session_tier = opts.pop("tier", None)
+        tier = req.tier if req.tier is not None else (session_tier if session_tier is not None else self.tier)
+        headers = {**(opts.pop("headers", None) or {}), **(req.headers or {})}
+        return tier, headers or None, opts
+
+    def _check_session(self, name: Optional[str]) -> None:
+        if name and name not in (self.spider.sessions or {}):
+            known = ", ".join(sorted(self.spider.sessions or {})) or "none defined"
+            raise ConfigError(f"Unknown session {name!r} on spider {self.spider.name!r} (sessions: {known})")
 
     async def schedule(self, req: Request) -> bool:
+        self._check_session(req.session)
         parts = urlsplit(req.url)
         if parts.scheme not in ("http", "https"):
             return False
@@ -266,9 +302,9 @@ class CrawlEngine:
         started = time.perf_counter() if self.throttle.autothrottle else 0.0
         status: Optional[int] = None
         try:
+            tier, headers, extra = self._session_options(req)
             result: FetchResult = await self.client.fetch(
-                req.url, tier=req.tier if req.tier is not None else self.tier,
-                headers=req.headers or None, method=req.method,
+                req.url, tier=tier, headers=headers, method=req.method, **extra,
             )
             status = result.status_code
         except Exception as exc:
@@ -318,7 +354,13 @@ class CrawlEngine:
                 out.url = urljoin(response.url, out.url)
             if not out.depth:
                 out.depth = parent.depth + 1
-            await self.schedule(out)
+            try:
+                await self.schedule(out)
+            except ConfigError as exc:
+                # A bad request (e.g. a misspelt session name) skips that request only; the rest of the
+                # callback's items and links are still processed.
+                self.stats.invalid_requests += 1
+                logger.error(f"Skipping request {out.url} from {response.url}: {exc}")
             return
         item = out
         for pipe in self.pipelines:
