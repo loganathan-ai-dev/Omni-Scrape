@@ -37,7 +37,7 @@ class DynamicFetcher(BaseFetcher):
         headless: bool = True,
         block_resources: bool = True,
         wait_until: str = "load",
-        settle_ms: int = 150,
+        settle_ms: int = 40,
         max_settle_ms: int = 3000,
         isolate: bool = True,
         user_agent: str = DEFAULT_USER_AGENT,
@@ -163,14 +163,26 @@ class DynamicFetcher(BaseFetcher):
                 await page.wait_for_selector(wait_for, timeout=ms)
             await settle(page, self.settle_ms, self.max_settle_ms)
             action_out = await run_actions(page, actions, ms) if actions else {"log": [], "screenshots": [], "results": []}
-            content = await page.content()
-            shot = await page.screenshot(full_page=full_page) if screenshot else None
-            if shot is None and action_out["screenshots"]:
-                shot = action_out["screenshots"][-1]
-            pdf_bytes = await page.pdf() if pdf and self.headless else None
+            if screenshot or (pdf and self.headless):
+                content = await page.content()
+                shot = await page.screenshot(full_page=full_page) if screenshot else None
+                if shot is None and action_out["screenshots"]:
+                    shot = action_out["screenshots"][-1]
+                pdf_bytes = await page.pdf() if pdf and self.headless else None
+                resp_headers = await resp.all_headers() if resp else {}
+                page_cookies = {c["name"]: c["value"] for c in await context.cookies(page.url)}
+            else:
+                if resp is not None:
+                    content, resp_headers, raw_cookies = await asyncio.gather(
+                        page.content(), resp.all_headers(), context.cookies(page.url)
+                    )
+                else:
+                    content, raw_cookies = await asyncio.gather(page.content(), context.cookies(page.url))
+                    resp_headers = {}
+                shot = action_out["screenshots"][-1] if action_out["screenshots"] else None
+                pdf_bytes = None
+                page_cookies = {c["name"]: c["value"] for c in raw_cookies}
             status = resp.status if resp else 200
-            resp_headers = await resp.all_headers() if resp else {}
-            page_cookies = {c["name"]: c["value"] for c in await context.cookies(page.url)}
             final_url = page.url
         except Exception as exc:
             global_metrics.inc("fetch_tier2_errors")

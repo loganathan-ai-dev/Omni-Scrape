@@ -33,13 +33,19 @@ def canonicalize(url: str, keep_fragment: bool = False, strip_trailing_slash: bo
     netloc = host if port is None or DEFAULT_PORTS.get(scheme) == port else f"{host}:{port}"
     if parts.username:
         netloc = f"{parts.username}{':' + parts.password if parts.password else ''}@{netloc}"
-    path = quote(unquote(parts.path or "/"), safe="/:@!$&'()*+,;=-._~%")
-    path = re.sub(r"/{2,}", "/", path)
+    raw_path = parts.path or "/"
+    path = quote(unquote(raw_path), safe="/:@!$&'()*+,;=-._~%") if ("%" in raw_path or not raw_path.isascii()) else raw_path
+    if "//" in path:
+        path = re.sub(r"/{2,}", "/", path)
     if strip_trailing_slash and len(path) > 1:
         path = path.rstrip("/")
-    query = [(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True) if not TRACKING_PARAMS.match(k)]
-    query.sort()
-    return urlunsplit((scheme, netloc, path, urlencode(query, doseq=True), parts.fragment if keep_fragment else ""))
+    if parts.query:
+        query = [(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True) if not TRACKING_PARAMS.match(k)]
+        query.sort()
+        qs = urlencode(query, doseq=True)
+    else:
+        qs = ""
+    return urlunsplit((scheme, netloc, path, qs, parts.fragment if keep_fragment else ""))
 
 
 def fingerprint(url: str, method: str = "GET", body: Optional[bytes] = None) -> str:

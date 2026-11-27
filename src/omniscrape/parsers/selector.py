@@ -65,19 +65,31 @@ def _compiled_xpath(query: str) -> lxml.etree.XPath:
     return lxml.etree.XPath(query)
 
 
+@lru_cache(maxsize=2048)
+def _compiled_css(query: str) -> tuple[lxml.etree.XPath, bool]:
+    xp = css_to_xpath(query)
+    return lxml.etree.XPath(xp), "::" in query
+
+
 def _wrap(results: Any, url: str = "") -> "SelectorList":
-    out = SelectorList()
-    if not isinstance(results, list):
-        results = [results]
-    for item in results:
-        if isinstance(item, lxml.etree._Element):
-            if isinstance(item.tag, str):
-                out.append(Element(item, url))
-        elif isinstance(item, (str, bytes)):
-            out.append(item.decode() if isinstance(item, bytes) else str(item))
-        elif isinstance(item, (int, float, bool)):
-            out.append(str(item))
-    return out
+    if isinstance(results, list):
+        out = SelectorList()
+        append = out.append
+        for item in results:
+            if isinstance(item, _LXML_ELEMENT):
+                if type(item.tag) is str:
+                    append(Element(item, url))
+            elif isinstance(item, str):
+                append(item)
+            elif isinstance(item, bytes):
+                append(item.decode())
+            elif isinstance(item, (int, float, bool)):
+                append(str(item))
+        return out
+    return _wrap([results], url)
+
+
+_LXML_ELEMENT = lxml.etree._Element
 
 
 class SelectorList(list):
@@ -175,7 +187,11 @@ class Element:
     @property
     def text(self) -> str:
         """All text inside the element (stripped)."""
-        return (self._node.text_content() or "").strip()
+        node = self._node
+        if not len(node):
+            t = node.text
+            return t.strip() if t else ""
+        return node.text_content().strip()
 
     @property
     def own_text(self) -> str:
@@ -215,7 +231,12 @@ class Element:
     # ------------------------------------------------------------------ querying
     def css(self, query: str) -> SelectorList:
         try:
-            return _wrap(_compiled_xpath(css_to_xpath(query))(self._node), self._url)
+            compiled, has_pseudo = _compiled_css(query)
+            res = compiled(self._node)
+            if not has_pseudo:
+                url = self._url
+                return SelectorList(Element(el, url) for el in res if type(el.tag) is str)
+            return _wrap(res, self._url)
         except (SelectorError, lxml.etree.XPathError):
             return SelectorList()
 
@@ -383,12 +404,13 @@ _UTF8_PARSER = lxml.html.HTMLParser(encoding="utf-8")
 def _parse(html: Union[str, bytes]) -> lxml.html.HtmlElement:
     """Parse str directly (no encode/decode round trip); bytes or str with an encoding declaration via UTF-8."""
     try:
-        if isinstance(html, str) and html.strip():
-            try:
-                return lxml.html.document_fromstring(html)
-            except ValueError:  # "Unicode strings with encoding declaration are not supported"
-                return lxml.html.document_fromstring(html.encode("utf-8"), parser=_UTF8_PARSER)
-        if isinstance(html, bytes) and html.strip():
+        if isinstance(html, str):
+            if html and not html.isspace():
+                try:
+                    return lxml.html.document_fromstring(html)
+                except ValueError:  # "Unicode strings with encoding declaration are not supported"
+                    return lxml.html.document_fromstring(html.encode("utf-8"), parser=_UTF8_PARSER)
+        elif isinstance(html, (bytes, bytearray)) and html and not html.isspace():
             return lxml.html.document_fromstring(html, parser=_UTF8_PARSER)
     except (lxml.etree.ParserError, ValueError):
         pass
@@ -425,8 +447,13 @@ class Selector(Element):
         return self._engine
 
     def css(self, query: str, identifier: str = "", auto_save: bool = False, adaptive: bool = False) -> SelectorList:
-        found = super().css(query)
-        if not (auto_save or adaptive) or not self.adaptive:
+        try:
+            compiled, has_pseudo = _compiled_css(query)
+            res = compiled(self._node)
+            found = SelectorList(Element(el, self._url) for el in res if type(el.tag) is str) if not has_pseudo else _wrap(res, self._url)
+        except (SelectorError, lxml.etree.XPathError):
+            found = SelectorList()
+        if not self.adaptive or not (auto_save or adaptive):
             return found
         from urllib.parse import urlsplit
 

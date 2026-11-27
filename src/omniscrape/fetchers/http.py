@@ -92,9 +92,11 @@ class FastFetcher(BaseFetcher):
     ) -> FetchResult:
         session = await self._get_session()
         start_time = time.perf_counter()
-        req_headers = dict(self.default_headers)
         if headers:
+            req_headers = dict(self.default_headers)
             req_headers.update(headers)
+        else:
+            req_headers = None
 
         try:
             resp = await session.request(
@@ -118,7 +120,7 @@ class FastFetcher(BaseFetcher):
         global_metrics.observe_latency("fetch_tier1_latency", elapsed_ms)
 
         html_text = resp.text or ""
-        resp_headers = {k: v for k, v in resp.headers.items()}
+        resp_headers = dict(resp.headers)
         return FetchResult(
             url=str(resp.url),
             status_code=resp.status_code,

@@ -41,35 +41,46 @@ class LinkExtractor:
         self.restrict_css = [restrict_css] if isinstance(restrict_css, str) else list(restrict_css or [])
         self.same_domain = same_domain
         self.pages_only = pages_only
-        self.tags = set(tags)
+        self.tags = tuple(tags)
 
     def extract(self, selector, base_url: str) -> list[str]:
         roots = [el._node for css in self.restrict_css for el in selector.css(css)] if self.restrict_css else [selector.root]
         base_netloc = urlsplit(base_url).netloc.lower()
         out: list[str] = []
         seen: set[str] = set()
+        tags = self.tags
+        same_domain = self.same_domain
+        pages_only = self.pages_only
+        allow_domains = self.allow_domains
+        deny_domains = self.deny_domains
+        allow = self.allow
+        deny = self.deny
         for root in roots:
-            for el in root.iter(*self.tags):
-                href = (el.get("href") or "").strip()
+            for el in root.iter(*tags):
+                href = el.attrib.get("href")
+                if not href:
+                    continue
+                href = href.strip()
                 if not href or href.startswith(("#", "javascript:", "mailto:", "tel:", "data:")):
                     continue
                 absolute = urljoin(base_url, href)
-                if urlsplit(absolute).scheme not in ("http", "https"):
-                    continue
                 url = canonicalize(absolute)
                 if url in seen:
                     continue
-                if self.same_domain and urlsplit(url).netloc.lower() != base_netloc:
+                parts = urlsplit(url)
+                if parts.scheme not in ("http", "https"):
                     continue
-                if self.pages_only and not looks_like_page(url):
+                if same_domain and parts.netloc.lower() != base_netloc:
                     continue
-                if self.allow_domains and not domain_allowed(url, self.allow_domains):
+                if pages_only and not looks_like_page(url):
                     continue
-                if self.deny_domains and domain_allowed(url, self.deny_domains):
+                if allow_domains and not domain_allowed(url, allow_domains):
                     continue
-                if self.allow and not any(p.search(url) for p in self.allow):
+                if deny_domains and domain_allowed(url, deny_domains):
                     continue
-                if any(p.search(url) for p in self.deny):
+                if allow and not any(p.search(url) for p in allow):
+                    continue
+                if deny and any(p.search(url) for p in deny):
                     continue
                 seen.add(url)
                 out.append(url)

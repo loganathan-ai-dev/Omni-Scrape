@@ -47,7 +47,7 @@ class DomainThrottle:
         return self._slots[domain]
 
     async def acquire(self, domain: str) -> None:
-        slot = self._slot(domain)
+        slot = self._slots.get(domain) or self._slot(domain)
         await slot.semaphore.acquire()
         if slot.delay > 0:
             async with slot.lock:  # space out request *starts* on this domain
@@ -57,7 +57,7 @@ class DomainThrottle:
                 slot.last_request = time.monotonic()
 
     def release(self, domain: str, latency_s: Optional[float] = None, status: Optional[int] = None) -> None:
-        slot = self._slot(domain)
+        slot = self._slots[domain]
         slot.semaphore.release()
         if self.autothrottle and latency_s is not None:
             target = latency_s / self.target_concurrency

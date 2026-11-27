@@ -20,23 +20,45 @@ class RobotsRules:
     parser: Optional[urllib.robotparser.RobotFileParser]
     allow_all: bool = False
     disallow_all: bool = False
+    _allowed_cache: Optional[dict[str, bool]] = None
+    _delay_cache: Optional[dict[str, Optional[float]]] = None
 
     def allowed(self, user_agent: str, url: str) -> bool:
         if self.allow_all:
             return True
         if self.disallow_all or self.parser is None:
             return False
-        return self.parser.can_fetch(user_agent, url)
+        cache = self._allowed_cache
+        if cache is None:
+            cache = self._allowed_cache = {}
+        key = f"{user_agent}\0{url}"
+        cached = cache.get(key)
+        if cached is not None:
+            return cached
+        res = self.parser.can_fetch(user_agent, url)
+        if len(cache) < 8192:
+            cache[key] = res
+        return res
 
     def crawl_delay(self, user_agent: str) -> Optional[float]:
         if self.parser is None:
             return None
+        cache = self._delay_cache
+        if cache is None:
+            cache = self._delay_cache = {}
+        if user_agent in cache:
+            return cache[user_agent]
         delay = self.parser.crawl_delay(user_agent)
         if delay is None:
             rate = self.parser.request_rate(user_agent)
             if rate and rate.requests:
-                return rate.seconds / rate.requests
-        return float(delay) if delay is not None else None
+                val: Optional[float] = rate.seconds / rate.requests
+            else:
+                val = None
+        else:
+            val = float(delay)
+        cache[user_agent] = val
+        return val
 
     def sitemaps(self) -> list[str]:
         return list(self.parser.site_maps() or []) if self.parser is not None else []
