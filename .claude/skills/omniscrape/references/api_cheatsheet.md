@@ -120,10 +120,10 @@ Use `await engine.run() -> CrawlStats` or `async for item in engine.stream(): ..
 - `extract_entities(url, allow_stealth=False)` -> `{url, content_type, entities}`
 - `extract_schema(url, schema: dict, allow_stealth=False)` -> JSON of `Selector.extract(schema)`
 - `extract_listings(url, allow_stealth=False)` -> cards `[{title, url, price, currency, image}]`
-- `get_links(url, same_domain=True, pattern=None, limit=200)`
+- `get_links(url, same_domain=True, pattern=None, limit=200, allow_stealth=False)`
 - `crawl_site(url, max_pages=20, pattern=None)` (same domain, robots.txt obeyed, at most 50 pages)
 - `screenshot(url, full_page=False, wait_for=None)` -> PNG image (needs the `browser` extra)
-- Page-reading tools raise a tool error for HTTP errors and anti-bot pages instead of returning them.
+- Error and anti-bot pages (including challenge pages served with HTTP 200) never reach the agent as content: `scrape_url`, `scrape_product`, `scrape_article`, `extract_*`, `get_links` and `screenshot` return a tool error, `get_markdown` returns a message starting with `Error:`, and `crawl_site` lists such pages with an `error` field instead of their content.
 - `get_markdown(url: str, query: Optional[str] = None, max_tokens: Optional[int] = None, allow_stealth: bool = False) -> str` (returns an `Error: ... HTTP <status>` message for non-2xx responses)
 - `map_site(url: str, search: Optional[str] = None, limit: int = 200) -> str`
 
@@ -175,5 +175,5 @@ An unknown `default_session` raises `ConfigError` before any request; sessions p
 ## curl import (`omniscrape.curl`)
 
 - `parse_curl(command) -> {url, method, headers, cookies, data, proxy, timeout, http_version, insecure}`
-- `await fetch_curl(command, **overrides) -> FetchResult` (defaults to tier 1; `overrides` such as `tier=2`, `impersonate="safari"`)
+- `await fetch_curl(command, **overrides) -> FetchResult` (tier 1 by default; `overrides` such as `impersonate="safari"`, `retries=`; browser tiers replay GET only; non-GET/HEAD/OPTIONS requests are not retried unless you pass `retries=`)
 - Supports `-X -H -b -d/--data* --data-urlencode --json -A -e -u -x -G -I -m -k --http1.1/2/3 --url`; rejects `-d @file` and `-F`.

@@ -9,6 +9,7 @@ pagination, data tables).
     >>> ents.recipe.ingredients, ents.jobs[0].salary_min, ents.next_page
 """
 
+import itertools
 import re
 from typing import Any, Iterator, Optional, Union
 from urllib.parse import urljoin, urlsplit
@@ -70,16 +71,37 @@ def _walk(value: Any, depth: int = 0) -> Iterator[dict[str, Any]]:
                 yield from _walk(v, depth + 1)
 
 
+def _identity(item: dict[str, Any]) -> Any:
+    """De-duplication key: the JSON-LD/microdata ``@id`` when present (resolved references are *copies* of the
+    referenced item), otherwise the object itself."""
+    ident = item.get("@id")
+    return ("@id", ident) if isinstance(ident, str) and ident else ("obj", id(item))
+
+
 def _items(structured: dict[str, Any], types: set[str], suffix: Optional[str] = None) -> list[dict[str, Any]]:
     """Structured items whose type is in ``types`` (or ends with ``suffix``), de-duplicated, in page order."""
     out: list[dict[str, Any]] = []
-    seen: set[int] = set()
+    seen: set[Any] = set()
     for source in ("json-ld", "microdata", "rdfa"):
         for item in _walk(structured.get(source, [])):
             names = type_names(item)
-            if (names & types or (suffix and any(n.endswith(suffix) for n in names))) and id(item) not in seen:
-                seen.add(id(item))
+            if not (names & types or (suffix and any(n.endswith(suffix) for n in names))):
+                continue
+            key = _identity(item)
+            if key not in seen:
+                seen.add(key)
                 out.append(item)
+    return out
+
+
+def _unique(models: list[Any], *fields: str) -> list[Any]:
+    """Drop entities that repeat the same ``fields`` (e.g. the same job published as JSON-LD *and* microdata)."""
+    out, seen = [], set()
+    for m in models:
+        key = tuple((getattr(m, f) or "") for f in fields)
+        if key not in seen:
+            seen.add(key)
+            out.append(m)
     return out
 
 
@@ -203,11 +225,31 @@ def _instructions(value: Any) -> list[str]:
             if text:
                 steps.append(text)
         elif isinstance(v, str):
-            text = _text(v)
-            if text:
-                # a single block of text: split on line breaks / numbered steps
-                parts = [p.strip(" .") for p in re.split(r"\n+|(?:^|\s)\d+\.\s", text) if p.strip(" .")]
-                steps.extend(parts if len(parts) > 1 else [text])
+            steps.extend(_split_steps(v))
+    return steps
+
+
+_NUMBERED_STEP = re.compile(r"(?:^|(?<=[.!?])\s+)(?:step\s*)?\d{1,2}[.):]\s+", re.I)
+
+
+def _split_steps(raw: str) -> list[str]:
+    """Split one block of recipe instructions into steps: list items / paragraphs / lines first, then
+    "1. ... 2. ..." numbering that starts a sentence. Plain sentences are not split."""
+    chunks: list[str]
+    if "<" in raw and ">" in raw:
+        try:
+            frag = lxml.html.fromstring(f"<div>{raw}</div>")
+            blocks = [" ".join(el.text_content().split()) for el in frag.iter("li", "p")]
+            chunks = [b for b in blocks if b] or [frag.text_content()]
+        except (lxml.etree.ParserError, ValueError):
+            chunks = [raw]
+    else:
+        chunks = [c for c in re.split(r"\r?\n+", raw) if c.strip()]
+    steps: list[str] = []
+    for chunk in chunks:
+        chunk = " ".join(chunk.split())
+        parts = [p.strip() for p in _NUMBERED_STEP.split(chunk) if p.strip()]
+        steps.extend(parts)
     return steps
 
 
@@ -269,7 +311,7 @@ def extract_events(html_or_root: Union[str, bytes, Any], url: str = "",
             price=price, currency=currency, ticket_url=urljoin(url, ticket) if ticket else None,
             images=_images(item.get("image"), url),
         ))
-    return events
+    return _unique(events, "title", "start_date", "location_name")
 
 
 # ----------------------------------------------------------------------------- jobs
@@ -314,7 +356,7 @@ def extract_jobs(html_or_root: Union[str, bytes, Any], url: str = "",
             salary_min=low, salary_max=high, salary_currency=currency, salary_period=period,
             description=_text(item.get("description")),
         ))
-    return jobs
+    return _unique(jobs, "title", "company", "location")
 
 
 # ----------------------------------------------------------------------------- reviews
@@ -463,7 +505,8 @@ def extract_organization(html_or_root: Union[str, bytes, Any], url: str = "",
 
     body = root.find(".//body")
     if body is not None:
-        visible = " ".join(t for t in body.itertext() if t and t.strip())
+        visible = " ".join(body.xpath(".//text()[not(ancestor::script or ancestor::style or ancestor::noscript"
+                                      " or ancestor::template)]"))
         for match in _EMAIL_RE.findall(visible):
             if not match.lower().endswith(_NOT_EMAIL_SUFFIX):
                 emails.append(match)
@@ -497,6 +540,19 @@ def _hint(el: Any) -> str:
     return f"{el.get('class') or ''} {el.get('id') or ''} {el.get('aria-label') or ''}"
 
 
+_PAGER_TOKENS = {"pagination", "pager", "paging", "paginate", "paginator", "pagenav", "pagenavi", "pagelinks",
+                 "pages", "wp-pagenavi"}
+
+
+def _is_pager(el: Any) -> bool:
+    """True for pagination containers (``.pagination``, ``.pager``, ``.page-numbers``, ``nav[aria-label=Pages]``),
+    not for generic wrappers such as ``id="page"`` or ``.page-content``."""
+    tokens = _tokens(_hint(el))
+    if tokens & _PAGER_TOKENS:
+        return True
+    return "page" in tokens and bool(tokens & {"numbers", "nav", "navigation", "links", "list"})
+
+
 def find_next_page(html_or_root: Union[str, bytes, Any], url: str = "") -> Optional[str]:
     """Absolute URL of the next page of results (``rel=next``, "Next" buttons, numbered pagers), or ``None``.
 
@@ -524,8 +580,7 @@ def find_next_page(html_or_root: Union[str, bytes, Any], url: str = "") -> Optio
             continue
         label = (a.get("aria-label") or a.get("title") or "").strip().lower()
         own = _tokens(f"{a.get('class') or ''} {a.get('id') or ''}")
-        parents = " ".join(_hint(p) for p in list(a.iterancestors())[:3]).lower()
-        in_pager = "pag" in parents or any("pag" in t for t in own)
+        in_pager = _is_pager(a) or any(_is_pager(p) for p in itertools.islice(a.iterancestors(), 4))
         if (label.startswith("next") or "next" in own or text in ("next", "next page", "older posts",
                                                                   "older entries", "more results")
                 or (text.startswith("next ") and in_pager) or (in_pager and text in _NEXT_TEXT)):
@@ -536,7 +591,7 @@ def find_next_page(html_or_root: Union[str, bytes, Any], url: str = "") -> Optio
     markers = root.xpath("//*[@aria-current='page'] | //*[contains(concat(' ',normalize-space(@class),' '),' current ')]"
                          " | //*[contains(concat(' ',normalize-space(@class),' '),' active ')]")
     for current in markers:
-        pager = next((p for p in current.iterancestors() if "pag" in _hint(p).lower()), None)
+        pager = next((p for p in itertools.islice(current.iterancestors(), 6) if _is_pager(p)), None)
         if pager is None:
             continue
         inside_current = set(map(id, current.iter()))
@@ -598,7 +653,22 @@ CONTENT_TYPES = ("product", "article", "recipe", "event", "job", "listing", "faq
 _LISTING_TYPES = {"ItemList", "CollectionPage", "SearchResultsPage", "OfferCatalog"}
 _ARTICLE_TYPES = {"Article", "NewsArticle", "BlogPosting", "Report", "ScholarlyArticle", "TechArticle",
                   "LiveBlogPosting", "OpinionNewsArticle", "AnalysisNewsArticle", "ReviewNewsArticle"}
+ARTICLE_MARKUP_TYPES = frozenset(_ARTICLE_TYPES)
 _UNSET: Any = object()
+
+
+def product_markup_count(structured: dict[str, Any]) -> int:
+    """Number of distinct top-level Product items (variants nested in a ProductGroup are not counted)."""
+    seen: set[Any] = set()
+    for source in ("json-ld", "microdata", "rdfa"):
+        for item in structured.get(source, []):
+            if isinstance(item, dict) and "Product" in type_names(item):
+                seen.add(_identity(item))
+            for key in ("mainEntity", "about"):
+                nested = item.get(key) if isinstance(item, dict) else None
+                if isinstance(nested, dict) and "Product" in type_names(nested):
+                    seen.add(_identity(nested))
+    return len(seen)
 
 
 def page_signals(html_or_root: Union[str, bytes, Any], url: str = "") -> tuple[int, int]:
@@ -654,7 +724,13 @@ def detect_content_type(html_or_root: Union[str, bytes, Any], url: str = "",
     jobs = ents.jobs if ents else _items(structured, {"JobPosting"})
     if jobs:
         return "job" if len(jobs) == 1 else "listing"
+    products = product_markup_count(structured)
+    if products >= 3:  # one Product per card: a category / search page
+        return "listing"
     if ({"Product", "ProductGroup"} & tops) and not (_LISTING_TYPES & tops):
+        return "product"
+    meta = {k.lower(): v for k, v in (structured.get("opengraph") or {}).items()}
+    if str(meta.get("og:type", "")).lower() == "product" or "product:price:amount" in meta:
         return "product"
     events = ents.events if ents else _items(structured, {"Event"}, suffix="Event")
     if events:

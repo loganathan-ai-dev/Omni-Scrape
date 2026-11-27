@@ -95,7 +95,7 @@ Exposed tools:
 - `crawl_site(url, max_pages=20, pattern=None)` — Bounded same-domain crawl (robots.txt obeyed, at most 50 pages); URL, title, page type and the start of the Markdown per page.
 - `screenshot(url, full_page=False, wait_for=None)` — PNG screenshot from a real browser (needs the `browser` extra).
 
-Page-reading tools return a tool error for HTTP errors and anti-bot pages (including ones served with HTTP 200).
+Error and anti-bot pages (including challenge pages served with HTTP 200) never reach the agent as content: `scrape_url`, `scrape_product`, `scrape_article`, `extract_*`, `get_links` and `screenshot` return a tool error, `get_markdown` returns a message starting with `Error:`, and `crawl_site` lists such pages with an `error` field instead of their content.
 
 ---
 

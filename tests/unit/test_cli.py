@@ -136,6 +136,7 @@ def test_crawl_writes_jsonl_and_obeys_robots(runner, site, tmp_path):
     items = [json.loads(line) for line in out.read_text(encoding="utf-8").splitlines()]
     urls = {i["url"] for i in items}
     assert urls == {f"{site}/", f"{site}/a", f"{site}/b"}  # /private/ is disallowed by robots.txt
+    assert all(i["content_type"] in ("product", "article", "listing", "other") for i in items)
 
 
 def test_crawl_duckdb_output(runner, site, tmp_path):

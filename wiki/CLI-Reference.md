@@ -99,7 +99,7 @@ Crawl a site starting at URL, staying on the start URL's host, and save one item
 | `--sitemap` | off | Also seed the queue from the site's sitemaps |
 | `--tier`, `-t INT` | `1` | Fetcher tier for every page |
 
-Each saved item contains `url`, `status`, `title` and `markdown` (the main-content Markdown), plus `product` and `article` objects when the page has them. When the crawl finishes, a table of crawl statistics (pages, items, failed, `robots_blocked`, duplicates, pages per second and more) is printed to stderr.
+Each saved item contains `url`, `status`, `title`, `content_type` and `markdown` (the main-content Markdown), plus `product`, `article` and `entities` (recipe, events, jobs, reviews, FAQ, contacts, breadcrumbs, next page, tables) when the page has them. When the crawl finishes, a table of crawl statistics (pages, items, failed, `robots_blocked`, duplicates, pages per second and more) is printed to stderr.
 
 With `--resume`, the request queue and de-duplication state are stored in SQLite under `~/.omniscrape/queues/` (one file per crawl, named after the start host). Re-run the same command after an interruption to continue.
 

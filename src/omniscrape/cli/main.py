@@ -100,6 +100,14 @@ def _with_fetch_options(fn):
 @click.version_option(__version__, prog_name="omniscrape")
 def cli():
     """OmniScrape: adaptive web scraping for Python."""
+    # Pages contain any script; a redirected stdout on Windows defaults to cp1252 and would crash on them.
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            try:
+                reconfigure(encoding="utf-8", errors="replace")
+            except (ValueError, OSError):
+                pass
 
 
 # ------------------------------------------------------------------------------------------ get
@@ -285,7 +293,10 @@ def crawl(url: str, max_pages: int, max_depth: Optional[int], concurrency: int, 
         async def parse(self, response, selector):
             page = build_scrape_result(response)
             item: dict[str, Any] = {"url": response.url, "status": response.status_code, "title": page.title,
-                                    "markdown": page.fit_markdown}
+                                    "content_type": page.content_type, "markdown": page.fit_markdown}
+            entities = page.entities.model_dump(mode="json", exclude_defaults=True)
+            if entities:
+                item["entities"] = entities
             if page.product:
                 item["product"] = page.product.model_dump(mode="json", exclude={"scraped_at"})
             if page.article:

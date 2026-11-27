@@ -24,6 +24,9 @@ PAGES = {
 }
 
 
+CALLS: dict[str, int] = {}
+
+
 class _Site(BaseHTTPRequestHandler):
     def _reply(self):
         path = self.path.split("?")[0]
@@ -37,6 +40,16 @@ class _Site(BaseHTTPRequestHandler):
             body, ctype, status = json.dumps(payload), "application/json", 200
         elif path == "/blocked":
             body, ctype, status = "<html><body>Access denied</body></html>", "text/html", 403
+        elif path == "/challenge":  # a Cloudflare interstitial served with HTTP 200
+            body = ("<html><head><title>Just a moment...</title></head><body>"
+                    "<script src='/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1'></script></body></html>")
+            ctype, status = "text/html", 200
+        elif path == "/flaky":
+            CALLS[self.command] = CALLS.get(self.command, 0) + 1
+            body, ctype, status = "bad gateway", "text/plain", 502
+        elif path == "/unicode":
+            body = "<html><head><title>日本語のページ → テスト</title></head><body><p>Привет, мир</p></body></html>"
+            ctype, status = "text/html; charset=utf-8", 200
         elif path in PAGES:
             body, ctype, status = PAGES[path], "text/html; charset=utf-8", 200
         else:
@@ -189,3 +202,68 @@ async def test_mcp_new_tools_against_local_site(site):
 
         with pytest.raises(Exception, match="HTTP 403"):
             await client.call_tool("extract_entities", {"url": f"{site}/blocked"})
+
+
+# ------------------------------------------------------------------ review round 3 (needs the local site)
+async def test_fetch_curl_sends_writes_once_but_retries_reads(site):
+    from omniscrape import fetch_curl
+
+    CALLS.clear()
+    res = await fetch_curl(f"curl '{site}/flaky' -X POST --data-raw 'order=1'")
+    assert res.status_code == 502 and CALLS == {"POST": 1}  # a copied form submission is never repeated
+    CALLS.clear()
+    res = await fetch_curl(f"curl '{site}/flaky'")
+    assert res.status_code == 502 and CALLS["GET"] == 3  # GET: first try + 2 retries
+
+
+def test_cli_json_with_non_latin_text_survives_a_piped_stdout(site):
+    import os
+    import subprocess
+    import sys
+
+    env = {k: v for k, v in os.environ.items() if k not in ("PYTHONIOENCODING", "PYTHONUTF8")}
+    proc = subprocess.run([sys.executable, "-m", "omniscrape.cli.main", "get", f"{site}/unicode", "-f", "json"],
+                          capture_output=True, env=env, timeout=120)
+    assert proc.returncode == 0, proc.stderr.decode("utf-8", "replace")
+    data = json.loads(proc.stdout.decode("utf-8"))
+    assert data["title"] == "日本語のページ → テスト"
+
+
+async def test_unknown_session_in_callback_skips_only_that_request(site):
+    from omniscrape.crawler import CrawlEngine, Request, Spider
+
+    class Spidey(Spider):
+        name = "skip-bad-session"
+        start_urls = [f"{site}/"]
+        sessions = {"http": {"tier": 1}}
+
+        async def parse(self, response, selector):
+            if response.url.rstrip("/") == site:
+                yield {"page": "home", "before": True}
+                yield Request("/recipe", session="brwoser")  # typo: skipped, the rest still runs
+                yield {"page": "home", "after": True}
+                yield Request("/shop")
+            else:
+                yield {"page": response.url.rsplit("/", 1)[-1]}
+
+    engine = CrawlEngine(Spidey(), obey_robots=False)
+    items = [i async for i in engine.stream()]
+    assert {"page": "home", "after": True} in items and {"page": "shop"} in items
+    assert not any(i.get("page") == "recipe" for i in items)
+    assert engine.stats.invalid_requests == 1 and engine.stats.failed == 0
+
+
+async def test_mcp_tools_refuse_challenge_pages_served_with_200(site):
+    pytest.importorskip("fastmcp")
+    from fastmcp.client import Client
+
+    from omniscrape.mcp.server import build_server
+
+    async with Client(build_server()) as client:
+        for tool in ("scrape_url", "scrape_product", "scrape_article", "extract_entities", "get_links"):
+            with pytest.raises(Exception, match="anti-bot: cloudflare"):
+                await client.call_tool(tool, {"url": f"{site}/challenge"})
+        text = (await client.call_tool("get_markdown", {"url": f"{site}/challenge"})).content[0].text
+        assert text.startswith("Error:") and "cloudflare" in text
+        pages = json.loads((await client.call_tool("crawl_site", {"url": f"{site}/challenge"})).content[0].text)
+        assert pages == [{"url": f"{site}/challenge", "error": "blocked (anti-bot: cloudflare)"}]

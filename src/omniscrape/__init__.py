@@ -269,15 +269,19 @@ def scrape_sync(url: str, **kwargs) -> ScrapeResult:
 
 
 async def scrape_product(url: str, **kwargs) -> Optional[Product]:
-    """Specialized product extraction from an e-commerce URL."""
-    res = await scrape(url, **kwargs)
-    return res.product
+    """Product extraction from a URL you know is a product page (no page-type filtering is applied)."""
+    from omniscrape.parsers.semantic import SemanticExtractor
+
+    res = await fetch(url, **kwargs)
+    return SemanticExtractor(res.html, url=res.url).extract_product()
 
 
 async def scrape_article(url: str, **kwargs) -> Optional[Article]:
-    """Specialized article extraction from a news/blog URL."""
-    res = await scrape(url, **kwargs)
-    return res.article
+    """Article extraction from a URL you know is a news/blog page (no page-type filtering is applied)."""
+    from omniscrape.parsers.semantic import SemanticExtractor
+
+    res = await fetch(url, **kwargs)
+    return SemanticExtractor(res.html, url=res.url).extract_article()
 
 
 async def fetch_many(

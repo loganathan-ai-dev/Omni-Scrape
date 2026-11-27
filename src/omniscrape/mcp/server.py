@@ -4,8 +4,11 @@
     omniscrape mcp --transport http --port 8000     # streamable HTTP at http://127.0.0.1:8000/mcp
 
 Tools: scrape_url, scrape_product, scrape_article, get_markdown, map_site, extract_entities, extract_schema,
-extract_listings, get_links, crawl_site, screenshot. Every tool that reads a page refuses error and anti-bot
-challenge pages (including ones served with HTTP 200) instead of returning them as content.
+extract_listings, get_links, crawl_site, screenshot.
+
+Error and anti-bot challenge pages (including ones served with HTTP 200) are never handed to the agent as page
+content: page tools return a tool error, ``get_markdown`` returns an ``Error: ...`` message, and ``crawl_site``
+marks such pages with an ``error`` field instead of their content.
 """
 
 import json
@@ -22,7 +25,7 @@ def _dump(model: Any, drop: tuple[str, ...] = ()) -> str:
     return json.dumps(data, default=str, ensure_ascii=False)
 
 
-def _blocked_message(res: Any, url: str) -> Optional[str]:
+def _blocked_message(res: Any, url: str, stealth_hint: bool = True) -> Optional[str]:
     """An error message when ``res`` is an HTTP error or an anti-bot page, else ``None``."""
     from omniscrape.classifier.strategies import is_blocked
 
@@ -30,7 +33,8 @@ def _blocked_message(res: Any, url: str) -> Optional[str]:
         return None
     defense = getattr(res.defense_detected, "value", res.defense_detected)
     note = f" (anti-bot: {defense})" if defense and defense != "none" else ""
-    return f"Error: {url} returned HTTP {res.status_code}{note}. Retry with allow_stealth=true if blocked."
+    hint = " Retry with allow_stealth=true if blocked." if stealth_hint else ""
+    return f"Error: {url} returned HTTP {res.status_code}{note}.{hint}"
 
 
 def build_server() -> Any:
@@ -40,12 +44,13 @@ def build_server() -> Any:
     from fastmcp.utilities.types import Image
 
     import omniscrape
+    from omniscrape.parsers.semantic import SemanticExtractor
 
     mcp = FastMCP("OmniScrape")
 
-    async def fetch_page(url: str, allow_stealth: bool = False, **kwargs: Any) -> Any:
+    async def fetch_page(url: str, allow_stealth: bool = False, stealth_hint: bool = True, **kwargs: Any) -> Any:
         res = await omniscrape.fetch(url, allow_stealth=allow_stealth, **kwargs)
-        message = _blocked_message(res, url)
+        message = _blocked_message(res, url, stealth_hint)
         if message:
             raise ToolError(message)
         return res
@@ -54,23 +59,26 @@ def build_server() -> Any:
     async def scrape_url(url: str, allow_stealth: bool = False) -> str:
         """Scrape a URL: title, page type, main-content Markdown, product/article, recipes, events, jobs,
         reviews, FAQ, contacts, breadcrumbs, next page, metadata and links (no raw HTML)."""
-        res = await omniscrape.scrape(url, allow_stealth=allow_stealth)
-        return _dump(res, drop=("html", "structured_data"))
+        res = await fetch_page(url, allow_stealth)
+        return _dump(omniscrape.build_scrape_result(res, url), drop=("html", "structured_data"))
 
     @mcp.tool()
-    async def scrape_product(url: str) -> str:
+    async def scrape_product(url: str, allow_stealth: bool = False) -> str:
         """Extract product data (title, price, currency, brand, SKU, availability, rating) from a product page."""
-        return _dump(await omniscrape.scrape_product(url))
+        res = await fetch_page(url, allow_stealth)
+        return _dump(SemanticExtractor(res.html, url=res.url).extract_product())
 
     @mcp.tool()
-    async def scrape_article(url: str) -> str:
+    async def scrape_article(url: str, allow_stealth: bool = False) -> str:
         """Extract an article's title, author, dates and body text from a news or blog page."""
-        return _dump(await omniscrape.scrape_article(url))
+        res = await fetch_page(url, allow_stealth)
+        return _dump(SemanticExtractor(res.html, url=res.url).extract_article())
 
     @mcp.tool()
     async def get_markdown(url: str, query: Optional[str] = None, max_tokens: Optional[int] = None,
                            allow_stealth: bool = False) -> str:
-        """Main-content Markdown of a page; with `query`, only the blocks relevant to it."""
+        """Main-content Markdown of a page; with `query`, only the blocks relevant to it.
+        Returns a message starting with "Error:" for failed or blocked pages."""
         res = await omniscrape.fetch(url, allow_stealth=allow_stealth)
         message = _blocked_message(res, url)
         if message:
@@ -107,9 +115,10 @@ def build_server() -> Any:
         return json.dumps(omniscrape.extract_listings(res.html, res.url), ensure_ascii=False)
 
     @mcp.tool()
-    async def get_links(url: str, same_domain: bool = True, pattern: Optional[str] = None, limit: int = 200) -> str:
+    async def get_links(url: str, same_domain: bool = True, pattern: Optional[str] = None, limit: int = 200,
+                        allow_stealth: bool = False) -> str:
         """Absolute, de-duplicated page links; `pattern` is a regex the URL must match."""
-        res = await fetch_page(url)
+        res = await fetch_page(url, allow_stealth)
         extractor = omniscrape.LinkExtractor(allow=[pattern] if pattern else None, same_domain=same_domain)
         links = extractor.extract(omniscrape.Selector(res.html, url=res.url), res.url)
         return json.dumps(links[: max(1, limit)])
@@ -117,7 +126,9 @@ def build_server() -> Any:
     @mcp.tool()
     async def crawl_site(url: str, max_pages: int = 20, pattern: Optional[str] = None) -> str:
         """Crawl a site from `url` (same domain, robots.txt obeyed, at most 50 pages) and return each page's
-        URL, title, page type and the start of its main-content Markdown. `pattern` limits followed links."""
+        URL, title, page type and the start of its main-content Markdown. `pattern` limits followed links.
+        Blocked or challenge pages are listed with an `error` field instead of content."""
+        from omniscrape.classifier.strategies import is_blocked
         from omniscrape.crawler import CrawlEngine, LinkExtractor, Request, Spider
 
         links = LinkExtractor(allow=[pattern] if pattern else None, same_domain=True)
@@ -128,6 +139,10 @@ def build_server() -> Any:
             start_urls = [url]
 
             async def parse(self, response, selector):
+                if is_blocked(response):
+                    defense = getattr(response.defense_detected, "value", response.defense_detected)
+                    yield {"url": response.url, "error": f"blocked (anti-bot: {defense})"}
+                    return
                 page = omniscrape.build_scrape_result(response)
                 yield {"url": page.url, "title": page.title, "content_type": page.content_type,
                        "markdown": page.fit_markdown[:_CRAWL_MARKDOWN_CHARS]}
@@ -141,7 +156,8 @@ def build_server() -> Any:
     async def screenshot(url: str, full_page: bool = False, wait_for: Optional[str] = None) -> Image:
         """PNG screenshot of a page rendered in a real browser (needs the `browser` extra and Chromium)."""
         try:
-            res = await fetch_page(url, tier=2, screenshot=True, full_page=full_page, wait_for=wait_for)
+            res = await fetch_page(url, stealth_hint=False, tier=2, screenshot=True, full_page=full_page,
+                                   wait_for=wait_for)
         except ImportError as exc:
             raise ToolError("Screenshots need: pip install 'omni-scraper[browser]' && playwright install chromium") \
                 from exc

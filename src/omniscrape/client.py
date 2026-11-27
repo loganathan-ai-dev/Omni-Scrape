@@ -335,7 +335,12 @@ class OmniClient:
 def build_scrape_result(fetch_res: FetchResult, url: Optional[str] = None) -> ScrapeResult:
     """Turn a FetchResult into a ScrapeResult (no network access)."""
     from omniscrape.content.markdown import fit_markdown
-    from omniscrape.extract.entities import detect_content_type, extract_entities
+    from omniscrape.extract.entities import (
+        ARTICLE_MARKUP_TYPES,
+        detect_content_type,
+        extract_entities,
+        product_markup_count,
+    )
     from omniscrape.parsers.selector import Selector
     from omniscrape.parsers.semantic import SemanticExtractor
     from omniscrape.parsers.structured import find_items
@@ -349,6 +354,7 @@ def build_scrape_result(fetch_res: FetchResult, url: Optional[str] = None) -> Sc
     title = title_el[0].text if title_el else ""
     if not title:
         title = semantic.extract_opengraph().get("og:title", "")
+    title = " ".join(str(title).split())  # <title> often spans lines and indentation in the HTML source
     fit = fit_markdown(selector.root, page_url, main=semantic.main)
 
     links: list[str] = []
@@ -369,10 +375,12 @@ def build_scrape_result(fetch_res: FetchResult, url: Optional[str] = None) -> Sc
                                        product=product, article=article)
     # The heuristic extractors always find *something*; only report what fits the page. A title-only "product"
     # on a news article, or one card's price on a category page, is a false positive, not data.
-    has_product_markup = bool(find_items(semantic.structured, {"Product", "ProductGroup"}))
-    if content_type != "product" and not has_product_markup:
+    # Markup is trusted over the guess: one marked-up Product keeps the product (several mean a card grid), and
+    # Article/NewsArticle/BlogPosting markup keeps the article (e.g. a product review article).
+    single_product_markup = product_markup_count(semantic.structured) == 1 and content_type != "listing"
+    if content_type != "product" and not single_product_markup:
         product = None
-    if content_type in ("product", "listing"):
+    if content_type in ("product", "listing") and not find_items(semantic.structured, set(ARTICLE_MARKUP_TYPES)):
         article = None
     all_structured["product"], all_structured["article"] = product, article
     return ScrapeResult(

@@ -287,3 +287,173 @@ async def test_mcp_get_markdown_rejects_200_challenge_pages(monkeypatch):
     async with Client(build_server()) as client:
         text = (await client.call_tool("get_markdown", {"url": "https://a.test/"})).content[0].text
     assert text.startswith("Error:") and "cloudflare" in text
+
+
+# ------------------------------------------------------------------ review round 3 (pre-release code review)
+def _ld(*items, body=""):
+    import json as _json
+
+    scripts = "".join(f'<script type="application/ld+json">{_json.dumps(i)}</script>' for i in items)
+    return f"<html><head><title>T</title>{scripts}</head><body>{body}</body></html>"
+
+
+def test_json_ld_references_do_not_duplicate_entities():
+    from omniscrape import detect_content_type, extract_events, extract_jobs
+
+    job_graph = {"@context": "https://schema.org", "@graph": [
+        {"@type": "WebPage", "@id": "#page", "mainEntity": {"@id": "#job"}},
+        {"@type": "JobPosting", "@id": "#job", "title": "Engineer", "hiringOrganization": {"name": "Acme"}}]}
+    assert [j.title for j in extract_jobs(_ld(job_graph))] == ["Engineer"]
+    assert detect_content_type(_ld(job_graph)) == "job"
+    event_graph = {"@graph": [{"@type": "WebPage", "mainEntity": {"@id": "#ev"}},
+                              {"@type": "Event", "@id": "#ev", "name": "Meetup", "startDate": "2026-12-01"}]}
+    assert [e.title for e in extract_events(_ld(event_graph))] == ["Meetup"]
+    assert detect_content_type(_ld(event_graph)) == "event"
+
+
+def test_recipe_steps_keep_numbers_and_split_lines_and_lists():
+    from omniscrape.extract.entities import _split_steps
+
+    assert _split_steps("Preheat oven to 350. Mix flour and sugar. Bake 20 minutes.") == \
+        ["Preheat oven to 350. Mix flour and sugar. Bake 20 minutes."]
+    assert _split_steps("Preheat oven\nMix flour\nBake") == ["Preheat oven", "Mix flour", "Bake"]
+    assert _split_steps("1. Preheat to 180C. 2. Mix flour. 3. Bake 20 minutes.") == \
+        ["Preheat to 180C.", "Mix flour.", "Bake 20 minutes."]
+    assert _split_steps("<ol><li>Chop onions</li><li>Fry 5 minutes</li></ol>") == ["Chop onions", "Fry 5 minutes"]
+
+
+def test_card_grid_with_product_microdata_is_a_listing_without_a_product():
+    from omniscrape import build_scrape_result
+    from omniscrape.models import FetchResult
+
+    cards = "".join(f'<div itemscope itemtype="https://schema.org/Product"><a href="/p/{i}" itemprop="url">'
+                    f'<span itemprop="name">Item {i}</span></a><span itemprop="price">{i}.99</span></div>'
+                    for i in range(24))
+    res = build_scrape_result(FetchResult(url="https://shop.test/category/kettles", status_code=200,
+                                          html=f"<html><body><h1>Kettles</h1>{cards}</body></html>"))
+    assert res.content_type == "listing" and res.product is None
+
+
+def test_article_markup_keeps_article_even_when_product_markup_exists():
+    from omniscrape import build_scrape_result
+    from omniscrape.models import FetchResult
+
+    body = "<article><h1>Kettle review</h1><p>" + "We tested this kettle for a month. " * 30 + "</p></article>"
+    html = _ld({"@type": "NewsArticle", "headline": "Kettle review", "author": {"name": "Asha"}},
+               {"@type": "Product", "name": "Kettle", "review": {"@type": "Review", "reviewBody": "Good"}}, body=body)
+    res = build_scrape_result(FetchResult(url="https://news.test/kettle-review", status_code=200, html=html))
+    assert res.article is not None and res.product is not None
+
+
+async def test_scrape_product_returns_raw_extraction_regardless_of_page_type(monkeypatch):
+    import omniscrape
+    from omniscrape.models import FetchResult
+
+    related = "".join(f'<div class="card"><a href="/item/{i}"><img src="/i{i}.jpg"><h3>Other {i}</h3></a>'
+                      f'<span class="price">${i + 10}.00</span></div>' for i in range(24))
+    html = (f'<html><body><div class="pdp"><h1>Main Kettle</h1><span class="price">$49.99</span></div>'
+            f'<div class="related">{related}</div></body></html>')
+
+    async def fake_fetch(url, **kwargs):
+        return FetchResult(url=url, status_code=200, html=html)
+
+    monkeypatch.setattr(omniscrape, "fetch", fake_fetch)
+    product = await omniscrape.scrape_product("https://shop.test/p/kettle")
+    assert product is not None and product.title == "Main Kettle"
+
+
+def test_organization_ignores_emails_inside_scripts_and_styles():
+    from omniscrape import extract_organization
+
+    html = ('<html><body><script>Sentry.init({dsn:"https://abc123def@o4501.ingest.sentry.io/45"})</script>'
+            '<style>/* admin@styles.test */</style><p>Write to hello@shop.test</p></body></html>')
+    assert extract_organization(html).emails == ["hello@shop.test"]
+
+
+def test_find_next_page_ignores_generic_page_wrappers():
+    from omniscrape import find_next_page
+
+    assert find_next_page('<div class="page-content"><a href="/guide/install">Next steps</a></div>',
+                          "https://docs.test/guide/start") is None
+    wrapper = ('<div id="page"><ul class="menu"><li class="active"><a href="/">Home</a></li></ul>'
+               '<table class="calendar"><tr><td><a href="/2026/05/03/">3</a></td></tr></table></div>')
+    assert find_next_page(wrapper, "https://blog.test/") is None
+    pager = '<ul class="page-numbers"><li><span class="current">1</span></li><li><a href="/page/2">2</a></li></ul>'
+    assert find_next_page(pager, "https://blog.test/") == "https://blog.test/page/2"
+
+
+def test_extract_listings_on_an_element_only_searches_inside_it():
+    import lxml.html
+
+    from omniscrape import extract_listings
+
+    nav = "".join(f'<li><a href="/n/{i}"><img src="/n{i}.png">Nav {i}</a></li>' for i in range(12))
+    results = "".join(f'<div class="hit"><a href="/r/{i}"><img src="/r{i}.jpg"><h3>Result {i}</h3></a>'
+                      f'<span class="price">${i}.00</span></div>' for i in range(4))
+    root = lxml.html.fromstring(f'<html><body><ul class="nav">{nav}</ul><div id="results">{results}</div></body></html>')
+    items = extract_listings(root.get_element_by_id("results"), "https://s.test/")
+    assert [i["title"] for i in items] == [f"Result {i}" for i in range(4)]
+
+
+def test_parse_curl_ansi_c_quoting_from_browsers():
+    from omniscrape import parse_curl
+
+    req = parse_curl("curl 'https://x.test/api' --data-raw $'{\"a\":\"b!\",\"q\":\"it\\'s\"}' -H $'cookie: a=1!'")
+    assert req["data"] == '{"a":"b!","q":"it\'s"}'
+    assert req["headers"]["cookie"] == "a=1!"
+    assert parse_curl("curl 'https://x.test/' --data-raw $'caf\\xc3\\xa9\\nline'")["data"] == "café\nline"
+
+
+@pytest.mark.parametrize("command,url", [
+    ("curl -sX POST https://x.com/api -d a=1", "https://x.com/api"),
+    ("curl -sSLo page.html https://x.test/p", "https://x.test/p"),
+    ("curl --retry-delay 2 https://x.test/a", "https://x.test/a"),
+    ("curl -r 0-100 https://x.test/f", "https://x.test/f"),
+])
+def test_parse_curl_finds_the_real_url(command, url):
+    from omniscrape import parse_curl
+
+    assert parse_curl(command)["url"] == url
+    if "-sX POST" in command:
+        assert parse_curl(command)["method"] == "POST"
+
+
+async def test_fetch_curl_refuses_post_on_browser_tiers():
+    from omniscrape import fetch_curl
+    from omniscrape.exceptions import ConfigError
+
+    with pytest.raises(ConfigError, match="tier=1"):
+        await fetch_curl("curl https://x.test/search -d q=shoes", tier=2)
+
+
+async def test_stream_raises_instead_of_hanging_on_unknown_default_session():
+    from omniscrape.crawler import CrawlEngine, Spider
+    from omniscrape.exceptions import ConfigError
+
+    class Typo(Spider):
+        name = "typo"
+        start_urls = ["https://a.test/"]
+        sessions = {"http": {"tier": 1}}
+        default_session = "htp"
+
+    async def consume():
+        return [item async for item in CrawlEngine(Typo(), obey_robots=False).stream()]
+
+    with pytest.raises(ConfigError, match="htp"):
+        await asyncio.wait_for(consume(), timeout=10)
+
+
+def test_benchmark_lock_lines_drop_the_project_itself():
+    from benchmarks.envs import lock_lines
+
+    frozen = "lxml==6.1.3\n-e file:///repo\nomni-scraper @ file:///repo\nomniscrape==0.1.0\nscrapling==0.5.1\n"
+    assert lock_lines(frozen) == ["lxml==6.1.3", "scrapling==0.5.1"]
+
+
+def test_scrape_result_title_is_whitespace_normalised():
+    from omniscrape import build_scrape_result
+    from omniscrape.models import FetchResult
+
+    html = "<html><head><title>\n    Books |\n     Books to Scrape - Sandbox\n</title></head><body></body></html>"
+    res = build_scrape_result(FetchResult(url="https://books.test/", status_code=200, html=html))
+    assert res.title == "Books | Books to Scrape - Sandbox"

@@ -129,7 +129,7 @@ OmniClient(fetcher_options={1: {"impersonate": ["chrome", "edge"], "rotate": "re
 ```
 
 Profiles: `chrome` (default), `edge`, `safari`, `firefox`, `chrome_android`, `safari_ios`, or a pinned version such
-as `chrome131`. On the CLI: `--impersonate safari --http-version 3`.
+as `chrome131`. On the CLI: `--impersonate safari --http-version 3`. HTTP/3 needs curl_cffi 0.15 or newer (the package minimum) and an `https://` URL; plain `http://` requests keep HTTP/1.1 or 2.
 
 Replay a request copied from the browser's dev tools (*Copy as cURL*, bash or Windows `cmd` style):
 
@@ -137,7 +137,9 @@ Replay a request copied from the browser's dev tools (*Copy as cURL*, bash or Wi
 from omniscrape import parse_curl, fetch_curl
 
 parse_curl("curl 'https://api.example.com/items?page=2' -H 'accept: application/json' -b 'sid=abc'")
-res = await fetch_curl(command)                     # FetchResult via the HTTP tier; fetch_curl(command, tier=2) for a browser
+res = await fetch_curl(command)                     # FetchResult via the HTTP tier (the only tier that can replay POST bodies)
 ```
 
 `omniscrape curl "curl ..." -f json` does the same from the terminal, and `omniscrape shell` has `curl()` and `uncurl()`.
+
+GET, HEAD and OPTIONS replays are retried on transient errors; other methods are sent exactly once (pass `retries=` to change that), because repeating a copied form submission or API write would repeat its side effects. `tier=2`/`tier=3` can replay GET requests only.

@@ -24,11 +24,11 @@ If `fastmcp` is not installed the command exits with a message telling you to in
 | `extract_entities` | `url`, `allow_stealth=False` | `{url, content_type, entities}`: page type plus recipe, events, jobs, reviews and rating, FAQ, organisation contacts, breadcrumbs, next page and tables |
 | `extract_schema` | `url`, `schema`, `allow_stealth=False` | JSON from a `Selector.extract` schema, e.g. `{"title": "h1::text", "price": {"selector": ".price::text", "type": "price"}}` |
 | `extract_listings` | `url`, `allow_stealth=False` | Cards on category, search or catalogue pages: title, URL, price, currency, image |
-| `get_links` | `url`, `same_domain=True`, `pattern=None`, `limit=200` | Absolute, de-duplicated links; `pattern` is a regex the URL must match |
-| `crawl_site` | `url`, `max_pages=20`, `pattern=None` | Same-domain crawl, `robots.txt` obeyed, at most 50 pages: URL, title, page type and the first 1,500 characters of Markdown per page |
+| `get_links` | `url`, `same_domain=True`, `pattern=None`, `limit=200`, `allow_stealth=False` | Absolute, de-duplicated links; `pattern` is a regex the URL must match |
+| `crawl_site` | `url`, `max_pages=20`, `pattern=None` | Same-domain crawl, `robots.txt` obeyed, at most 50 pages: URL, title, page type and the first 1,500 characters of Markdown per page; blocked pages appear as `{url, error}` |
 | `screenshot` | `url`, `full_page=False`, `wait_for=None` | PNG image from a real browser (needs `omni-scraper[browser]` and `playwright install chromium`) |
 
-Every tool that reads a page (`extract_*`, `get_links`, `screenshot`) returns a tool error for HTTP errors and anti-bot pages, including challenge pages served with HTTP 200, instead of passing them to the agent as content.
+Error and anti-bot pages (including challenge pages served with HTTP 200) never reach the agent as content: `scrape_url`, `scrape_product`, `scrape_article`, `extract_*`, `get_links` and `screenshot` return a tool error, `get_markdown` returns a message starting with `Error:`, and `crawl_site` lists such pages with an `error` field instead of their content.
 
 `allow_stealth` lets the call escalate to the stealth browser tier when blocked. It never solves CAPTCHAs; see [[Fetching-and-Stealth]].
 

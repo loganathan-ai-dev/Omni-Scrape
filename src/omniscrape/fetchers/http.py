@@ -65,6 +65,19 @@ def wrap_network_error(tier: int, url: str, exc: Exception) -> NetworkError:
     return NetworkError(f"Tier {tier} network error for {url}: {msg}")
 
 
+def _curl_http_version(name: Optional[str]) -> Any:
+    """curl_cffi's ``CurlHttpVersion`` constant for a normalised name. Passing the enum (rather than the "v3"
+    string, which only curl_cffi >= 0.11.4 accepts) works on every supported curl_cffi version."""
+    if name is None:
+        return None
+    from curl_cffi.const import CurlHttpVersion
+
+    member = {"v1": "V1_1", "v2": "V2_0", "v3": "V3", "v3only": "V3ONLY"}[name]
+    if not hasattr(CurlHttpVersion, member):
+        raise ValueError(f"http_version {name!r} needs a newer curl_cffi (pip install -U curl_cffi)")
+    return getattr(CurlHttpVersion, member)
+
+
 def normalize_http_version(value: Any) -> Optional[str]:
     """``3`` / ``"h3"`` / ``"http3"`` -> ``"v3"`` (curl_cffi's spelling); ``None`` keeps the default (HTTP/2)."""
     if value is None or value == "":
@@ -148,6 +161,8 @@ class FastFetcher(BaseFetcher):
         session = await self._get_session()
         profile = kwargs.pop("impersonate", None) or self.profile_for(url)
         http_version = normalize_http_version(kwargs.pop("http_version", None)) or self.http_version
+        if http_version in ("v3", "v3only") and not url.lower().startswith("https://"):
+            http_version = None  # HTTP/3 runs over QUIC, which is TLS-only: plain http:// keeps the default
         start_time = time.perf_counter()
         if headers:
             req_headers = dict(self.default_headers)
@@ -168,7 +183,7 @@ class FastFetcher(BaseFetcher):
                 json=json,
                 params=params,
                 impersonate=cast(Any, profile),        # validated by curl_cffi at request time
-                http_version=cast(Any, http_version),
+                http_version=_curl_http_version(http_version),
             )
         except Exception as exc:
             global_metrics.inc("fetch_tier1_errors")

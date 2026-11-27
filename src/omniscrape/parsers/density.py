@@ -25,7 +25,9 @@ class DensityAnalyzer:
         """Detects repeated grid containers (e.g. product cards or search results)."""
         fingerprints: dict[str, list[lxml.html.HtmlElement]] = {}
 
-        for node in self.root.xpath("//div | //li | //article | //section"):
+        # Relative to the given root: extract_listings(element) must only look inside that element.
+        for node in self.root.xpath("descendant-or-self::div | descendant-or-self::li"
+                                    " | descendant-or-self::article | descendant-or-self::section"):
             if not isinstance(node, lxml.html.HtmlElement):
                 continue
 
