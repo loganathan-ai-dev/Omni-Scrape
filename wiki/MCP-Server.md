@@ -5,12 +5,12 @@ OmniScrape ships a [Model Context Protocol](https://modelcontextprotocol.io/) se
 ## Install and run
 
 ```bash
-pip install "omni-scrape[mcp]"
+pip install "omni-scraper[mcp]"
 omniscrape mcp                                   # stdio (default)
 omniscrape mcp --transport http --port 8000      # streamable HTTP at http://127.0.0.1:8000/mcp
 ```
 
-If `fastmcp` is not installed the command exits with a message telling you to install `omni-scrape[mcp]`.
+If `fastmcp` is not installed the command exits with a message telling you to install `omni-scraper[mcp]`.
 
 ## Tools
 
@@ -35,11 +35,11 @@ If `fastmcp` is not installed the command exits with a message telling you to in
 claude mcp add omniscrape -- omniscrape mcp
 ```
 
-Or install the repository's Claude Code plugin, which bundles the skill and an MCP server entry (install `omni-scrape[mcp]` first):
+Or install the repository's Claude Code plugin, which bundles the skill and an MCP server entry (install `omni-scraper[mcp]` first):
 
 ```text
 /plugin marketplace add loganathan-ai-dev/Omni-Scrape
-/plugin install omniscrape@omni-scrape
+/plugin install omniscrape@omni-scraper
 ```
 
 ## Claude Desktop

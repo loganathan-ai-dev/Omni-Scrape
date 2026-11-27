@@ -20,7 +20,7 @@ Read [references/api_cheatsheet.md](./references/api_cheatsheet.md) when you nee
 | Many URLs concurrently | `await omniscrape.fetch_many(urls, ...)` / `scrape_many(...)` | Shares one `OmniClient` + per-domain throttling |
 | Long-lived session / custom config | `async with OmniClient(...) as client:` | Reuses TLS session, browser instance, `cache_responses=True` (304) |
 | Custom HTML parsing / CSS / XPath | `Selector(html, url=url)` | Supports `::text`, `::attr(href)`, `.re()`, `.extract(schema)`, `adaptive=True` |
-| High-speed pure CSS parsing | `Selector(html, backend="selectolax")` | Requires `omni-scrape[fast]` (`selectolax`) |
+| High-speed pure CSS parsing | `Selector(html, backend="selectolax")` | Requires `omni-scraper[fast]` (`selectolax`) |
 | Zero-config commerce / news | `extract_product(html, url)` / `extract_listings(html, url)` / `scrape_article(url)` | Uses JSON-LD (`@id` resolved), Microdata, RDFa, OG, Shopify JSON, DOM |
 | RAG / LLM context | `fit_markdown(html, url=url, query=..., links=True, citations=True, max_tokens=...)` + `chunk_markdown(md)` | Strips nav/footer/boilerplate and filters blocks with BM25 |
 | Multi-page crawl | `CrawlEngine(spider, storage=..., max_pages=..., queue_path=...)` | Obeys `robots.txt`, `Crawl-delay`, dedup, SQLite pause/resume |
@@ -36,7 +36,7 @@ OmniScrape has three progressive tiers (plus optional `httpx` HTTP/2):
 
 - **Tier 1 (`tier=1` / `"http"` — `FastFetcher`)**: `curl_cffi` HTTP/2 with browser TLS impersonation. Always start here (or leave `tier=None` for auto mode).
 - **Tier 2 (`tier=2` / `"browser"` — `DynamicFetcher`)**: Playwright Chromium. Auto mode escalates here automatically when Tier 1 returns an empty SPA shell. One browser launches lazily per fetcher, with isolated contexts per request (or `fetcher_options={2: {"isolate": False}}` for pooled shared-context speed).
-- **Tier 3 (`tier=3` / `"stealth"` — `StealthFetcher`)**: Camoufox (if `omni-scrape[stealth]` is installed) or hardened Playwright Chromium. Only triggered on blocks when `allow_stealth=True` or forced via `tier=3`.
+- **Tier 3 (`tier=3` / `"stealth"` — `StealthFetcher`)**: Camoufox (if `omni-scraper[stealth]` is installed) or hardened Playwright Chromium. Only triggered on blocks when `allow_stealth=True` or forced via `tier=3`.
 
 ```python
 from omniscrape import OmniClient, ProxyPoolManager
@@ -135,7 +135,7 @@ stats = asyncio.run(
 Start the MCP server for Claude Desktop, Cursor, or Antigravity:
 
 ```bash
-pip install "omni-scrape[mcp]"            # PyPI name is omni-scrape; the import and command are omniscrape
+pip install "omni-scraper[mcp]"            # PyPI name is omni-scraper; the import and command are omniscrape
 omniscrape mcp                              # stdio transport
 omniscrape mcp --transport http --port 8000 # streamable HTTP at /mcp
 ```

@@ -6,8 +6,8 @@
 
 **Adaptive web scraping for Python.** Tiered HTTP / browser / stealth fetching, self-healing selectors, zero-config product and article extraction, LLM-ready Markdown, a polite resumable crawler, a CLI and an MCP server, behind one small API.
 
-[![PyPI](https://img.shields.io/pypi/v/omni-scrape.svg?color=0a7cff)](https://pypi.org/project/omni-scrape/)
-[![Python](https://img.shields.io/pypi/pyversions/omni-scrape.svg)](https://pypi.org/project/omni-scrape/)
+[![PyPI](https://img.shields.io/pypi/v/omni-scraper.svg?color=0a7cff)](https://pypi.org/project/omni-scraper/)
+[![Python](https://img.shields.io/pypi/pyversions/omni-scraper.svg)](https://pypi.org/project/omni-scraper/)
 [![CI](https://github.com/loganathan-ai-dev/Omni-Scrape/actions/workflows/ci.yml/badge.svg)](https://github.com/loganathan-ai-dev/Omni-Scrape/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/loganathan-ai-dev/Omni-Scrape/blob/main/LICENSE)
 [![Ruff](https://img.shields.io/badge/lint-ruff-261230.svg)](https://github.com/astral-sh/ruff)
@@ -26,27 +26,27 @@ print(page.markdown)                                             # main content 
 ```
 
 > [!NOTE]
-> The PyPI package is named **`omni-scrape`** (the name `omniscrape` belongs to an unrelated project). You still `import omniscrape` and run the `omniscrape` command.
+> The PyPI package is named **`omni-scraper`** (the name `omniscrape` belongs to an unrelated project). You still `import omniscrape` and run the `omniscrape` command.
 
 ## Install
 
 Requires Python 3.11+.
 
 ```bash
-pip install omni-scrape
+pip install omni-scraper
 ```
 
 | Extra | Adds | Install |
 |---|---|---|
-| `browser` | Playwright Chromium rendering, actions, screenshots, PDF | `pip install "omni-scrape[browser]"` then `playwright install chromium` |
-| `stealth` | Camoufox for opt-in stealth (`tier=3`) | `pip install "omni-scrape[stealth]"` |
-| `fast` | Opt-in `selectolax` Lexbor CSS backend | `pip install "omni-scrape[fast]"` |
-| `httpx` | Alternative HTTP/2 client (`tier="httpx"`) | `pip install "omni-scrape[httpx]"` |
-| `storage` | DuckDB output | `pip install "omni-scrape[storage]"` |
-| `markdown` | Exact token counts via `tiktoken` | `pip install "omni-scrape[markdown]"` |
-| `mcp` | MCP server for AI agents | `pip install "omni-scrape[mcp]"` |
-| `shell` | IPython for `omniscrape shell` | `pip install "omni-scrape[shell]"` |
-| `all` | All of the above | `pip install "omni-scrape[all]"` |
+| `browser` | Playwright Chromium rendering, actions, screenshots, PDF | `pip install "omni-scraper[browser]"` then `playwright install chromium` |
+| `stealth` | Camoufox for opt-in stealth (`tier=3`) | `pip install "omni-scraper[stealth]"` |
+| `fast` | Opt-in `selectolax` Lexbor CSS backend | `pip install "omni-scraper[fast]"` |
+| `httpx` | Alternative HTTP/2 client (`tier="httpx"`) | `pip install "omni-scraper[httpx]"` |
+| `storage` | DuckDB output | `pip install "omni-scraper[storage]"` |
+| `markdown` | Exact token counts via `tiktoken` | `pip install "omni-scraper[markdown]"` |
+| `mcp` | MCP server for AI agents | `pip install "omni-scraper[mcp]"` |
+| `shell` | IPython for `omniscrape shell` | `pip install "omni-scraper[shell]"` |
+| `all` | All of the above | `pip install "omni-scraper[all]"` |
 
 ## Features
 
@@ -362,7 +362,7 @@ Cells come from each project's own README or documentation, read on 2026-11-27. 
 
 - **Wiki:** [github.com/loganathan-ai-dev/Omni-Scrape/wiki](https://github.com/loganathan-ai-dev/Omni-Scrape/wiki)
 - **Guides in the repo:** [docs/README.md](https://github.com/loganathan-ai-dev/Omni-Scrape/blob/main/docs/README.md): [fetching and stealth](https://github.com/loganathan-ai-dev/Omni-Scrape/blob/main/docs/fetching-and-stealth.md), [selectors and extraction](https://github.com/loganathan-ai-dev/Omni-Scrape/blob/main/docs/selectors-and-extraction.md), [crawling and storage](https://github.com/loganathan-ai-dev/Omni-Scrape/blob/main/docs/crawling-and-storage.md), [Markdown, CLI and agents](https://github.com/loganathan-ai-dev/Omni-Scrape/blob/main/docs/markdown-and-agents.md)
-- **Agents:** the `omniscrape` skill ships in [`.claude/skills`](https://github.com/loganathan-ai-dev/Omni-Scrape/tree/main/.claude/skills/omniscrape) and [`.agents/skills`](https://github.com/loganathan-ai-dev/Omni-Scrape/tree/main/.agents/skills/omniscrape). As a Claude Code plugin: `/plugin marketplace add loganathan-ai-dev/Omni-Scrape` then `/plugin install omniscrape@omni-scrape`.
+- **Agents:** the `omniscrape` skill ships in [`.claude/skills`](https://github.com/loganathan-ai-dev/Omni-Scrape/tree/main/.claude/skills/omniscrape) and [`.agents/skills`](https://github.com/loganathan-ai-dev/Omni-Scrape/tree/main/.agents/skills/omniscrape). As a Claude Code plugin: `/plugin marketplace add loganathan-ai-dev/Omni-Scrape` then `/plugin install omniscrape@omni-scraper`.
 
 ## Responsible use
 

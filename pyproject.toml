@@ -3,7 +3,7 @@ requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
-name = "omni-scrape"
+name = "omni-scraper"
 dynamic = ["version"]
 description = "Adaptive web scraping for Python: tiered HTTP/browser/stealth fetching, self-healing selectors, zero-config product and article extraction, LLM-ready Markdown, a polite resumable crawler and an MCP server."
 readme = "README.md"
@@ -72,7 +72,7 @@ shell = [
     "ipython>=8.0.0",
 ]
 all = [
-    "omni-scrape[browser,stealth,httpx,storage,markdown,mcp,fast,shell]",
+    "omni-scraper[browser,stealth,httpx,storage,markdown,mcp,fast,shell]",
 ]
 # Benchmark harness only; not part of "all". Competitor tools are installed into isolated
 # per-tool environments by `python -m benchmarks envs`.

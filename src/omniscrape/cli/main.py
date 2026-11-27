@@ -305,7 +305,7 @@ def shell(url: Optional[str], plain: bool):
         try:
             from IPython import start_ipython
         except ImportError:
-            console.print("[dim]IPython not installed (pip install 'omni-scrape[shell]'); using the standard REPL[/dim]")
+            console.print("[dim]IPython not installed (pip install 'omni-scraper[shell]'); using the standard REPL[/dim]")
         else:
             click.echo(text)
             start_ipython(argv=["--no-banner"], user_ns=namespace)

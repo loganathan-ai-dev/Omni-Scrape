@@ -19,7 +19,7 @@ a few days and a fix or mitigation plan after triage.
 
 ## Scope
 
-In scope: the `omni-scrape` package and its CLI and MCP server, for example SSRF through the MCP tools,
+In scope: the `omni-scraper` package and its CLI and MCP server, for example SSRF through the MCP tools,
 unsafe deserialisation, path handling in storage backends, or credential leakage in logs.
 
 Out of scope: behaviour of sites you scrape, and misuse of the library against sites that forbid it.

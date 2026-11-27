@@ -1,6 +1,6 @@
 # OmniScrape API Cheatsheet
 
-Parameter reference for `src/omniscrape/` (omni-scrape 0.1.0). Install name `omni-scrape`; import `omniscrape`.
+Parameter reference for `src/omniscrape/` (omni-scraper 0.1.0). Install name `omni-scraper`; import `omniscrape`.
 
 ## Package Extras
 

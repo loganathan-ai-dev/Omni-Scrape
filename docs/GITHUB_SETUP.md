@@ -32,31 +32,35 @@ Details are in [`wiki/README.md`](../wiki/README.md).
 
 Settings → General → Features → **Discussions**. The issue chooser already links to it.
 
-## 5. PyPI: publish `omni-scrape`
+## 5. PyPI: publish `omni-scraper`
 
-The name `omniscrape` is taken on PyPI by an unrelated project; this package is **`omni-scrape`**.
-Check that the name is still free first: <https://pypi.org/project/omni-scrape/> should return 404.
+The name `omniscrape` is taken on PyPI by an unrelated project, and PyPI rejects `omni-scrape` as "too similar"
+to it (its check ignores `-`, `_` and `.`); this package is **`omni-scraper`**.
+Check that the name is still free first: <https://pypi.org/project/omni-scraper/> should return 404.
 
 Releases use PyPI **Trusted Publishing** (no API tokens stored in GitHub).
 
-1. Create accounts on <https://pypi.org> and <https://test.pypi.org>.
-2. On each site → **Publishing** → *Add a new pending publisher*:
-   - PyPI project name: `omni-scrape`
+1. Create an account on <https://pypi.org> and enable two-factor authentication.
+2. <https://pypi.org/manage/account/publishing/> → *Add a new pending publisher* (GitHub):
+   - PyPI project name: `omni-scraper`
    - Owner: `loganathan-ai-dev`, Repository: `Omni-Scrape`
    - Workflow name: `release.yml`
-   - Environment name: `pypi` (on PyPI) / `testpypi` (on TestPyPI)
-3. GitHub → Settings → Environments → create `pypi` and `testpypi` (optionally require your approval on `pypi`).
-4. Merge `dev` into `main` and make sure CI is green.
-5. Tag and push:
+   - Environment name: `pypi`
+3. Optional: GitHub → Settings → Environments → `pypi` → require your approval before publishing.
+   (The environment is created automatically on the first release run.)
+4. Optional rehearsal on TestPyPI: create a separate <https://test.pypi.org> account, add the same publisher there
+   with environment `testpypi`, then run Actions → **Release** → *Run workflow* → target `testpypi`.
+5. Merge `dev` into `main` and make sure CI is green.
+6. Tag and push:
 
    ```bash
    git tag v0.1.0
    git push origin v0.1.0
    ```
 
-   The **Release** workflow checks the tag matches `src/omniscrape/_version.py`, builds, publishes to TestPyPI,
-   then PyPI, then creates the GitHub Release from `docs/RELEASE_NOTES_0.1.0.md`.
-6. Verify in a clean environment: `pip install omni-scrape && omniscrape --version`.
+   The **Release** workflow checks the tag matches `src/omniscrape/_version.py`, builds, publishes to PyPI
+   and then creates the GitHub Release from `docs/RELEASE_NOTES_0.1.0.md`.
+7. Verify in a clean environment: `pip install omni-scraper && omniscrape --version`.
 
 Manual dry run: Actions → **Release** → *Run workflow* → target `testpypi`.
 

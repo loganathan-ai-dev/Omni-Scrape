@@ -67,7 +67,7 @@ def run_mcp_server(transport: str = "stdio", host: str = "127.0.0.1", port: int 
     try:
         server = build_server()
     except ImportError:
-        raise SystemExit("The MCP server needs fastmcp: pip install 'omni-scrape[mcp]'")
+        raise SystemExit("The MCP server needs fastmcp: pip install 'omni-scraper[mcp]'")
     if transport == "stdio":
         server.run()
     else:

@@ -645,7 +645,7 @@ class Selector(Element):
             except ImportError as exc:
                 from omniscrape.exceptions import ConfigError
 
-                raise ConfigError("selectolax is not installed. Install with: pip install 'omni-scrape[fast]'") from exc
+                raise ConfigError("selectolax is not installed. Install with: pip install 'omni-scraper[fast]'") from exc
             text = html.decode("utf-8", errors="replace") if isinstance(html, (bytes, bytearray)) else (html or "")
             parser = LexborHTMLParser(text or "<html><body></body></html>")
             self._fast_root = FastElement(parser.root, url)

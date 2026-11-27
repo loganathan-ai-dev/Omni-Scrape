@@ -1,5 +1,5 @@
 {
-  "name": "omni-scrape",
+  "name": "omni-scraper",
   "description": "Marketplace for the OmniScrape Claude Code plugin",
   "owner": { "name": "Loganathan M" },
   "plugins": [

@@ -1,6 +1,6 @@
 # CLI Reference
 
-The `omniscrape` command ships with the package (`pip install omni-scrape`). Source: [`cli/main.py`](https://github.com/loganathan-ai-dev/Omni-Scrape/blob/main/src/omniscrape/cli/main.py).
+The `omniscrape` command ships with the package (`pip install omni-scraper`). Source: [`cli/main.py`](https://github.com/loganathan-ai-dev/Omni-Scrape/blob/main/src/omniscrape/cli/main.py).
 
 ```text
 omniscrape [--version] COMMAND [ARGS]...
@@ -66,7 +66,7 @@ Crawl a site starting at URL, staying on the start URL's host, and save one item
 | `--depth INT` | unlimited | Maximum link depth from the start URL |
 | `--concurrency`, `-c INT` | `5` | Concurrent requests |
 | `--delay FLOAT` | `0.0` | Seconds between requests per domain |
-| `--output`, `-o FILE` | `omniscrape-items.jsonl` | Output file; the extension picks the backend: `.jsonl` / `.ndjson` for JSONL, `.duckdb` for DuckDB (needs `omni-scrape[storage]`). `.json` and other extensions are rejected (items are one JSON object per line). An existing file is replaced unless `--resume` or `--append` is given |
+| `--output`, `-o FILE` | `omniscrape-items.jsonl` | Output file; the extension picks the backend: `.jsonl` / `.ndjson` for JSONL, `.duckdb` for DuckDB (needs `omni-scraper[storage]`). `.json` and other extensions are rejected (items are one JSON object per line). An existing file is replaced unless `--resume` or `--append` is given |
 | `--allow REGEX` | none | Only follow URLs matching this regex |
 | `--deny REGEX` | none | Never follow URLs matching this regex |
 | `--resume` / `--no-resume` | `--no-resume` | Persist the queue and resume an interrupted crawl (appends to `--output`) |
@@ -129,7 +129,7 @@ omniscrape extract https://example.com/item/1 -s schema.json -o item.json --tier
 
 ## `omniscrape shell [URL]`
 
-Open an interactive shell with `omniscrape` preloaded. IPython is used when installed (`pip install "omni-scrape[shell]"`), otherwise the standard Python REPL.
+Open an interactive shell with `omniscrape` preloaded. IPython is used when installed (`pip install "omni-scraper[shell]"`), otherwise the standard Python REPL.
 
 | Flag | Description |
 |---|---|
@@ -145,7 +145,7 @@ omniscrape shell https://example.com
 
 ## `omniscrape mcp`
 
-Start the MCP server for AI agents. Needs `pip install "omni-scrape[mcp]"`. Full details are on [[MCP-Server]].
+Start the MCP server for AI agents. Needs `pip install "omni-scraper[mcp]"`. Full details are on [[MCP-Server]].
 
 | Flag | Default | Description |
 |---|---|---|

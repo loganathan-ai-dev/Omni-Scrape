@@ -33,7 +33,7 @@ OmniScrape is structured around five composable layers under `src/omniscrape/` w
 ## Quick Install Reference
 
 ```bash
-pip install omni-scrape          # PyPI name; you still `import omniscrape` and run `omniscrape`
+pip install omni-scraper          # PyPI name; you still `import omniscrape` and run `omniscrape`
 ```
 
 | Extra | Purpose |
