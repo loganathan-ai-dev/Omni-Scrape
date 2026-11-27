@@ -38,7 +38,7 @@ dependencies = [
 
 [project.optional-dependencies]
 browser = [
-    "playwright>=1.48.0",
+    "playwright>=1.65.2",
 ]
 stealth = [
     "camoufox>=0.4.0",
