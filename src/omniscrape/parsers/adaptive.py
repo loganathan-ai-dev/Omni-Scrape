@@ -30,8 +30,8 @@ _WORD = re.compile(r"[^\W_]{2,}", re.UNICODE)
 
 # factor weights (sum to 1.0)
 WEIGHTS = {
-    "tag": 0.10, "path": 0.18, "depth": 0.04, "parent_tag": 0.05, "attr_keys": 0.08, "classes": 0.05,
-    "text_exact": 0.12, "text_shingles": 0.08, "text_shape": 0.07, "siblings": 0.05, "children": 0.05,
+    "tag": 0.10, "path": 0.22, "depth": 0.04, "parent_tag": 0.07, "attr_keys": 0.08, "classes": 0.05,
+    "text_exact": 0.08, "text_shingles": 0.06, "text_shape": 0.07, "siblings": 0.05, "children": 0.05,
     "context": 0.13,
 }
 
@@ -147,7 +147,8 @@ class NodeFingerprint:
 def similarity(a: NodeFingerprint, b: NodeFingerprint) -> float:
     s = 0.0
     s += WEIGHTS["tag"] * (a.tag == b.tag)
-    s += WEIGHTS["path"] * _lcs_ratio(a.path, b.path)
+    path_score = 0.5 * _lcs_ratio(a.path, b.path) + 0.5 * _lcs_ratio(a.path[-4:], b.path[-4:])
+    s += WEIGHTS["path"] * path_score
     s += WEIGHTS["depth"] * max(0.0, 1 - abs(a.dom_depth - b.dom_depth) / 4)
     s += WEIGHTS["parent_tag"] * (a.parent_tag == b.parent_tag)
     s += WEIGHTS["attr_keys"] * _jaccard(set(a.stable_attrib_keys), set(b.stable_attrib_keys))
@@ -164,6 +165,86 @@ def similarity(a: NodeFingerprint, b: NodeFingerprint) -> float:
     return round(s, 4)
 
 
+_DIGIT_RX = re.compile(r"\d")
+_CURR_RX = re.compile(r"[₹$€£¥]|\b(?:USD|EUR|GBP|INR)\b")
+
+
+def _fast_similarity(
+    stored: NodeFingerprint,
+    stored_ctx: set[str],
+    stored_attrs: set[str],
+    stored_classes: set[str],
+    stored_shingles: set[str],
+    node: Any,
+    path: list[str],
+    parent_tag: str,
+    sibling_count: int,
+    sibling_index: int,
+    parent_ctx: str,
+    sib_texts: list[str],
+) -> float:
+    """Compute similarity directly during top-down DFS without full NodeFingerprint construction."""
+    tag = node.tag.lower()
+    raw_text = node.text_content() or "" if len(node) else (node.text or "")
+    text = " ".join(raw_text.split())[:500]
+    text_len = len(text)
+
+    s = WEIGHTS["tag"] * (stored.tag == tag)
+    s += WEIGHTS["path"] * (0.5 * _lcs_ratio(stored.path, path) + 0.5 * _lcs_ratio(stored.path[-4:], path[-4:]))
+    s += WEIGHTS["depth"] * max(0.0, 1.0 - abs(stored.dom_depth - len(path)) / 4.0)
+    s += WEIGHTS["parent_tag"] * (stored.parent_tag == parent_tag)
+
+    attrib = node.attrib
+    if attrib:
+        stable = {k for k in attrib if k not in VOLATILE_ATTRS}
+        cls_raw = attrib.get("class")
+        classes = set(cls_raw.split()) if cls_raw else set()
+    else:
+        stable = set()
+        classes = set()
+    s += WEIGHTS["attr_keys"] * _jaccard(stored_attrs, stable)
+    s += WEIGHTS["classes"] * (_jaccard(stored_classes, classes) if stored_classes or classes else 1.0)
+
+    if text:
+        s += WEIGHTS["text_exact"] * (bool(stored.text) and stored.text == text)
+        s += WEIGHTS["text_shingles"] * _jaccard(stored_shingles, _shingles(text[:300]))
+        has_digits = bool(_DIGIT_RX.search(text))
+        has_currency = bool(_CURR_RX.search(text))
+    else:
+        has_digits = False
+        has_currency = False
+
+    shape = (stored.has_digits == has_digits) + (stored.has_currency == has_currency)
+    shape += max(0.0, 1.0 - abs(stored.text_len - text_len) / max(stored.text_len, text_len, 1))
+    s += WEIGHTS["text_shape"] * shape / 3.0
+
+    sib = max(0.0, 1.0 - abs(stored.sibling_count - sibling_count) / max(stored.sibling_count, sibling_count, 1))
+    s += WEIGHTS["siblings"] * (0.5 * sib + 0.5 * (stored.sibling_index == sibling_index))
+
+    child_tags = [c.tag for c in node if type(c.tag) is str][:20]
+    s += WEIGHTS["children"] * _lcs_ratio(stored.child_tags, child_tags)
+
+    if stored_ctx:
+        parts = []
+        if sibling_index > 0:
+            parts.append(sib_texts[sibling_index - 1][-120:])
+        if sibling_index + 1 < sibling_count:
+            parts.append(sib_texts[sibling_index + 1][:120])
+        if parent_ctx:
+            parts.append(parent_ctx)
+        cand_ctx = set(_words(" ".join(parts))) if parts else set()
+        s += WEIGHTS["context"] * _jaccard(stored_ctx, cand_ctx)
+    else:
+        # Both empty -> jaccard({}, {}) == 1.0; non-empty cand_ctx -> 0.0
+        has_ctx = bool(parent_ctx) or (sibling_index > 0 and bool(sib_texts[sibling_index - 1])) or (
+            sibling_index + 1 < sibling_count and bool(sib_texts[sibling_index + 1])
+        )
+        if not has_ctx:
+            s += WEIGHTS["context"]
+
+    return round(s, 4)
+
+
 class AdaptiveEngine:
     """Persistent fingerprints (SQLite) plus relocation."""
 
@@ -173,32 +254,68 @@ class AdaptiveEngine:
             cache_dir.mkdir(parents=True, exist_ok=True)
             db_path = str(cache_dir / "fingerprints.db")
         self.db_path = db_path
+        self._cache: dict[tuple[str, str], Optional[NodeFingerprint]] = {}
         with closing(sqlite3.connect(self.db_path)) as conn, conn:
             conn.execute("""CREATE TABLE IF NOT EXISTS fingerprints (
                 domain TEXT, name TEXT, fingerprint TEXT, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (domain, name))""")
 
     def save_fingerprint(self, domain: str, name: str, fp: NodeFingerprint) -> None:
+        self._cache[(domain, name)] = fp
         with closing(sqlite3.connect(self.db_path)) as conn, conn:
             conn.execute("""INSERT INTO fingerprints (domain, name, fingerprint) VALUES (?, ?, ?)
                 ON CONFLICT(domain, name) DO UPDATE SET fingerprint = excluded.fingerprint, updated_at = CURRENT_TIMESTAMP""",
                          (domain, name, json.dumps(fp.to_dict())))
 
     def load_fingerprint(self, domain: str, name: str) -> Optional[NodeFingerprint]:
+        key = (domain, name)
+        if key in self._cache:
+            return self._cache[key]
         with closing(sqlite3.connect(self.db_path)) as conn:
             row = conn.execute("SELECT fingerprint FROM fingerprints WHERE domain = ? AND name = ?",
-                               (domain, name)).fetchone()
-        return NodeFingerprint(json.loads(row[0])) if row else None
+                               key).fetchone()
+        fp = NodeFingerprint(json.loads(row[0])) if row else None
+        self._cache[key] = fp
+        return fp
 
     def calculate_similarity(self, fp1: NodeFingerprint, fp2: NodeFingerprint) -> float:
         return similarity(fp1, fp2)
 
     def rank(self, root: Any, stored: NodeFingerprint, top: int = 3) -> list[tuple[float, Any]]:
-        scored = []
-        for node in root.iter():
-            if not isinstance(node.tag, str) or node.tag.lower() in SKIP_TAGS:
-                continue
-            scored.append((similarity(stored, NodeFingerprint.from_node(node)), node))
+        stored_ctx = set(stored.context)
+        stored_attrs = set(stored.stable_attrib_keys)
+        stored_classes = set(stored.classes)
+        stored_shingles = stored.shingles
+        scored: list[tuple[float, Any]] = []
+
+        # Single top-down DFS: computes path, parent_tag and sibling list once per parent.
+        def walk(parent: Any, path: list[str], parent_tag: str) -> None:
+            children = [c for c in parent if type(c.tag) is str]
+            sib_count = len(children)
+            if not sib_count:
+                return
+            parent_bits = [parent.text or ""] + [c.tail or "" for c in parent]
+            parent_ctx = " ".join(parent_bits)[:200]
+            sib_texts = [" ".join((c.text_content() or "").split()) if len(c) else " ".join((c.text or "").split()) for c in children]
+            for idx, child in enumerate(children):
+                tag_low = child.tag.lower()
+                if tag_low not in SKIP_TAGS:
+                    score = _fast_similarity(
+                        stored, stored_ctx, stored_attrs, stored_classes, stored_shingles,
+                        child, path, parent_tag, sib_count, idx, parent_ctx, sib_texts,
+                    )
+                    scored.append((score, child))
+                if len(child):
+                    path.append(tag_low)
+                    walk(child, path, tag_low)
+                    path.pop()
+
+        root_tag = root.tag.lower() if type(root.tag) is str else ""
+        if root_tag and root_tag not in SKIP_TAGS:
+            scored.append((similarity(stored, NodeFingerprint.from_node(root)), root))
+        if root_tag:
+            walk(root, [root_tag], root_tag)
+
         scored.sort(key=lambda x: -x[0])
         return scored[:top]
 
@@ -222,7 +339,7 @@ class AdaptiveEngine:
             elif best in other.iterdescendants() and _own_text(other) == _own_text(best):
                 runner_up = ranked[2][0] if len(ranked) > 2 else 0.0
         if best_score < min_confidence or best_score - runner_up < margin:
-            logger.info(f"Adaptive relocation rejected (best={best_score}, runner-up={runner_up})")
+            logger.debug(f"Adaptive relocation rejected (best={best_score}, runner-up={runner_up})")
             return None
-        logger.info(f"Adaptive relocation matched with confidence {best_score}")
+        logger.debug(f"Adaptive relocation matched with confidence {best_score}")
         return Element(best, getattr(selector, "url", ""))

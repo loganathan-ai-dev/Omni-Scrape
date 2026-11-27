@@ -167,12 +167,15 @@ class OmniClient:
             return res
 
         try:
-            result = await with_retry(
-                attempt,
-                max_retries=self.retries,
-                initial_delay=self.retry_delay,
-                retry_on=(NetworkError, RateLimitError, ServerError),
-            )
+            if self.retries == 0:
+                result = await attempt()
+            else:
+                result = await with_retry(
+                    attempt,
+                    max_retries=self.retries,
+                    initial_delay=self.retry_delay,
+                    retry_on=(NetworkError, RateLimitError, ServerError),
+                )
         except (ServerError, RateLimitError):
             # Retries exhausted on an HTTP status: hand back the last real response.
             self._record_failure(domain)
@@ -183,7 +186,8 @@ class OmniClient:
                 self.dead_letter.record(url, type(exc).__name__, str(exc))
             raise
         if self.circuit_breaker:
-            if is_blocked(result):
+            blocked = (result.defense_detected != DefenseSystem.NONE or result.status_code >= 400) and is_blocked(result)
+            if blocked:
                 self.circuit_breaker.record_failure(domain)  # a site that blocks every request should trip it
             else:
                 self.circuit_breaker.record_success(domain)

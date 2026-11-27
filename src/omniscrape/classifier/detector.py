@@ -61,11 +61,20 @@ def detect_defense(status_code: int, headers: Mapping[str, str], body: str) -> D
     A CDN header alone (e.g. ``cf-ray`` on a normal 200 page) is NOT a detection: most of the
     web sits behind Cloudflare/Akamai and serves content normally.
     """
-    h = {k.lower(): str(v).lower() for k, v in (headers or {}).items()}
     body = body or ""
     head = body[:20000]
-    server = h.get("server", "")
     blocked = status_code in BLOCK_STATUSES
+    if not blocked:
+        # Fast path for normal 2xx/3xx pages: only interstitials can trigger on non-block statuses.
+        head_low = head.lower()
+        if ("/cdn-cgi/challenge-platform" not in head_low
+                and "cf_chl_opt" not in head_low
+                and "just a moment" not in head_low
+                and "attention required" not in head_low):
+            return DefenseSystem.NONE
+
+    h = {k.lower(): str(v).lower() for k, v in (headers or {}).items()}
+    server = h.get("server", "")
 
     # Interstitials are sometimes served with 200, so that check stands alone. A Turnstile widget alone
     # (a protected login form on a normal page) is not a block.

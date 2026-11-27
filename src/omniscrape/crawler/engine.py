@@ -93,6 +93,7 @@ class CrawlEngine:
         self.max_pages = max_pages
         self.max_depth = max_depth if max_depth is not None else getattr(spider, "max_depth", None)
         self.allowed_domains = list(allowed_domains if allowed_domains is not None else getattr(spider, "allowed_domains", []) or [])
+        self._allowed_domains_norm = [d.lower().lstrip(".") for d in self.allowed_domains if d]
         self.concurrency = concurrency or getattr(spider, "concurrency", 10)
         self.throttle = DomainThrottle(per_domain_concurrency or self.concurrency, download_delay, autothrottle)
         if use_checkpoint and not queue_path:
@@ -108,6 +109,7 @@ class CrawlEngine:
         self.stats = CrawlStats()
         self._scheduled = 0
         self._cond: Optional[asyncio.Condition] = None
+        self._waiting_workers = 0
         self._in_flight = 0
         self._started_fetches = 0
         self._stop = False
@@ -117,9 +119,10 @@ class CrawlEngine:
     async def run(self) -> CrawlStats:
         from omniscrape.client import OmniClient
 
-        self.client = self.client or OmniClient(retries=self.retries, retry_delay=0.5)
+        self.client = self.client or OmniClient(retries=self.retries, retry_delay=0.1)
         self.queue = RequestQueue(self.queue_path)
         self.robots = RobotsCache(self.client, self.user_agent) if self.obey_robots else None
+        self._robots_origin_rules: dict[str, Any] = {}
         self._cond = asyncio.Condition()
         self.stats = CrawlStats()
         try:
@@ -157,11 +160,15 @@ class CrawlEngine:
         await task
 
     async def schedule(self, req: Request) -> bool:
-        if urlsplit(req.url).scheme not in ("http", "https"):
+        parts = urlsplit(req.url)
+        if parts.scheme not in ("http", "https"):
             return False
-        if self.allowed_domains and not domain_allowed(req.url, self.allowed_domains):
-            self.stats.filtered_offsite += 1
-            return False
+        if self._allowed_domains_norm:
+            host = (parts.hostname or "").lower()
+            netloc = parts.netloc.lower()
+            if not any(host == d or host.endswith("." + d) or netloc == d for d in self._allowed_domains_norm):
+                self.stats.filtered_offsite += 1
+                return False
         if self.max_depth is not None and req.depth > self.max_depth:
             self.stats.filtered_depth += 1
             return False
@@ -175,8 +182,9 @@ class CrawlEngine:
             self.stats.duplicates += 1
             return False
         self._scheduled += 1
-        async with self._cond:
-            self._cond.notify()
+        if self._waiting_workers > 0:
+            async with self._cond:
+                self._cond.notify()
         return True
 
     # ------------------------------------------------------------------ internals
@@ -196,7 +204,11 @@ class CrawlEngine:
                         self._stop = True
                         self._cond.notify_all()
                         return
-                    await self._cond.wait()
+                    self._waiting_workers += 1
+                    try:
+                        await self._cond.wait()
+                    finally:
+                        self._waiting_workers -= 1
             fp, req = popped
             try:
                 await self._process(fp, req)
@@ -210,16 +222,24 @@ class CrawlEngine:
                     self._cond.notify_all()
 
     async def _process(self, fp: str, req: Request) -> None:
-        domain = urlsplit(req.url).netloc.lower()
+        parts = urlsplit(req.url)
+        domain = parts.netloc.lower()
         if self.robots is not None:
-            if not await self.robots.allowed(req.url):
+            orig = f"{parts.scheme}://{parts.netloc}"
+            rules = self._robots_origin_rules.get(orig)
+            if rules is None:
+                rules = await self.robots.rules_for(req.url)
+                self._robots_origin_rules[orig] = rules
+            if not rules.allowed(self.user_agent, req.url):
                 self.stats.robots_blocked += 1
                 self.queue.mark_done(fp)
                 return
-            self.throttle.set_floor(domain, await self.robots.crawl_delay(req.url))
+            delay = rules.crawl_delay(self.user_agent)
+            if delay:
+                self.throttle.set_floor(domain, delay)
 
         await self.throttle.acquire(domain)
-        started = time.perf_counter()
+        started = time.perf_counter() if self.throttle.autothrottle else 0.0
         status: Optional[int] = None
         try:
             result: FetchResult = await self.client.fetch(
@@ -233,7 +253,8 @@ class CrawlEngine:
             await self.spider.on_error(req, exc)
             return
         finally:
-            self.throttle.release(domain, time.perf_counter() - started, status)
+            elapsed_s = (time.perf_counter() - started) if started else None
+            self.throttle.release(domain, elapsed_s, status)
 
         self.stats.status_counts[result.status_code] += 1
         if not 200 <= result.status_code < 300:
@@ -262,7 +283,8 @@ class CrawlEngine:
         if out is None:
             return
         if isinstance(out, Request):
-            out.url = urljoin(response.url, out.url)
+            if not out.url.startswith(("http://", "https://")):
+                out.url = urljoin(response.url, out.url)
             if not out.depth:
                 out.depth = parent.depth + 1
             await self.schedule(out)
