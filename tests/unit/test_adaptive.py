@@ -1,6 +1,7 @@
 """Unit tests for 12-factor fingerprinting and adaptive self-healing."""
 
 import tempfile
+
 from omniscrape.parsers.adaptive import AdaptiveEngine, NodeFingerprint
 from omniscrape.parsers.selector import Selector
 

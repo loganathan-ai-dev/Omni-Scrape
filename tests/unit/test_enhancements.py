@@ -1,12 +1,9 @@
 """Unit tests for Phase 1-5 enhancements: @id resolution, metadata, throttling, caching, batch, schemas, listings."""
 
-import asyncio
 import time
-from unittest.mock import AsyncMock
 
 import pytest
 
-import omniscrape
 from omniscrape.classifier.detector import detect_defense
 from omniscrape.client import OmniClient
 from omniscrape.content.metadata import extract_metadata

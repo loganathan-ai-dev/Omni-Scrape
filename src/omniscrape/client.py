@@ -8,6 +8,7 @@ final failure.
 
 import asyncio
 from collections.abc import AsyncIterator, Sequence
+from datetime import UTC
 from email.utils import parsedate_to_datetime
 from typing import Any, Optional, Union
 from urllib.parse import urljoin, urlsplit
@@ -36,9 +37,9 @@ def _retry_after_seconds(value: Optional[str]) -> Optional[float]:
         return float(value)
     except ValueError:
         try:
-            from datetime import datetime, timezone
+            from datetime import datetime
 
-            return max(0.0, (parsedate_to_datetime(value) - datetime.now(timezone.utc)).total_seconds())
+            return max(0.0, (parsedate_to_datetime(value) - datetime.now(UTC)).total_seconds())
         except Exception:
             return None
 
@@ -255,7 +256,16 @@ class OmniClient:
                 finally:
                     throttle.release(dom)
 
-        return list(await asyncio.gather(*(_one(u) for u in urls)))
+        tasks = [asyncio.ensure_future(_one(u)) for u in urls]
+        try:
+            return list(await asyncio.gather(*tasks))
+        except BaseException:
+            # One URL failed (or we were cancelled) and exceptions are not being collected: stop the
+            # remaining downloads instead of leaving them running in the background.
+            for task in tasks:
+                task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
+            raise
 
     async def scrape_many(
         self,
@@ -310,8 +320,16 @@ class OmniClient:
                     throttle.release(dom)
 
         tasks = [asyncio.create_task(_one(u)) for u in urls]
-        for fut in asyncio.as_completed(tasks):
-            yield await fut
+        try:
+            for fut in asyncio.as_completed(tasks):
+                yield await fut
+        finally:
+            # A failure, or the caller breaking out early, must not leave downloads running in the
+            # background (they would outlive the client and raise "exception was never retrieved").
+            for task in tasks:
+                if not task.done():
+                    task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
 
 
 def build_scrape_result(fetch_res: FetchResult, url: Optional[str] = None) -> ScrapeResult:

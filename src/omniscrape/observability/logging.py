@@ -1,10 +1,13 @@
-"""OmniScrape structured logging with standard fallback."""
+"""OmniScrape structured logging.
+
+Logs go to **stderr** so that stdout stays clean for CLI output (``omniscrape get -f json``) and for
+the MCP stdio transport, whose JSON-RPC stream would be corrupted by stray log lines.
+"""
 
 import json
 import logging
 import sys
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
 
 
 class JSONFormatter(logging.Formatter):
@@ -12,7 +15,7 @@ class JSONFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         log_obj = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),
@@ -28,7 +31,7 @@ def get_logger(name: str = "omniscrape") -> logging.Logger:
     """Get a configured logger."""
     logger = logging.getLogger(name)
     if not logger.handlers:
-        handler = logging.StreamHandler(sys.stdout)
+        handler = logging.StreamHandler(sys.stderr)
         handler.setFormatter(JSONFormatter())
         logger.addHandler(handler)
         logger.setLevel(logging.INFO)

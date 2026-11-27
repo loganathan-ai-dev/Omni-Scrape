@@ -1,18 +1,28 @@
-"""JSONL / Parquet data lake storage backend."""
+"""JSONL storage backend (one JSON object per line)."""
 
 import json
 from pathlib import Path
 from typing import Any, Sequence
+
 from omniscrape.storage.base import BaseStorage
 
 
 class JSONLStorage(BaseStorage):
-    """Appends records to a line-delimited JSON (JSONL) file."""
+    """Appends records to a line-delimited JSON (JSONL) file.
+
+    The file is opened lazily and line-buffered, so every record reaches the OS as soon as it is
+    written (a crash loses nothing already written), and the object can be reused after ``close()``.
+    """
 
     def __init__(self, file_path: str = "scraped_data.jsonl"):
         self.path = Path(file_path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self._file = open(self.path, "a", encoding="utf-8")
+        self._file = None
+
+    def _open(self):
+        if self._file is None or self._file.closed:
+            self._file = open(self.path, "a", encoding="utf-8", buffering=1)
+        return self._file
 
     async def write(self, record: Any) -> None:
         if hasattr(record, "model_dump_json"):
@@ -24,17 +34,18 @@ class JSONLStorage(BaseStorage):
         else:
             line = json.dumps({"value": str(record)})
 
-        self._file.write(line + "\n")
+        self._open().write(line + "\n")
 
     async def write_batch(self, records: Sequence[Any]) -> None:
         for r in records:
             await self.write(r)
-        self._file.flush()
 
     async def flush(self) -> None:
-        self._file.flush()
+        if self._file is not None and not self._file.closed:
+            self._file.flush()
 
     async def close(self) -> None:
-        if not self._file.closed:
+        if self._file is not None and not self._file.closed:
             self._file.flush()
             self._file.close()
+        self._file = None

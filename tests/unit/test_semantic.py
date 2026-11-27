@@ -1,6 +1,5 @@
 """Unit tests for zero-config semantic data extraction."""
 
-import pytest
 from omniscrape.parsers.semantic import SemanticExtractor
 
 PRODUCT_HTML = """

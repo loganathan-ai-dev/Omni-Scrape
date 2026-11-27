@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use OmniScrape in research or a publication, please cite it as below."
+title: "OmniScrape"
+abstract: "Adaptive web scraping for Python: tiered fetching, self-healing selectors, zero-config extraction, LLM-ready Markdown and a polite resumable crawler."
+type: software
+version: 0.1.0
+date-released: 2026-11-27
+license: MIT
+authors:
+  - family-names: "M"
+    given-names: "Loganathan"
+repository-code: "https://github.com/loganathan-ai-dev/Omni-Scrape"
+url: "https://github.com/loganathan-ai-dev/Omni-Scrape"
+keywords:
+  - web scraping
+  - crawler
+  - adaptive selectors
+  - markdown
+  - mcp

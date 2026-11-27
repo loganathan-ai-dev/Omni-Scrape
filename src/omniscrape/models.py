@@ -1,9 +1,10 @@
 """Universal Pydantic data models for structured scraping extraction."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any, Optional
-from pydantic import BaseModel, Field, HttpUrl
+
+from pydantic import BaseModel, Field
 
 
 class PageType(str, Enum):
@@ -50,6 +51,8 @@ class FetchResult(BaseModel):
     network: list[dict[str, Any]] = Field(default_factory=list)   # captured XHR/fetch JSON responses
     actions_log: list[dict[str, Any]] = Field(default_factory=list)
     action_results: list[Any] = Field(default_factory=list)
+    # Crawler only: the ``meta`` dict of the Request that produced this response (like Scrapy's response.meta).
+    meta: dict[str, Any] = Field(default_factory=dict)
 
     @property
     def ok(self) -> bool:
@@ -62,8 +65,6 @@ class Product(BaseModel):
     title: str
     price: Optional[float] = None
     currency: Optional[str] = None  # ISO 4217; None when the page does not show one
-    original_price: Optional[float] = None
-    discount_percent: Optional[float] = None
     brand: Optional[str] = None
     sku: Optional[str] = None
     rating: Optional[float] = None
@@ -72,9 +73,7 @@ class Product(BaseModel):
     in_stock: bool = True
     images: list[str] = Field(default_factory=list)
     description: Optional[str] = None
-    specifications: dict[str, str] = Field(default_factory=dict)
-    category_path: list[str] = Field(default_factory=list)
-    scraped_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    scraped_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -90,7 +89,7 @@ class Article(BaseModel):
     images: list[str] = Field(default_factory=list)
     tags: list[str] = Field(default_factory=list)
     reading_time_minutes: Optional[int] = None
-    scraped_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    scraped_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class ScrapeResult(BaseModel):
@@ -108,4 +107,4 @@ class ScrapeResult(BaseModel):
     links: list[str] = Field(default_factory=list)
     latency_ms: float = 0.0
     fetcher_tier: int = 1
-    scraped_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    scraped_at: datetime = Field(default_factory=lambda: datetime.now(UTC))

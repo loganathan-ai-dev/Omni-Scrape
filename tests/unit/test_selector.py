@@ -1,6 +1,5 @@
 """Unit tests for CSS/XPath selector and element traversal."""
 
-import pytest
 from omniscrape.parsers.selector import Selector
 
 HTML_SAMPLE = """

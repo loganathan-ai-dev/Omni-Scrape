@@ -21,7 +21,7 @@ sku_title = sel.xpath("//div[@data-sku='B2']/h3/text()").get()
 
 ### Opt-In `selectolax` Backend
 
-When you only need fast CSS selection (no XPath or `adaptive=True`), install `omniscrape[fast]` and pass `backend="selectolax"`:
+When you only need fast CSS selection (no XPath or `adaptive=True`), install `omni-scrape[fast]` (`pip install "omni-scrape[fast]"`) and pass `backend="selectolax"`:
 
 ```python
 fast_sel = Selector(html, url="https://shop.example/list", backend="selectolax")

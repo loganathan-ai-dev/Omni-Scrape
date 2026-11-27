@@ -2,29 +2,92 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   pull_request:
-    branches: [main]
+    branches: [main, dev]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.11", "3.12"]
-
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev]"
+      - name: Ruff
+        run: ruff check .
+      - name: Skills in sync
+        run: python scripts/sync_skills.py --check
+      - name: Mypy (advisory)
+        run: mypy
+        continue-on-error: true
 
-      - uses: actions/setup-python@v5
+  test:
+    needs: lint
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, python-version: "3.11" }
+          - { os: ubuntu-latest, python-version: "3.12" }
+          - { os: ubuntu-latest, python-version: "3.13" }
+          - { os: windows-latest, python-version: "3.12" }
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev,browser,mcp,storage,fast]"
-          playwright install --with-deps chromium
-
+          pip install -e ".[dev,browser,mcp,storage,fast,httpx]"
+      - name: Install Chromium (Linux, with system deps)
+        if: runner.os == 'Linux'
+        run: playwright install --with-deps chromium
+      - name: Install Chromium (Windows)
+        if: runner.os == 'Windows'
+        run: playwright install chromium
       - name: Run tests
         run: python -m pytest -v
+
+  build:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Build sdist and wheel
+        run: |
+          python -m pip install --upgrade pip build twine
+          python -m build
+          twine check dist/*
+      - name: sdist must contain only library sources
+        run: |
+          tar -tzf dist/*.tar.gz > sdist.txt
+          cat sdist.txt
+          for bad in benchmarks/ tests/ docs/ .claude/ .agents/ .github/; do
+            if grep -q "/$bad" sdist.txt; then echo "sdist unexpectedly contains $bad"; exit 1; fi
+          done
+          grep -q "py.typed" sdist.txt
+      - name: Install the wheel in a clean venv and smoke-test it
+        run: |
+          python -m venv /tmp/smoke
+          /tmp/smoke/bin/pip install dist/*.whl
+          /tmp/smoke/bin/omniscrape --version
+          /tmp/smoke/bin/python -c "import omniscrape; print(omniscrape.__version__)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/

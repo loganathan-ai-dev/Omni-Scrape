@@ -5,9 +5,9 @@ Syntaxes: JSON-LD (incl. @graph and lists), Microdata (nested itemscope), RDFa L
 Dublin Core (DC.* / DCTERMS.*). ``uniform`` items share the shape {"@type": ..., prop: value}.
 """
 
-from collections import deque
 import json
 import re
+from collections import deque
 from typing import Any, Iterable, Optional, Union
 from urllib.parse import urljoin
 

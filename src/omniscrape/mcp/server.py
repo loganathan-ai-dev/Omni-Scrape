@@ -40,9 +40,18 @@ def build_server() -> Any:
         return _dump(await omniscrape.scrape_article(url))
 
     @mcp.tool()
-    async def get_markdown(url: str, query: Optional[str] = None, max_tokens: Optional[int] = None) -> str:
+    async def get_markdown(url: str, query: Optional[str] = None, max_tokens: Optional[int] = None,
+                           allow_stealth: bool = False) -> str:
         """Main-content Markdown of a page; with `query`, only the blocks relevant to it."""
-        res = await omniscrape.fetch(url)
+        from omniscrape.classifier.strategies import is_blocked
+
+        res = await omniscrape.fetch(url, allow_stealth=allow_stealth)
+        if not res.ok or is_blocked(res):
+            # Don't hand an error or anti-bot challenge page (often served as HTTP 200) to the agent
+            # as if it were the page content.
+            defense = getattr(res.defense_detected, "value", res.defense_detected)
+            note = f" (anti-bot: {defense})" if defense and defense != "none" else ""
+            return f"Error: {url} returned HTTP {res.status_code}{note}. Retry with allow_stealth=true if blocked."
         return omniscrape.fit_markdown(res.html, url=res.url, query=query, max_tokens=max_tokens)
 
     @mcp.tool()
@@ -58,7 +67,7 @@ def run_mcp_server(transport: str = "stdio", host: str = "127.0.0.1", port: int 
     try:
         server = build_server()
     except ImportError:
-        raise SystemExit("The MCP server needs fastmcp: pip install 'omniscrape[mcp]'")
+        raise SystemExit("The MCP server needs fastmcp: pip install 'omni-scrape[mcp]'")
     if transport == "stdio":
         server.run()
     else:

@@ -1,0 +1,157 @@
+{
+ "suite": "markdown",
+ "params": {
+  "docs": 66
+ },
+ "notes": [
+  "Reference = exact main text (title + body). Precision/recall are multiset word overlaps.",
+  "Leakage = share of output words from the boilerplate vocabulary (synthetic pages only).",
+  "markdownify and html2text convert the whole page by design (baselines)."
+ ],
+ "tools": {
+  "omniscrape": {
+   "ok": true,
+   "version": "0.1.0",
+   "python": "3.12.13",
+   "where": "env:omniscrape",
+   "peak_rss_mb": 51.9,
+   "rss_after_import_mb": 26.5,
+   "import_seconds": 0.0031,
+   "wall_seconds": 3.968,
+   "memory_sampled": true,
+   "groups": {
+    "all": {
+     "precision": 0.9934,
+     "recall": 0.9883,
+     "f1": 0.9903,
+     "rouge_l": 0.9883,
+     "leakage": 0.0031,
+     "out_words": 1422.4091,
+     "ref_words": 1455.303,
+     "ms": 14.7567,
+     "n": 66
+    },
+    "dev": {
+     "precision": 0.9948,
+     "recall": 1.0,
+     "f1": 0.9974,
+     "rouge_l": 0.9974,
+     "leakage": 0.0,
+     "out_words": 607.7037,
+     "ref_words": 606.2963,
+     "ms": 4.4975,
+     "n": 27
+    },
+    "handwritten": {
+     "precision": 0.9851,
+     "recall": 0.9835,
+     "f1": 0.9838,
+     "rouge_l": 0.9838,
+     "out_words": 123.6,
+     "ref_words": 125.8,
+     "ms": 3.5283,
+     "n": 5
+    },
+    "holdout": {
+     "precision": 0.9925,
+     "recall": 0.9801,
+     "f1": 0.9854,
+     "rouge_l": 0.9821,
+     "leakage": 0.005,
+     "out_words": 1986.4359,
+     "ref_words": 2043.0769,
+     "ms": 21.8593,
+     "n": 39
+    },
+    "synthetic": {
+     "precision": 0.9941,
+     "recall": 0.9886,
+     "f1": 0.9909,
+     "rouge_l": 0.9887,
+     "leakage": 0.0031,
+     "out_words": 1528.8689,
+     "ref_words": 1564.2787,
+     "ms": 15.6771,
+     "n": 61
+    }
+   },
+   "samples": {
+    "bem_article_00": "# Urchin Meadow Robust Lark Raven Husk\n\nBy Zara Haddad \u00b7 16 Jul 2021\n\nEstuary as raven drift as fjord pebble its brisk swift is refine whistle of spruce pattern. Gather on olive quaint and quartz kettle as warm. Keen in basil calibrate at pepper maple at valley. Husk the paprika calm of cinder flint the. Cultivate at elm silver for nickel oyster of vivid jetty an saffron. Estuary as kindle zinc an delta valley by warm radish.\n\nNutmeg for violet polished at birch refine in garnet quince in observe alpine on polished poplar. Bloom was poplar keen and mango refine to delta. Mesa of pepper weave as jade bold was mesa whistle with cedar amber. Moss from thunder kindle and distill bold that quartz gravel with keen gentle. River is heath acorn to kindle opal in gentle saffron.\n\nPolish to glacier harvest are vine humble its garden rapid with marble flint on fierce. Kindle a navigate navigate that sculpt violet with paprika fabric was tide unveil this. Refine its canyon calm at jade nebula at tide orbit with polished kindle.\n\n- Opal on nimbus sturdy.\n- River and urchin ember its serene.\n- Dense is drift fennel and.\n\nEstuary as delta garnet with mighty grove a unveil measure are. Signal from urchin heath an lively nimbus in vine birch was elm whistle this keen bloom. Olive the canyon unveil on jetty estuary is plume nimbus was analyze engine. Deft this robust flint by unveil pepper of refine mountain is elm serene.\n\n## Sable Dune\n\nYew are falcon glacier for lively tunnel and. Garden ar",
+    "hand_article_news": "# City council approves plan to turn rail yard into park\n\nAfter nearly three hours of public comment, the city council voted 7 to 2 on Tuesday night to move forward with a plan to convert the abandoned north rail yard into a public park.\n\nThe site has sat mostly empty since the freight line closed in 2009. Neighbors have long complained about illegal dumping and fires on the property.\n\nSupporters said the park would give the east side of the city a place for families to gather, with walking trails, a playground, and a community garden. Several speakers described driving twenty minutes to reach the nearest large park.\n\nOpponents raised concerns about the cost of cleaning up soil contamination left by decades of rail traffic. A preliminary study estimated the cleanup alone could exceed eleven million dollars.\n\nCouncil member Renata Oyelaran, who represents the district, called the vote a turning point. She said the city would apply for state and federal grants to cover most of the cleanup.\n\nConstruction is not expected to begin until at least 2028, after environmental reviews and a design process that will include public workshops."
+   },
+   "errors": []
+  },
+  "trafilatura": {
+   "ok": true,
+   "version": "2.4.0",
+   "python": "3.12.13",
+   "where": "env:parsers",
+   "peak_rss_mb": 57.4,
+   "rss_after_import_mb": 39.1,
+   "import_seconds": 0.4892,
+   "wall_seconds": 2.546,
+   "memory_sampled": true,
+   "groups": {
+    "all": {
+     "precision": 0.9824,
+     "recall": 0.9796,
+     "f1": 0.9807,
+     "rouge_l": 0.976,
+     "leakage": 0.0096,
+     "out_words": 1468.8788,
+     "ref_words": 1455.303,
+     "ms": 23.8874,
+     "n": 66
+    },
+    "dev": {
+     "precision": 0.9892,
+     "recall": 0.9713,
+     "f1": 0.9801,
+     "rouge_l": 0.9786,
+     "leakage": 0.0089,
+     "out_words": 598.1481,
+     "ref_words": 606.2963,
+     "ms": 7.0296,
+     "n": 27
+    },
+    "handwritten": {
+     "precision": 0.9904,
+     "recall": 0.932,
+     "f1": 0.9602,
+     "rouge_l": 0.958,
+     "out_words": 118.2,
+     "ref_words": 125.8,
+     "ms": 2.9899,
+     "n": 5
+    },
+    "holdout": {
+     "precision": 0.9777,
+     "recall": 0.9853,
+     "f1": 0.9811,
+     "rouge_l": 0.9742,
+     "leakage": 0.01,
+     "out_words": 2071.6923,
+     "ref_words": 2043.0769,
+     "ms": 35.5582,
+     "n": 39
+    },
+    "synthetic": {
+     "precision": 0.9817,
+     "recall": 0.9835,
+     "f1": 0.9823,
+     "rouge_l": 0.9775,
+     "leakage": 0.0096,
+     "out_words": 1579.5902,
+     "ref_words": 1564.2787,
+     "ms": 25.6003,
+     "n": 61
+    }
+   },
+   "samples": {
+    "bem_article_00": "Estuary as raven drift as fjord pebble its brisk swift is refine whistle of spruce pattern. Gather on olive quaint and quartz kettle as warm. Keen in basil calibrate at pepper maple at valley. Husk the paprika calm of cinder flint the. Cultivate at elm silver for nickel oyster of vivid jetty an saffron. Estuary as kindle zinc an delta valley by warm radish.\n\nNutmeg for violet polished at birch refine in garnet quince in observe alpine on polished poplar. Bloom was poplar keen and mango refine to delta. Mesa of pepper weave as jade bold was mesa whistle with cedar amber. Moss from thunder kindle and distill bold that quartz gravel with keen gentle. River is heath acorn to kindle opal in gentle saffron.\n\nPolish to glacier harvest are vine humble its garden rapid with marble flint on fierce. Kindle a navigate navigate that sculpt violet with paprika fabric was tide unveil this. Refine its canyon calm at jade nebula at tide orbit with polished kindle.\n\n- Opal on nimbus sturdy.\n- River and urchin ember its serene.\n- Dense is drift fennel and.\n\nEstuary as delta garnet with mighty grove a unveil measure are. Signal from urchin heath an lively nimbus in vine birch was elm whistle this keen bloom. Olive the canyon unveil on jetty estuary is plume nimbus was analyze engine. Deft this robust flint by unveil pepper of refine mountain is elm serene.\n\n## Sable Dune\n\nYew are falcon glacier for lively tunnel and. Garden are inlet mighty the garden marble at flint vast and nimbus lotus. Harbo",
+    "hand_article_news": "After nearly three hours of public comment, the city council voted 7 to 2 on Tuesday night to move forward with a plan to convert the abandoned north rail yard into a public park.\n\nThe site has sat mostly empty since the freight line closed in 2009. Neighbors have long complained about illegal dumping and fires on the property.\n\nSupporters said the park would give the east side of the city a place for families to gather, with walking trails, a playground, and a community garden. Several speakers described driving twenty minutes to reach the nearest large park.\n\nOpponents raised concerns about the cost of cleaning up soil contamination left by decades of rail traffic. A preliminary study estimated the cleanup alone could exceed eleven million dollars.\n\nGet the morning briefing in your inbox.\n\nCouncil member Renata Oyelaran, who represents the district, called the vote a turning point. She said the city would apply for state and federal grants to cover most of the cleanup.\n\nConstruction is not expected to begin until at least 2028, after environmental reviews and a design process that will include public workshops."
+   },
+   "errors": []
+  }
+ }
+}

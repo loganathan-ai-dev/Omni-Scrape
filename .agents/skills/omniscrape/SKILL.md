@@ -20,12 +20,13 @@ Read [references/api_cheatsheet.md](./references/api_cheatsheet.md) when you nee
 | Many URLs concurrently | `await omniscrape.fetch_many(urls, ...)` / `scrape_many(...)` | Shares one `OmniClient` + per-domain throttling |
 | Long-lived session / custom config | `async with OmniClient(...) as client:` | Reuses TLS session, browser instance, `cache_responses=True` (304) |
 | Custom HTML parsing / CSS / XPath | `Selector(html, url=url)` | Supports `::text`, `::attr(href)`, `.re()`, `.extract(schema)`, `adaptive=True` |
-| High-speed pure CSS parsing | `Selector(html, backend="selectolax")` | Requires `omniscrape[fast]` (`selectolax`) |
+| High-speed pure CSS parsing | `Selector(html, backend="selectolax")` | Requires `omni-scrape[fast]` (`selectolax`) |
 | Zero-config commerce / news | `extract_product(html, url)` / `extract_listings(html, url)` / `scrape_article(url)` | Uses JSON-LD (`@id` resolved), Microdata, RDFa, OG, Shopify JSON, DOM |
-| RAG / LLM context | `fit_markdown(html, url=url, query=..., citations=True, max_tokens=...)` + `chunk_markdown(md)` | Strips nav/footer/boilerplate and filters blocks with BM25 |
+| RAG / LLM context | `fit_markdown(html, url=url, query=..., links=True, citations=True, max_tokens=...)` + `chunk_markdown(md)` | Strips nav/footer/boilerplate and filters blocks with BM25 |
 | Multi-page crawl | `CrawlEngine(spider, storage=..., max_pages=..., queue_path=...)` | Obeys `robots.txt`, `Crawl-delay`, dedup, SQLite pause/resume |
 | URL discovery | `await omniscrape.map_site(url, search=..., limit=...)` | Reads `robots.txt` sitemaps + `/sitemap.xml` + start page links |
-| Quick CLI / Agent MCP | `omniscrape get <url> -f markdown` / `omniscrape mcp` | Tools: `scrape_url`, `scrape_product`, `scrape_article`, `get_markdown`, `map_site` |
+| Quick CLI | `omniscrape get <url> -f markdown` / `crawl` / `map` / `extract --schema f.json` / `shell` | Data on stdout, logs on stderr |
+| Agent MCP | `omniscrape mcp` | Tools: `scrape_url`, `scrape_product`, `scrape_article`, `get_markdown`, `map_site` |
 
 ---
 
@@ -35,7 +36,7 @@ OmniScrape has three progressive tiers (plus optional `httpx` HTTP/2):
 
 - **Tier 1 (`tier=1` / `"http"` — `FastFetcher`)**: `curl_cffi` HTTP/2 with browser TLS impersonation. Always start here (or leave `tier=None` for auto mode).
 - **Tier 2 (`tier=2` / `"browser"` — `DynamicFetcher`)**: Playwright Chromium. Auto mode escalates here automatically when Tier 1 returns an empty SPA shell. One browser launches lazily per fetcher, with isolated contexts per request (or `fetcher_options={2: {"isolate": False}}` for pooled shared-context speed).
-- **Tier 3 (`tier=3` / `"stealth"` — `StealthFetcher`)**: Camoufox (if `omniscrape[stealth]` is installed) or hardened Playwright Chromium. Only triggered on blocks when `allow_stealth=True` or forced via `tier=3`.
+- **Tier 3 (`tier=3` / `"stealth"` — `StealthFetcher`)**: Camoufox (if `omni-scrape[stealth]` is installed) or hardened Playwright Chromium. Only triggered on blocks when `allow_stealth=True` or forced via `tier=3`.
 
 ```python
 from omniscrape import OmniClient, ProxyPoolManager
@@ -60,7 +61,7 @@ async with OmniClient(
 
 ## 3. Selectors, Schemas & Self-Healing
 
-Prefer `Selector` over BeautifulSoup loops:
+Prefer `Selector` over BeautifulSoup loops (BeautifulSoup is not a dependency):
 
 ```python
 from omniscrape import Selector
@@ -114,7 +115,7 @@ class CatalogSpider(Spider):
                 "price": {"selector": "p.price_color::text", "type": "price"},
             })
         for next_url in links.extract(selector, response.url):
-            yield Request(next_url)
+            yield Request(next_url)   # Request(url, meta={...}) arrives as response.meta
 
 stats = asyncio.run(
     CrawlEngine(
@@ -134,14 +135,21 @@ stats = asyncio.run(
 Start the MCP server for Claude Desktop, Cursor, or Antigravity:
 
 ```bash
-pip install "omniscrape[mcp]"
+pip install "omni-scrape[mcp]"            # PyPI name is omni-scrape; the import and command are omniscrape
 omniscrape mcp                              # stdio transport
 omniscrape mcp --transport http --port 8000 # streamable HTTP at /mcp
 ```
 
-Quick CLI inspection:
+Claude Code: `claude mcp add omniscrape -- omniscrape mcp` (or install the repo as a Claude Code plugin, which bundles this MCP server entry).
+
+CLI:
 
 ```bash
 omniscrape get https://example.com -f markdown
-omniscrape get https://example.com -f json --tier 2
+omniscrape get https://example.com -f json --tier 2 > page.json
+omniscrape get https://example.com --css "h1"          # print matching text
+omniscrape crawl https://books.toscrape.com/ --max-pages 100 -o books.jsonl --resume
+omniscrape map https://example.com --search pricing
+omniscrape extract https://example.com --schema schema.json
+omniscrape shell https://example.com                   # REPL with `page` and `response` loaded
 ```

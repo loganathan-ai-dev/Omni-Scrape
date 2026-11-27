@@ -1,6 +1,5 @@
 """Unit tests for data normalizers."""
 
-import pytest
 from omniscrape.normalizers.currency import parse_price
 from omniscrape.normalizers.dates import parse_date
 from omniscrape.normalizers.markdown import html_to_markdown

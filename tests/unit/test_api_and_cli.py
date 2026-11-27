@@ -1,11 +1,11 @@
 """Unit tests for top-level OmniScrape API and CLI."""
 
-import asyncio
 from unittest.mock import AsyncMock, patch
+
 import pytest
+
 import omniscrape
-from omniscrape.cli.main import cli
-from omniscrape.models import FetchResult, PageClassification, PageType
+from omniscrape.models import FetchResult
 
 
 @pytest.mark.asyncio

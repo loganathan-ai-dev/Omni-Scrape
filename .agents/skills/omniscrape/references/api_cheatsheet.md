@@ -1,6 +1,6 @@
 # OmniScrape API Cheatsheet
 
-Verified parameter reference from `src/omniscrape/`.
+Parameter reference for `src/omniscrape/` (omni-scrape 0.1.0). Install name `omni-scrape`; import `omniscrape`.
 
 ## Package Extras
 
@@ -11,7 +11,8 @@ Verified parameter reference from `src/omniscrape/`.
 - `storage`: `duckdb>=1.1.0` (`DuckDBStorage`)
 - `markdown`: `tiktoken>=0.7.0` (exact token counting in `fit_markdown` / `chunk_markdown`)
 - `mcp`: `fastmcp>=2.3.0` (`omniscrape mcp`)
-- `all`: `browser,stealth,httpx,storage,markdown,mcp`
+- `shell`: `ipython>=8` (`omniscrape shell` uses IPython when installed)
+- `all`: `browser,stealth,httpx,storage,markdown,mcp,fast,shell`
 
 ## Top-Level Helpers (`omniscrape`)
 
@@ -55,8 +56,8 @@ Pass `wait_for=".css"`, `screenshot=True`, `pdf=True`, `capture_network=True`, a
 - `{"type": "click", "selector": "..."}`
 - `{"type": "type" | "write" | "fill", "selector": "...", "text": "..."}`
 - `{"type": "press", "key": "Enter"}`
-- `{"type": "scroll", "x": 0, "y": 800}` or `{"type": "infinite_scroll", "max_scrolls": 5}`
-- `{"type": "wait", "ms": 500}` or selector wait
+- `{"type": "scroll", "direction": "down" | "up", "amount": 800}` or `{"type": "scroll", "to": "top" | "bottom"}`; `{"type": "infinite_scroll", "max_scrolls": 5}`
+- `{"type": "wait", "milliseconds": 500}` or `{"type": "wait", "selector": ".x"}`
 - `{"type": "evaluate", "script": "() => ..."}` (appends return value to `res.action_results`)
 - `{"type": "screenshot"}`
 - `{"type": "scrape"}`
@@ -78,7 +79,7 @@ Each schema value can be:
 - `extract_listings(html_or_root, url="", *, min_repetition=3) -> list[dict[str, Any]]`
 - `extract_metadata(html, url="") -> dict[str, Any]`
 - `extract_main(html, url="") -> MainContent`
-- `html_to_markdown(html, url="", links=True, images=True, citations=False, max_tokens=None) -> str`
+- `html_to_markdown(html, max_tokens=None, url="", main_content=True, links=True) -> str` (top-level export; main content by default). The whole-page converter with `images`/`citations` is `omniscrape.content.markdown.html_to_markdown(html, url="", links=True, images=True, citations=False, max_tokens=None)`.
 - `fit_markdown(html, url="", query=None, links=False, images=False, citations=False, title=True, max_tokens=None, main=None) -> str`
 - `chunk_markdown(md, max_tokens=512, overlap_blocks=0) -> list[Chunk]` (`Chunk.text`, `.headings`, `.tokens`)
 
@@ -116,5 +117,25 @@ Use `await engine.run() -> CrawlStats` or `async for item in engine.stream(): ..
 - `scrape_url(url: str, allow_stealth: bool = False) -> str` (JSON without raw `html` or `structured_data`)
 - `scrape_product(url: str) -> str`
 - `scrape_article(url: str) -> str`
-- `get_markdown(url: str, query: Optional[str] = None, max_tokens: Optional[int] = None) -> str`
+- `get_markdown(url: str, query: Optional[str] = None, max_tokens: Optional[int] = None, allow_stealth: bool = False) -> str` (returns an `Error: ... HTTP <status>` message for non-2xx responses)
 - `map_site(url: str, search: Optional[str] = None, limit: int = 200) -> str`
+
+## Crawler details
+
+- Callbacks are `parse(response, selector)`; `selector` is built with the page URL, so `urljoin` and adaptive keys work.
+- `Request(url, callback=None, meta={...}, priority=0, tier=None)`: `meta` is persisted and delivered as `response.meta`.
+- `FetchResult.meta` is only filled by the crawler.
+- `robots.txt` rules honour `*` and `$` wildcards and `Crawl-delay`.
+
+## CLI (`omniscrape`)
+
+- `get URL [-f summary|json|markdown] [--css SEL (incl. ::text / ::attr(x))] [-o FILE] [-t TIER] [--stealth] [--proxy URL] [-H "K: v"] [--timeout S] [--wait-for SEL]`
+- `crawl URL [--max-pages N] [--depth N] [-c N] [--delay S] [-o FILE.jsonl|.duckdb] [--allow RE] [--deny RE] [--resume] [--append] [--no-robots] [--sitemap] [-t TIER]`
+- `map URL [-q TERMS] [--limit N] [-f text|json]`
+- `extract URL --schema schema.json [-o FILE] [-t TIER] ...` (schema = `Selector.extract` dict as JSON)
+- `shell [URL] [--plain]`: REPL with `omniscrape`, `Selector`, `fetch_sync`, `scrape_sync` (and `response`, `page` when URL given)
+- `mcp [--transport stdio|http] [--host H] [-p PORT]`
+
+`crawl` replaces an existing output file unless `--resume` or `--append` is given; output must be `.jsonl`, `.ndjson` or `.duckdb`.
+
+Data goes to stdout; logs and tables go to stderr, so `omniscrape get URL -f json | jq .` is safe.

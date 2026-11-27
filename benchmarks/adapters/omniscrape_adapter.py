@@ -2,7 +2,7 @@
 
 import asyncio
 from typing import Any, Optional
-from urllib.parse import urljoin, urlsplit
+from urllib.parse import urlsplit
 
 from benchmarks.adapters.base import ToolAdapter
 

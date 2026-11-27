@@ -7,7 +7,10 @@ from omniscrape.parsers.selector import Selector
 
 
 class Request:
-    """A URL to crawl, with its callback, priority and crawl depth."""
+    """A URL to crawl, with its callback, priority and crawl depth.
+
+    ``meta`` is persisted with the request and handed back to the callback as ``response.meta``.
+    """
 
     def __init__(
         self,
@@ -49,7 +52,6 @@ class Spider:
     allowed_domains: list[str] = []   # empty = no domain restriction
     concurrency: int = 10
     max_depth: Optional[int] = None
-    stealth: str = "auto"
 
     async def start_requests(self) -> AsyncIterator[Request]:
         for url in self.start_urls:

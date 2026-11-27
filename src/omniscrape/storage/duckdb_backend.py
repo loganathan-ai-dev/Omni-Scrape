@@ -1,11 +1,23 @@
 """DuckDB local analytical columnar storage."""
 
 import json
-from typing import Any, Optional, Sequence
-from omniscrape.storage.base import BaseStorage
+from typing import Any, Sequence
+
 from omniscrape.observability.logging import get_logger
+from omniscrape.storage.base import BaseStorage
 
 logger = get_logger("omniscrape.storage.duckdb")
+
+
+def _to_cell(value: Any) -> Any:
+    """Every column is VARCHAR: keep None as NULL, JSON-encode containers, ISO-format dates."""
+    if value is None:
+        return None
+    if isinstance(value, (dict, list, tuple)):
+        return json.dumps(value, default=str)
+    if hasattr(value, "isoformat"):
+        return value.isoformat()
+    return str(value)
 
 
 class DuckDBStorage(BaseStorage):
@@ -39,23 +51,47 @@ class DuckDBStorage(BaseStorage):
             else:
                 d = {"value": str(r)}
             # Serialize nested structures to JSON strings
-            sanitized = {k: json.dumps(v) if isinstance(v, (dict, list)) else (v.isoformat() if hasattr(v, "isoformat") else v) for k, v in d.items()}
+            sanitized = {k: _to_cell(v) for k, v in d.items()}
             rows.append(sanitized)
 
         if not rows:
             return
 
-        cols = list(rows[0].keys())
-        # Ensure table exists
-        col_defs = ", ".join([f'"{col}" VARCHAR' for col in cols])
-        con.execute(f'CREATE TABLE IF NOT EXISTS "{self.table_name}" ({col_defs})')
+        # DuckDB identifiers are case-insensitive: "Title" and "title" are the same column. Map every
+        # record key onto one canonical spelling (the table's existing one, else the first seen).
+        table = self.table_name
+        existing_cols = [r[1] for r in con.execute(
+            "SELECT column_name, column_name FROM information_schema.columns WHERE table_name = ?", [table]
+        ).fetchall()]
+        canonical: dict[str, str] = {c.lower(): c for c in existing_cols}
+        for row in rows:
+            for key in row:
+                canonical.setdefault(key.lower(), key)
 
-        # Insert rows
+        if not existing_cols:
+            first = list(dict.fromkeys(canonical[k.lower()] for row in rows for k in row))
+            col_defs = ", ".join(f'"{col}" VARCHAR' for col in first)
+            con.execute(f'CREATE TABLE IF NOT EXISTS "{table}" ({col_defs})')
+            existing_cols = first
+        # Schema evolution: a later record may carry keys the table does not have yet.
+        known = {c.lower() for c in existing_cols}
+        for col in dict.fromkeys(canonical[k.lower()] for row in rows for k in row):
+            if col.lower() not in known:
+                con.execute(f'ALTER TABLE "{table}" ADD COLUMN "{col}" VARCHAR')
+                known.add(col.lower())
+
+        # Merge each row's keys onto the canonical names (later duplicates of a key win).
+        merged_rows = []
+        for row in rows:
+            merged: dict[str, Any] = {}
+            for key, value in row.items():
+                merged[canonical[key.lower()]] = value
+            merged_rows.append(merged)
+        cols = list(dict.fromkeys(k for row in merged_rows for k in row))
         placeholders = ", ".join(["?"] * len(cols))
-        quoted_cols = ", ".join([f'"{col}"' for col in cols])
-        insert_sql = f'INSERT INTO "{self.table_name}" ({quoted_cols}) VALUES ({placeholders})'
-        data_tuples = [[row.get(col) for col in cols] for row in rows]
-        con.executemany(insert_sql, data_tuples)
+        quoted_cols = ", ".join(f'"{col}"' for col in cols)
+        insert_sql = f'INSERT INTO "{table}" ({quoted_cols}) VALUES ({placeholders})'
+        con.executemany(insert_sql, [[row.get(col) for col in cols] for row in merged_rows])
 
     async def flush(self) -> None:
         pass

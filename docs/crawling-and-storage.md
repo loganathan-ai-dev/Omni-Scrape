@@ -1,6 +1,6 @@
 # Crawling, Sitemaps & Storage
 
-OmniScrape's async crawler pairs [`Spider`](../src/omniscrape/crawler/spider.py) and [`CrawlEngine`](../src/omniscrape/crawler/engine.py) with `OmniClient` so every crawl inherits retries, proxy rotation, TLS fingerprinting, and tier escalation.
+OmniScrape's async crawler pairs [`Spider`](../src/omniscrape/crawler/spider.py) and [`CrawlEngine`](../src/omniscrape/crawler/engine.py) with `OmniClient` so every crawl inherits retries, proxy rotation and TLS fingerprinting. Crawls use a fixed fetcher tier (default `tier=1`, plain HTTP); pass `tier=2` to `CrawlEngine` (or `--tier 2` to `omniscrape crawl`) for JavaScript-rendered sites, or set `Request(tier=...)` per request. Automatic escalation applies to `scrape()` and `OmniClient`, not to crawls.
 
 ---
 
@@ -74,4 +74,4 @@ links = LinkExtractor(
 ## Storage Backends
 
 - **[`JSONLStorage`](../src/omniscrape/storage/jsonl_backend.py)**: Zero-dependency line-delimited JSON writer (`JSONLStorage("out.jsonl")`).
-- **[`DuckDBStorage`](../src/omniscrape/storage/duckdb_backend.py)**: Analytical columnar storage (`pip install "omniscrape[storage]"`), auto-creating tables from dict/Pydantic keys (`DuckDBStorage("out.duckdb", table_name="items")`).
+- **[`DuckDBStorage`](../src/omniscrape/storage/duckdb_backend.py)**: Analytical columnar storage (`pip install "omni-scrape[storage]"`), auto-creating tables from dict/Pydantic keys (`DuckDBStorage("out.duckdb", table_name="items")`).

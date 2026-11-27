@@ -1,5 +1,11 @@
-blank_issues_enabled: true
+blank_issues_enabled: false
 contact_links:
-  - name: Documentation
-    url: https://github.com/loganathan-ai-dev/Omni-Scrape/tree/main/docs
+  - name: Documentation (wiki)
+    url: https://github.com/loganathan-ai-dev/Omni-Scrape/wiki
     about: Read the OmniScrape guides and API references before opening an issue.
+  - name: Questions and ideas
+    url: https://github.com/loganathan-ai-dev/Omni-Scrape/discussions
+    about: Ask usage questions or share ideas in Discussions (enable it in repository settings).
+  - name: Report a security vulnerability
+    url: https://github.com/loganathan-ai-dev/Omni-Scrape/security/advisories/new
+    about: Please report vulnerabilities privately, not as a public issue.

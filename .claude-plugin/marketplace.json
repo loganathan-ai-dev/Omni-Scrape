@@ -1,0 +1,12 @@
+{
+  "name": "omni-scrape",
+  "description": "Marketplace for the OmniScrape Claude Code plugin",
+  "owner": { "name": "Loganathan M" },
+  "plugins": [
+    {
+      "name": "omniscrape",
+      "source": "./",
+      "description": "OmniScrape skill and MCP server for web fetching, extraction, Markdown and crawling"
+    }
+  ]
+}

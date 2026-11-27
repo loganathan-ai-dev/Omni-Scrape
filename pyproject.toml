@@ -1,36 +1,46 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
-name = "omniscrape"
-version = "0.1.0"
-description = "Web scraping framework: fetching and rendering, self-healing selectors, zero-config product and article extraction, LLM-ready Markdown and a polite crawler."
+name = "omni-scrape"
+dynamic = ["version"]
+description = "Adaptive web scraping for Python: tiered HTTP/browser/stealth fetching, self-healing selectors, zero-config product and article extraction, LLM-ready Markdown, a polite resumable crawler and an MCP server."
 readme = "README.md"
 authors = [
-    { name = "OmniScrape Contributors" }
+    { name = "Loganathan M", email = "Loganathanmanoharan2005@gmail.com" },
 ]
-license = { text = "MIT" }
-keywords = ["web-scraping", "crawler", "playwright", "curl-cffi", "adaptive-selectors", "markdown", "mcp"]
+maintainers = [
+    { name = "Loganathan M", email = "Loganathanmanoharan2005@gmail.com" },
+]
+license = "MIT"
+license-files = ["LICENSE"]
+keywords = [
+    "web-scraping", "scraper", "crawler", "playwright", "curl-cffi", "adaptive-selectors",
+    "markdown", "mcp", "llm", "asyncio",
+]
 classifiers = [
     "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Framework :: AsyncIO",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Internet :: WWW/HTTP",
     "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing :: Markup :: HTML",
+    "Typing :: Typed",
 ]
 requires-python = ">=3.11"
 dependencies = [
     "lxml>=5.0.0",
     "cssselect>=1.2.0",
-    "orjson>=3.9.0",
     "pydantic>=2.5.0",
     "curl_cffi>=0.7.0",
-    "beautifulsoup4>=4.12.0",
     "python-dateutil>=2.8.2",
     "click>=8.1.0",
     "rich>=13.0.0",
@@ -58,8 +68,11 @@ mcp = [
 fast = [
     "selectolax>=0.3.20",
 ]
+shell = [
+    "ipython>=8.0.0",
+]
 all = [
-    "omniscrape[browser,stealth,httpx,storage,markdown,mcp]",
+    "omni-scrape[browser,stealth,httpx,storage,markdown,mcp,fast,shell]",
 ]
 # Benchmark harness only; not part of "all". Competitor tools are installed into isolated
 # per-tool environments by `python -m benchmarks envs`.
@@ -71,18 +84,37 @@ dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.24.0",
     "aiohttp>=3.9.0",
+    "ruff>=0.6.0",
+    "mypy>=1.10.0",
+    "build>=1.2.0",
+    "twine>=5.0.0",
 ]
 
 [project.urls]
 Homepage = "https://github.com/loganathan-ai-dev/Omni-Scrape"
+Documentation = "https://github.com/loganathan-ai-dev/Omni-Scrape/wiki"
 Repository = "https://github.com/loganathan-ai-dev/Omni-Scrape"
 Issues = "https://github.com/loganathan-ai-dev/Omni-Scrape/issues"
+Changelog = "https://github.com/loganathan-ai-dev/Omni-Scrape/blob/main/CHANGELOG.md"
 
 [project.scripts]
 omniscrape = "omniscrape.cli.main:cli"
 
+[tool.hatch.version]
+path = "src/omniscrape/_version.py"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/omniscrape"]
+
+# The sdist ships library sources only: no benchmark corpus, tests, docs or agent folders.
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/README.md",
+    "/LICENSE",
+    "/CHANGELOG.md",
+    "/pyproject.toml",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
@@ -95,3 +127,30 @@ markers = [
     "llm: calls a real LLM API (costs money)",
 ]
 addopts = "-m 'not network and not llm'"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["benchmarks/corpus", "benchmarks/.envs", "benchmarks/results"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = [
+    "E501",   # long lines: formatting is not enforced
+    "B008",
+    "UP007",  # Optional[...] is used consistently across the codebase
+    "UP045",
+    "UP006",
+    "UP035",
+    "UP042",  # (str, Enum) is kept: values are compared with plain strings throughout
+    "B904",   # raise-from inside except: tracebacks are intentionally short in the CLI
+    "B905",   # zip(strict=) would raise on benign length mismatches in lenient parsers
+    "B007",
+    "B023",   # closures in selector matching are used within the same loop iteration
+]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+warn_unused_ignores = true
+files = ["src/omniscrape"]

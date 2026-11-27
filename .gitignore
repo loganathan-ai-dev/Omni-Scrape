@@ -11,21 +11,40 @@ dist/
 # Testing / caches
 .pytest_cache/
 .hypothesis/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
 .coverage
+.coverage.*
+coverage.xml
 htmlcov/
 
-# Virtual environments
+# Virtual environments / local config
 .venv/
 venv/
 env/
+.env
+.env.*
+.python-version
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+.claude/settings.local.json
 
 # Local runtime databases and outputs
 *.db
+*.sqlite
+*.sqlite3
 *.duckdb
 *.jsonl
+*.log
 .omniscrape/
 
-# Benchmarks
+# Benchmarks (generated; the cited run is snapshotted in benchmarks/published/)
 benchmarks/.envs/
 benchmarks/results/
 benchmarks/corpus/data/adaptive/
