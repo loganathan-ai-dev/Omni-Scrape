@@ -84,6 +84,7 @@ class CrawlEngine:
         user_agent: str = "omniscrape",
         pipelines: Optional[list[Pipeline]] = None,
         retries: int = 2,
+        start_from_sitemap: bool = False,
     ):
         self.spider = spider
         self.storage = storage
@@ -106,6 +107,7 @@ class CrawlEngine:
         self.user_agent = user_agent
         self.pipelines = list(pipelines or [])
         self.retries = retries
+        self.start_from_sitemap = start_from_sitemap
         self.stats = CrawlStats()
         self._scheduled = 0
         self._cond: Optional[asyncio.Condition] = None
@@ -131,8 +133,12 @@ class CrawlEngine:
                 self._scheduled = sum(self.queue.counts().values())
             else:
                 self.queue.reset()
+                start_reqs: list[Request] = []
                 async for req in self.spider.start_requests():
+                    start_reqs.append(req)
                     await self.schedule(req)
+                if self.start_from_sitemap and start_reqs:
+                    await self._seed_from_sitemaps(start_reqs)
             logger.info(f"Crawl '{self.spider.name}' started (concurrency={self.concurrency}, robots={self.obey_robots})")
             workers = [asyncio.create_task(self._worker()) for _ in range(self.concurrency)]
             await asyncio.gather(*workers)
@@ -186,6 +192,25 @@ class CrawlEngine:
             async with self._cond:
                 self._cond.notify()
         return True
+
+    async def _seed_from_sitemaps(self, start_reqs: list[Request]) -> None:
+        from omniscrape.crawler.sitemap import sitemap_urls
+        from omniscrape.crawler.urls import origin
+
+        seen_origins: set[str] = set()
+        for req in start_reqs:
+            base = origin(req.url)
+            if base in seen_origins:
+                continue
+            seen_origins.add(base)
+            sitemaps: list[str] = []
+            if self.robots is not None:
+                rules = await self.robots.rules_for(req.url)
+                sitemaps = rules.sitemaps()
+            for sm in sitemaps or [f"{base}/sitemap.xml"]:
+                limit = self.max_pages or 50_000
+                for u in await sitemap_urls(self.client, urljoin(base + "/", sm), limit=limit):
+                    await self.schedule(Request(url=u))
 
     # ------------------------------------------------------------------ internals
     async def _worker(self) -> None:
@@ -254,6 +279,12 @@ class CrawlEngine:
             return
         finally:
             elapsed_s = (time.perf_counter() - started) if started else None
+            if status in (429, 503):
+                from omniscrape.client import _retry_after_seconds
+
+                ra = _retry_after_seconds(result.headers.get("retry-after") or result.headers.get("Retry-After"))
+                if ra:
+                    self.throttle.pause(domain, ra)
             self.throttle.release(domain, elapsed_s, status)
 
         self.stats.status_counts[result.status_code] += 1

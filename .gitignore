@@ -10,6 +10,7 @@ dist/
 
 # Testing / caches
 .pytest_cache/
+.hypothesis/
 .coverage
 htmlcov/
 

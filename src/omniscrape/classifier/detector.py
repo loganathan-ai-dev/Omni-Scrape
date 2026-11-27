@@ -65,12 +65,23 @@ def detect_defense(status_code: int, headers: Mapping[str, str], body: str) -> D
     head = body[:20000]
     blocked = status_code in BLOCK_STATUSES
     if not blocked:
-        # Fast path for normal 2xx/3xx pages: only interstitials can trigger on non-block statuses.
+        # Fast path for normal 2xx/3xx pages: only short interstitial/captcha shells can trigger on 200 OK.
         head_low = head.lower()
-        if ("/cdn-cgi/challenge-platform" not in head_low
-                and "cf_chl_opt" not in head_low
-                and "just a moment" not in head_low
-                and "attention required" not in head_low):
+        has_cf = ("/cdn-cgi/challenge-platform" in head_low or "cf_chl_opt" in head_low
+                  or "just a moment" in head_low or "attention required" in head_low)
+        has_other = ("captcha-delivery.com" in head_low or "geo.captcha-delivery" in head_low
+                     or "px-captcha" in head_low or "_pxhd" in head_low
+                     or "kpsdk" in head_low or "ips.js" in head_low)
+        if not has_cf and not has_other:
+            return DefenseSystem.NONE
+        if not has_cf and visible_text_length(head) < 1500:
+            if _DATADOME.search(head):
+                return DefenseSystem.DATADOME
+            if _PERIMETERX.search(head):
+                return DefenseSystem.PERIMETERX
+            if _KASADA.search(head):
+                return DefenseSystem.KASADA
+        if not has_cf:
             return DefenseSystem.NONE
 
     h = {k.lower(): str(v).lower() for k, v in (headers or {}).items()}

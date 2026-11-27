@@ -242,12 +242,12 @@ def extract_main(html_or_root: Union[str, Any], url: str = "", structured: Optio
     container = lxml.html.Element("div", {"class": "omniscrape-main"})
     if node is body:
         for child in list(body):
-            container.append(copy.deepcopy(child))
+            container.append(child)
         if body.text:
             container.text = body.text
     else:
         for part in node if isinstance(node, list) else [node]:
-            container.append(copy.deepcopy(part))
+            container.append(part)
     prune(container, removed)
     return MainContent(node=container, title=title, text=norm(container.text_content()), score=best_score,
                        method=method, removed=removed)

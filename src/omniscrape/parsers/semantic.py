@@ -12,6 +12,9 @@ ARTICLE_SIGNAL_TYPES = {"Article", "NewsArticle", "BlogPosting", "TechArticle", 
                         "LiveBlogPosting", "OpinionNewsArticle", "AnalysisNewsArticle"}
 
 
+_UNSET = object()
+
+
 class SemanticExtractor:
     """Extracts structured data, products and articles without site-specific selectors.
 
@@ -24,6 +27,9 @@ class SemanticExtractor:
         self.root = root if root is not None else as_root(html)
         self._structured: Optional[dict[str, Any]] = None
         self._main: Optional[Any] = None
+        self._metadata: Any = _UNSET
+        self._product: Any = _UNSET
+        self._article: Any = _UNSET
 
     @property
     def structured(self) -> dict[str, Any]:
@@ -38,6 +44,14 @@ class SemanticExtractor:
 
             self._main = extract_main(self.root, self.url, self.structured)
         return self._main
+
+    @property
+    def metadata(self) -> dict[str, Any]:
+        if self._metadata is _UNSET:
+            from omniscrape.content.metadata import extract_metadata
+
+            self._metadata = extract_metadata(self.root, self.url, self.structured)
+        return self._metadata
 
     def extract_all(self) -> dict[str, Any]:
         s = self.structured
@@ -65,9 +79,11 @@ class SemanticExtractor:
         return dict(self.structured["meta"])
 
     def extract_product(self) -> Optional[Product]:
-        from omniscrape.extract.product import extract_product
+        if self._product is _UNSET:
+            from omniscrape.extract.product import extract_product
 
-        return extract_product(self.root, self.url, self.structured)
+            self._product = extract_product(self.root, self.url, self.structured)
+        return self._product
 
     def is_article_like(self) -> bool:
         if find_items(self.structured, ARTICLE_SIGNAL_TYPES):
@@ -82,16 +98,18 @@ class SemanticExtractor:
         return len(self.main.text) >= 200
 
     def extract_article(self) -> Optional[Article]:
+        if self._article is not _UNSET:
+            return self._article
         if not self.is_article_like():
+            self._article = None
             return None
-        from omniscrape.content.metadata import extract_metadata
-
-        meta = extract_metadata(self.root, self.url, self.structured)
+        meta = self.metadata
         if not meta.get("title"):
+            self._article = None
             return None
         body = self.main.text
         words = len(body.split())
-        return Article(
+        self._article = Article(
             url=self.url,
             title=meta["title"],
             author=meta.get("author"),
@@ -103,3 +121,4 @@ class SemanticExtractor:
             tags=meta.get("tags") or [],
             reading_time_minutes=max(1, round(words / 230)) if words else None,
         )
+        return self._article

@@ -5,6 +5,7 @@ Syntaxes: JSON-LD (incl. @graph and lists), Microdata (nested itemscope), RDFa L
 Dublin Core (DC.* / DCTERMS.*). ``uniform`` items share the shape {"@type": ..., prop: value}.
 """
 
+from collections import deque
 import json
 import re
 from typing import Any, Iterable, Optional, Union
@@ -58,6 +59,31 @@ def _flatten_jsonld(data: Any) -> Iterable[dict[str, Any]]:
             yield data
 
 
+def _resolve_jsonld_refs(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Resolve JSON-LD ``{"@id": "..."}`` object references against items in the same document."""
+    by_id: dict[str, dict[str, Any]] = {}
+    for item in items:
+        ident = item.get("@id")
+        if isinstance(ident, str) and ident and len(item) > 1:
+            by_id.setdefault(ident, item)
+    if not by_id:
+        return items
+
+    def resolve(val: Any, seen: set[str]) -> Any:
+        if isinstance(val, list):
+            return [resolve(v, seen) for v in val]
+        if isinstance(val, dict):
+            ident = val.get("@id")
+            if isinstance(ident, str) and ident in by_id and ident not in seen:
+                target = by_id[ident]
+                if len(val) == 1 or ("@type" not in val and len(val) <= 2):
+                    return resolve(target, seen | {ident})
+            return {k: resolve(v, seen) for k, v in val.items()}
+        return val
+
+    return [resolve(item, {item["@id"]} if isinstance(item.get("@id"), str) else set()) for item in items]
+
+
 def extract_json_ld(root: Any) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
     for script in root.iter("script"):
@@ -68,7 +94,7 @@ def extract_json_ld(root: Any) -> list[dict[str, Any]]:
             logger.debug("Unparseable JSON-LD block skipped")
             continue
         items.extend(_flatten_jsonld(data))
-    return items
+    return _resolve_jsonld_refs(items)
 
 
 # ----------------------------------------------------------------------------- microdata
@@ -97,9 +123,9 @@ def _microdata_item(scope: Any, base_url: str) -> dict[str, Any]:
                             (types[0].rsplit("/", 1)[-1] if types else None)}
     if scope.get("itemid"):
         item["@id"] = scope.get("itemid")
-    stack = list(scope)
+    stack = deque(scope)
     while stack:
-        el = stack.pop(0)
+        el = stack.popleft()
         if not isinstance(el.tag, str):
             continue
         prop = el.get("itemprop")
@@ -112,7 +138,7 @@ def _microdata_item(scope: Any, base_url: str) -> dict[str, Any]:
                 else:
                     item[name] = value
         if el.get("itemscope") is None:  # nested scopes own their properties
-            stack[0:0] = list(el)
+            stack.extendleft(reversed(list(el)))
     return item
 
 

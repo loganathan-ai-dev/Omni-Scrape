@@ -64,8 +64,11 @@ class LinkExtractor:
                 if not href or href.startswith(("#", "javascript:", "mailto:", "tel:", "data:")):
                     continue
                 absolute = urljoin(base_url, href)
-                url = canonicalize(absolute)
-                if url in seen:
+                # Preserve trailing slashes on fetched URLs (avoids 301 redirects on directory routes)
+                # while deduplicating /path vs /path/ via canonicalize().
+                url = canonicalize(absolute, strip_trailing_slash=False)
+                dedup_key = canonicalize(absolute)
+                if dedup_key in seen:
                     continue
                 parts = urlsplit(url)
                 if parts.scheme not in ("http", "https"):
@@ -82,6 +85,6 @@ class LinkExtractor:
                     continue
                 if deny and any(p.search(url) for p in deny):
                     continue
-                seen.add(url)
+                seen.add(dedup_key)
                 out.append(url)
         return out

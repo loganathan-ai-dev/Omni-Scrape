@@ -6,6 +6,7 @@ Main package public entry points (lazily imported so ``import omniscrape`` stays
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Sequence
 from importlib import import_module
 from typing import TYPE_CHECKING, Any, Optional, Union
 
@@ -20,6 +21,7 @@ if TYPE_CHECKING:
     from omniscrape.crawler.links import LinkExtractor
     from omniscrape.crawler.sitemap import map_site
     from omniscrape.crawler.spider import Request, Spider
+    from omniscrape.extract.listings import extract_listings
     from omniscrape.extract.product import extract_product
     from omniscrape.fetchers.base import BaseFetcher
     from omniscrape.fetchers.browser import DynamicFetcher
@@ -56,6 +58,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "map_site": ("omniscrape.crawler.sitemap", "map_site"),
     "Request": ("omniscrape.crawler.spider", "Request"),
     "Spider": ("omniscrape.crawler.spider", "Spider"),
+    "extract_listings": ("omniscrape.extract.listings", "extract_listings"),
     "extract_product": ("omniscrape.extract.product", "extract_product"),
     "BaseFetcher": ("omniscrape.fetchers.base", "BaseFetcher"),
     "DynamicFetcher": ("omniscrape.fetchers.browser", "DynamicFetcher"),
@@ -90,7 +93,10 @@ __all__ = [
     "scrape",
     "scrape_sync",
     "fetch",
+    "fetch_many",
+    "scrape_many",
     "map_site",
+    "extract_listings",
     "extract_product",
     "extract_main",
     "extract_metadata",
@@ -205,3 +211,59 @@ async def scrape_article(url: str, **kwargs) -> Optional["Article"]:
     """Specialized article extraction from a news/blog URL."""
     res = await scrape(url, **kwargs)
     return res.article
+
+
+async def fetch_many(
+    urls: Sequence[str],
+    *,
+    concurrency: int = 8,
+    per_domain_concurrency: int = 4,
+    delay: float = 0.0,
+    tier: Optional[Union[int, str]] = None,
+    allow_stealth: bool = False,
+    retries: int = 2,
+    timeout: float = 30.0,
+    return_exceptions: bool = False,
+    **kwargs,
+) -> list[Union["FetchResult", Exception]]:
+    """Concurrently fetch multiple URLs using a shared ``OmniClient``."""
+    from omniscrape.client import OmniClient
+
+    async with OmniClient(allow_stealth=allow_stealth, retries=retries, timeout=timeout) as client:
+        return await client.fetch_many(
+            urls,
+            concurrency=concurrency,
+            per_domain_concurrency=per_domain_concurrency,
+            delay=delay,
+            tier=tier,
+            return_exceptions=return_exceptions,
+            **kwargs,
+        )
+
+
+async def scrape_many(
+    urls: Sequence[str],
+    *,
+    concurrency: int = 8,
+    per_domain_concurrency: int = 4,
+    delay: float = 0.0,
+    tier: Optional[Union[int, str]] = None,
+    allow_stealth: bool = False,
+    retries: int = 2,
+    timeout: float = 30.0,
+    return_exceptions: bool = False,
+    **kwargs,
+) -> list[Union["ScrapeResult", Exception]]:
+    """Concurrently fetch and extract multiple URLs using a shared ``OmniClient``."""
+    from omniscrape.client import OmniClient
+
+    async with OmniClient(allow_stealth=allow_stealth, retries=retries, timeout=timeout) as client:
+        return await client.scrape_many(
+            urls,
+            concurrency=concurrency,
+            per_domain_concurrency=per_domain_concurrency,
+            delay=delay,
+            tier=tier,
+            return_exceptions=return_exceptions,
+            **kwargs,
+        )

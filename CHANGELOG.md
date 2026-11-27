@@ -1,42 +1,22 @@
 # Changelog
 
-## 0.1.0 — first release
+## 0.1.0 — Initial Release
 
-### Fetching
-- Three fetch tiers: curl_cffi HTTP with browser TLS fingerprints, Playwright Chromium, and an opt-in
-  stealth tier (Camoufox or hardened Chromium). Automatic escalation from HTTP to the browser for
-  JavaScript-only pages; escalation to stealth only with `allow_stealth=True`.
-- `OmniClient`: reusable client with retries (transport errors, HTTP 429 with `Retry-After`, 5xx),
-  circuit breaker, health-aware proxy pool and dead-letter queue.
-- Fetcher registry for custom engines (`register_fetcher`) and an optional httpx fetcher.
+### Fetching & Client
+- Three progressive fetch tiers: `curl_cffi` HTTP/2 with browser TLS fingerprints (`tier=1`), Playwright Chromium (`tier=2`), and opt-in `StealthFetcher` (`tier=3`, Camoufox or hardened Chromium via `allow_stealth=True`).
+- `OmniClient` with exponential backoff retries (`429 Retry-After` and `5xx`), per-domain circuit breaker, health-aware `ProxyPoolManager`, dead-letter queue, conditional `ETag`/`Last-Modified` (`304`) caching, and concurrent `fetch_many` / `scrape_many` / `iter_scrape` batch APIs.
+- Lazy top-level package exports (`~5 ms` import time) and pluggable custom fetcher registry (`register_fetcher`).
 
-### Browser
-- Readiness based on the page settling, not fixed sleeps; `wait_for` selectors.
-- Page actions: click, type, press, scroll, infinite scroll, wait, evaluate, screenshot, HTML snapshots.
-- Screenshots, PDF, capture of the JSON a page loads from its API.
-- Shared-context mode with tab reuse, CDP attach, persistent profiles.
+### Browser & Stealth
+- Shared Playwright runner for both `DynamicFetcher` and `StealthFetcher` supporting DOM settle readiness, `wait_for`, firecrawl-style `actions`, screenshots, PDF export, and XHR/fetch JSON network capture.
+- Context reuse with bounded tab pooling (`max_idle_pages=4`, `recycle_after=25`), CDP attach, and persistent profiles.
+- Soft-block detection for Cloudflare, DataDome, PerimeterX, Akamai, Kasada, and AWS WAF.
 
-### Parsing and extraction
-- `Selector` with CSS (`::text`, `::attr()`) and XPath, `get`/`getall`/`re`, navigation,
-  `find`/`find_all`, `find_similar` and selector generation.
-- Self-healing selectors (`adaptive=True`, `auto_save=True`) that survive class renames, wrappers and
-  tag changes, and refuse ambiguous matches.
-- Structured data: JSON-LD, Microdata, RDFa, OpenGraph, Dublin Core.
-- Zero-config product extraction and article metadata.
-- Main-content Markdown (`fit_markdown`), whole-page Markdown, citations, BM25 query filtering,
-  chunking and token counting.
+### Parsing, Self-Healing & Extraction
+- `Selector` with cached CSS (`::text`, `::attr()`) and XPath queries, traversal, `find`/`find_all`, `find_similar`, declarative `Selector.extract(schema)`, and optional `backend="selectolax"` (`[fast]` extra).
+- `AdaptiveEngine` with single-pass top-down DFS similarity relocation and in-memory fingerprint caching (`100%` recovery across 1,377 redesign test cases).
+- Structured data extraction (JSON-LD with `@graph`/`@id` resolution, Microdata, RDFa, OpenGraph, Dublin Core), zero-config `extract_product`, `extract_listings`, `extract_metadata`, `fit_markdown`, BM25 filtering, and `chunk_markdown`.
 
-### Crawling
-- `CrawlEngine` with robots.txt (on by default), priority queue, SQLite persistence and resume,
-  per-domain concurrency and AutoThrottle, depth/page/domain limits, pipelines and streaming.
-- `LinkExtractor`, URL canonicalization, sitemap parsing and `map_site()`.
-
-### Interfaces
-- `omniscrape get` command line, and an MCP server (`omniscrape mcp`) over stdio or HTTP with
-  `scrape_url`, `scrape_product`, `scrape_article`, `get_markdown` and `map_site` tools.
-- JSONL and DuckDB storage.
-
-### Benchmarks
-- `benchmarks/`: a reproducible comparison with Scrapling, Crawl4AI, Scrapy, Crawlee, Trafilatura,
-  Parsel, selectolax, BeautifulSoup, markdownify and html2text, each in an isolated environment.
-  Results are in the README.
+### Crawling, Storage, CLI & MCP
+- `CrawlEngine` with `robots.txt` compliance, domain-wide `429`/`503` `Retry-After` pauses, priority queue with SQLite pause/resume, `AutoThrottle`, `start_from_sitemap`, `LinkExtractor` (preserving trailing slashes to avoid redirect roundtrips), pipelines, and streaming.
+- JSONL and DuckDB storage backends, Click/Rich CLI (`omniscrape get`, `omniscrape mcp`), and FastMCP server over stdio or streamable HTTP.

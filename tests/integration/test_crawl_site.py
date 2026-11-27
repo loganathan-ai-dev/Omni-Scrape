@@ -98,3 +98,16 @@ async def test_map_site_uses_sitemap_and_respects_robots(site):
     assert not any("/private/" in u for u in urls)
     ranked = await map_site(site.base + "/", search="flaky")
     assert "/flaky/" in ranked[0]
+
+
+async def test_crawl_start_from_sitemap(site):
+    class SitemapSpider(Spider):
+        name = "it-sitemap"
+        start_urls = [site.base + "/"]
+        concurrency = 4
+
+        async def parse(self, response, selector):
+            yield {"url": response.url}
+
+    stats = await CrawlEngine(SitemapSpider(), start_from_sitemap=True, max_pages=25).run()
+    assert stats.pages == 25 and stats.items == 25 and site.get("/__stats")["robots_violations"] == 0

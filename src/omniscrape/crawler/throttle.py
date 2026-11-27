@@ -30,6 +30,15 @@ class DomainThrottle:
         self.target_concurrency = max(0.01, target_concurrency)
         self._slots: dict[str, _Slot] = {}
         self._floors: dict[str, float] = {}
+        self._paused_until: dict[str, float] = {}
+
+    def pause(self, domain: str, seconds: float) -> None:
+        """Pause all workers targeting ``domain`` for at least ``seconds`` (e.g. HTTP 429 Retry-After)."""
+        if seconds <= 0:
+            return
+        until = time.monotonic() + min(float(seconds), 60.0)
+        if until > self._paused_until.get(domain, 0.0):
+            self._paused_until[domain] = until
 
     def set_floor(self, domain: str, delay: Optional[float]) -> None:
         """Minimum delay for a domain (e.g. robots.txt Crawl-delay)."""
@@ -49,6 +58,11 @@ class DomainThrottle:
     async def acquire(self, domain: str) -> None:
         slot = self._slots.get(domain) or self._slot(domain)
         await slot.semaphore.acquire()
+        paused_until = self._paused_until.get(domain, 0.0)
+        if paused_until > 0:
+            wait = paused_until - time.monotonic()
+            if wait > 0:
+                await asyncio.sleep(wait)
         if slot.delay > 0:
             async with slot.lock:  # space out request *starts* on this domain
                 wait = slot.last_request + slot.delay - time.monotonic()
