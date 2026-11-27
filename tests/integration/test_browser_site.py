@@ -89,3 +89,15 @@ async def test_stealth_tier_renders_local_page(site):
     async with OmniClient(retries=0) as client:
         res = await client.fetch(site.base + "/js/5", tier=3)
     assert res.fetcher_tier == 3 and "Hydrated content for page 5" in res.html
+
+
+async def test_stealth_tier_supports_actions_and_network_capture(site):
+    async with OmniClient(retries=0) as client:
+        res = await client.fetch(
+            site.base + "/interactive",
+            tier=3,
+            actions=[{"type": "click", "selector": "#more"}],
+            screenshot=True,
+        )
+    assert res.fetcher_tier == 3 and "Secret deal unlocked" in res.html
+    assert res.screenshot and res.screenshot[:8] == b"\x89PNG\r\n\x1a\n"

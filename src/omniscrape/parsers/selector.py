@@ -358,6 +358,100 @@ class Element:
     def generate_xpath(self) -> str:
         return self._node.getroottree().getpath(self._node)
 
+    def extract(self, schema: dict[str, Any]) -> dict[str, Any]:
+        """Declarative field extraction from this element using CSS/XPath/normalizer specs.
+
+        Each schema value may be:
+          * a CSS selector string (e.g. ``"h1::text"``, ``"a::attr(href)"``)
+          * a dict spec: ``{"selector": ..., "xpath": ..., "all": bool, "attr": str,
+            "type": "str|int|float|price|date|unit|bool", "regex": str, "default": Any,
+            "required": bool, "schema": {...}}``
+        """
+        return _extract_with_schema(self, schema)
+
+
+def _coerce_extracted(val: Any, kind: Optional[str]) -> Any:
+    if val is None or not kind:
+        return val
+    k = kind.lower()
+    if k == "str":
+        return str(val).strip()
+    if k == "int":
+        m = re.search(r"-?\d+", str(val).replace(",", ""))
+        return int(m.group(0)) if m else None
+    if k == "float":
+        m = re.search(r"-?\d+(?:\.\d+)?", str(val).replace(",", ""))
+        return float(m.group(0)) if m else None
+    if k == "bool":
+        return str(val).strip().lower() in ("1", "true", "yes", "in stock", "instock", "available")
+    if k == "price":
+        from omniscrape.normalizers.currency import parse_money
+
+        amount, _ = parse_money(str(val))
+        return amount
+    if k == "date":
+        from omniscrape.normalizers.dates import parse_date
+
+        return parse_date(str(val))
+    if k == "unit":
+        from omniscrape.normalizers.units import parse_unit
+
+        amount, _ = parse_unit(str(val))
+        return amount
+    return val
+
+
+def _extract_with_schema(node: Any, schema: dict[str, Any]) -> dict[str, Any]:
+    out: dict[str, Any] = {}
+    for field_name, spec in schema.items():
+        if isinstance(spec, str):
+            spec = {"selector": spec}
+        elif not isinstance(spec, dict):
+            out[field_name] = spec
+            continue
+
+        sel = spec.get("selector") or spec.get("css")
+        xp = spec.get("xpath")
+        want_all = bool(spec.get("all", False))
+        nested = spec.get("schema")
+        attr = spec.get("attr")
+        rx = spec.get("regex")
+        kind = spec.get("type")
+        default = spec.get("default")
+
+        matches = node.xpath(xp) if xp else (node.css(sel) if sel else SelectorList())
+        if nested is not None:
+            if want_all:
+                out[field_name] = [_extract_with_schema(m, nested) for m in matches if not isinstance(m, str)]
+            else:
+                first_el = next((m for m in matches if not isinstance(m, str)), None)
+                out[field_name] = _extract_with_schema(first_el, nested) if first_el is not None else default
+            continue
+
+        def _val(item: Any) -> Any:
+            if isinstance(item, str):
+                raw = item.strip()
+            elif attr:
+                raw = item.get(attr)
+            else:
+                raw = item.text
+            if raw is not None and rx:
+                found = _regex_all(rx, str(raw))
+                raw = found[0] if found else None
+            return _coerce_extracted(raw, kind)
+
+        if want_all:
+            vals = [v for v in (_val(m) for m in matches) if v is not None]
+            out[field_name] = vals if vals else (default if default is not None else [])
+        else:
+            val = _val(matches[0]) if matches else None
+            if val is None and spec.get("required"):
+                from omniscrape.exceptions import SchemaValidationError
+
+                raise SchemaValidationError(f"Required schema field '{field_name}' missing")
+            out[field_name] = default if val is None else val
+    return out
+
 
 def _tag_path(el: Any) -> tuple:
     return tuple(a.tag for a in el.iterancestors())
@@ -417,27 +511,160 @@ def _parse(html: Union[str, bytes]) -> lxml.html.HtmlElement:
     return lxml.html.fromstring("<html><body></body></html>")
 
 
+class FastElement:
+    """Thin wrapper around a selectolax LexborNode for opt-in ``backend='selectolax'``."""
+
+    __slots__ = ("_node", "_url")
+
+    def __init__(self, raw_node: Any, url: str = ""):
+        self._node = raw_node
+        self._url = url
+
+    @property
+    def tag(self) -> str:
+        return (self._node.tag or "").lower()
+
+    @property
+    def text(self) -> str:
+        return (self._node.text(strip=True) or "").strip()
+
+    @property
+    def own_text(self) -> str:
+        return (self._node.text(deep=False, strip=True) or "").strip()
+
+    @property
+    def html(self) -> str:
+        return self._node.html or ""
+
+    @property
+    def attrib(self) -> dict[str, str]:
+        return dict(self._node.attributes or {})
+
+    def get(self, attr_name: str, default: Optional[str] = None) -> Optional[str]:
+        return (self._node.attributes or {}).get(attr_name, default)
+
+    def has_class(self, name: str) -> bool:
+        return name in (self.get("class") or "").split()
+
+    def urljoin(self, href: str) -> str:
+        return urljoin(self._url, href)
+
+    def re(self, pattern: Union[str, re.Pattern]) -> list[str]:
+        return _regex_all(pattern, self.text)
+
+    def re_first(self, pattern: Union[str, re.Pattern], default: Optional[str] = None) -> Optional[str]:
+        found = self.re(pattern)
+        return found[0] if found else default
+
+    def css(self, query: str) -> SelectorList:
+        out = SelectorList()
+        for group in _split_groups(query):
+            m = _PSEUDO.search(group)
+            base = group[: m.start()].strip() if m else group
+            try:
+                nodes = self._node.css(base or "*")
+            except Exception:
+                continue
+            if not m:
+                out.extend(FastElement(n, self._url) for n in nodes)
+            elif m.group(1) == "text":
+                for n in nodes:
+                    t = n.text(deep=False, strip=True)
+                    if t:
+                        out.append(t)
+            else:
+                attr = m.group(2)
+                for n in nodes:
+                    v = (n.attributes or {}).get(attr)
+                    if v is not None:
+                        out.append(v)
+        return out
+
+    def css_first(self, query: str) -> Optional["FastElement"]:
+        found = self.css(query)
+        return found[0] if found and isinstance(found[0], FastElement) else None
+
+    def parent(self) -> Optional["FastElement"]:
+        p = self._node.parent
+        return FastElement(p, self._url) if p is not None else None
+
+    def children(self) -> list["FastElement"]:
+        out = []
+        c = self._node.child
+        while c is not None:
+            if c.tag and not c.tag.startswith("-"):
+                out.append(FastElement(c, self._url))
+            c = c.next
+        return out
+
+    @property
+    def next(self) -> Optional["FastElement"]:
+        n = self._node.next
+        while n is not None and (not n.tag or n.tag.startswith("-")):
+            n = n.next
+        return FastElement(n, self._url) if n is not None else None
+
+    @property
+    def previous(self) -> Optional["FastElement"]:
+        p = self._node.prev
+        while p is not None and (not p.tag or p.tag.startswith("-")):
+            p = p.prev
+        return FastElement(p, self._url) if p is not None else None
+
+    def extract(self, schema: dict[str, Any]) -> dict[str, Any]:
+        return _extract_with_schema(self, schema)
+
+
 class Selector(Element):
     """Root selector for an HTML document. Use ``Selector(html, url=...)`` or ``Selector(root=tree)``.
 
     Self-healing selectors: ``Selector(html, url=..., adaptive=True)`` then ``css(q, auto_save=True)``
     remembers the matched element and ``css(q, adaptive=True)`` relocates it when ``q`` stops matching.
     ``storage`` is an ``AdaptiveEngine`` or a SQLite path (default ~/.omniscrape/fingerprints.db).
+    Pass ``backend="selectolax"`` for opt-in Lexbor CSS speed (XPath/adaptive fall back to lxml lazily).
     """
 
-    __slots__ = ("raw_html", "root", "url", "adaptive", "_storage", "_engine")
+    __slots__ = ("raw_html", "_lxml_root", "url", "adaptive", "_storage", "_engine", "backend", "_fast_root")
 
     def __init__(self, html: Union[str, bytes] = "", root: Optional[lxml.html.HtmlElement] = None, url: str = "",
-                 adaptive: bool = False, storage: Any = None):
+                 adaptive: bool = False, storage: Any = None, backend: str = "lxml"):
         self.raw_html = html
         self.url = url
         self.adaptive = adaptive
         self._storage = storage
         self._engine = None
-        if root is None:
-            root = _parse(html)
-        self.root = root
-        super().__init__(root, url)
+        self.backend = backend.lower()
+        self._fast_root = None
+        if self.backend == "selectolax" and root is None:
+            try:
+                from selectolax.lexbor import LexborHTMLParser
+            except ImportError as exc:
+                from omniscrape.exceptions import ConfigError
+
+                raise ConfigError("selectolax is not installed. Install with 'pip install omniscrape[fast]'.") from exc
+            text = html.decode("utf-8", errors="replace") if isinstance(html, (bytes, bytearray)) else (html or "")
+            parser = LexborHTMLParser(text or "<html><body></body></html>")
+            self._fast_root = FastElement(parser.root, url)
+            self._lxml_root = None
+            self._node = None
+            self._url = url
+        else:
+            if root is None:
+                root = _parse(html)
+            self._lxml_root = root
+            super().__init__(root, url)
+
+    @property
+    def root(self) -> lxml.html.HtmlElement:
+        if self._lxml_root is None:
+            self._lxml_root = _parse(self.raw_html)
+            self._node = self._lxml_root
+        return self._lxml_root
+
+    @root.setter
+    def root(self, value: lxml.html.HtmlElement) -> None:
+        self._lxml_root = value
+        self._node = value
 
     def _adaptive_engine(self) -> Any:
         if self._engine is None:
@@ -447,9 +674,11 @@ class Selector(Element):
         return self._engine
 
     def css(self, query: str, identifier: str = "", auto_save: bool = False, adaptive: bool = False) -> SelectorList:
+        if self._fast_root is not None and not (self.adaptive and (auto_save or adaptive)):
+            return self._fast_root.css(query)
         try:
             compiled, has_pseudo = _compiled_css(query)
-            res = compiled(self._node)
+            res = compiled(self.root)
             found = SelectorList(Element(el, self._url) for el in res if type(el.tag) is str) if not has_pseudo else _wrap(res, self._url)
         except (SelectorError, lxml.etree.XPathError):
             found = SelectorList()
@@ -474,6 +703,17 @@ class Selector(Element):
                 return el.xpath("text()") if m.group(1) == "text" else SelectorList(
                     [v for v in [el.get(m.group(2))] if v is not None])
         return found
+
+    def xpath(self, query: str, **variables: Any) -> SelectorList:
+        if self._node is None:
+            _ = self.root
+        return super().xpath(query, **variables)
+
+    def find_all(self, tag: Optional[str] = None, text: Optional[Union[str, re.Pattern]] = None,
+                 limit: Optional[int] = None, **attrs: Any) -> list["Element"]:
+        if self._node is None:
+            _ = self.root
+        return super().find_all(tag, text, limit=limit, **attrs)
 
     def find_by_text(self, text: str, exact: bool = False) -> list[Element]:
         pattern = text.strip()

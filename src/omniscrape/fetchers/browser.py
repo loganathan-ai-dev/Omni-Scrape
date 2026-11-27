@@ -10,12 +10,11 @@
 """
 
 import asyncio
-import json
 import time
 from typing import Any, Optional
 
 from omniscrape.classifier.detector import detect_defense
-from omniscrape.fetchers.actions import run_actions, settle
+from omniscrape.fetchers.actions import run_playwright_fetch
 from omniscrape.fetchers.base import DEFAULT_USER_AGENT, BaseFetcher, playwright_proxy
 from omniscrape.fetchers.http import wrap_network_error
 from omniscrape.models import FetchResult
@@ -46,7 +45,8 @@ class DynamicFetcher(BaseFetcher):
         cdp_url: Optional[str] = None,
         user_data_dir: Optional[str] = None,
         capture_network: bool = False,
-        max_idle_pages: int = 8,
+        max_idle_pages: int = 4,
+        recycle_after: int = 25,
     ):
         self.headless = headless
         self.block_resources = block_resources
@@ -61,7 +61,9 @@ class DynamicFetcher(BaseFetcher):
         self.user_data_dir = user_data_dir
         self.capture_network = capture_network
         self.max_idle_pages = max_idle_pages
+        self.recycle_after = recycle_after
         self._idle_pages: dict[int, list[Any]] = {}   # shared-context mode: reusable tabs per context
+        self._page_uses: dict[int, int] = {}
         self._playwright: Any = None
         self._browser: Any = None
         self._persistent: Any = None
@@ -145,52 +147,32 @@ class DynamicFetcher(BaseFetcher):
         start = time.perf_counter()
         context, owned = await self._context_for(proxy, headers)
         page = None
-        on_response = None
-        captured: list[dict[str, Any]] = []
         try:
             if cookies:
                 await context.add_cookies([{"name": k, "value": v, "url": url} for k, v in cookies.items()])
             page = self._take_idle_page(context) if not owned else None
             page = page or await context.new_page()
-            if capture_network if capture_network is not None else self.capture_network:
-                def on_response(resp: Any) -> None:
-                    asyncio.ensure_future(_capture(resp, captured))
-
-                page.on("response", on_response)
-            ms = int(timeout * 1000)
-            resp = await page.goto(url, timeout=ms, wait_until=wait_until or self.wait_until)
-            if wait_for:
-                await page.wait_for_selector(wait_for, timeout=ms)
-            await settle(page, self.settle_ms, self.max_settle_ms)
-            action_out = await run_actions(page, actions, ms) if actions else {"log": [], "screenshots": [], "results": []}
-            if screenshot or (pdf and self.headless):
-                content = await page.content()
-                shot = await page.screenshot(full_page=full_page) if screenshot else None
-                if shot is None and action_out["screenshots"]:
-                    shot = action_out["screenshots"][-1]
-                pdf_bytes = await page.pdf() if pdf and self.headless else None
-                resp_headers = await resp.all_headers() if resp else {}
-                page_cookies = {c["name"]: c["value"] for c in await context.cookies(page.url)}
-            else:
-                if resp is not None:
-                    content, resp_headers, raw_cookies = await asyncio.gather(
-                        page.content(), resp.all_headers(), context.cookies(page.url)
-                    )
-                else:
-                    content, raw_cookies = await asyncio.gather(page.content(), context.cookies(page.url))
-                    resp_headers = {}
-                shot = action_out["screenshots"][-1] if action_out["screenshots"] else None
-                pdf_bytes = None
-                page_cookies = {c["name"]: c["value"] for c in raw_cookies}
-            status = resp.status if resp else 200
-            final_url = page.url
+            data = await run_playwright_fetch(
+                context,
+                page,
+                url,
+                timeout=timeout,
+                wait_until=wait_until or self.wait_until,
+                wait_for=wait_for,
+                settle_ms=self.settle_ms,
+                max_settle_ms=self.max_settle_ms,
+                actions=actions,
+                screenshot=screenshot,
+                full_page=full_page,
+                pdf=pdf,
+                headless=self.headless,
+                capture_network=capture_network if capture_network is not None else self.capture_network,
+            )
         except Exception as exc:
             global_metrics.inc("fetch_tier2_errors")
             raise wrap_network_error(2, url, exc) from exc
         finally:
             if page is not None:
-                if on_response is not None:
-                    page.remove_listener("response", on_response)  # a reused tab must not keep capturing
                 await self._release_page(context, page, owned)
             if owned:
                 await context.close()
@@ -199,11 +181,19 @@ class DynamicFetcher(BaseFetcher):
         global_metrics.inc("fetch_tier2_requests")
         global_metrics.observe_latency("fetch_tier2_latency", elapsed_ms)
         return FetchResult(
-            url=final_url, status_code=status, headers=resp_headers, html=content, cookies=page_cookies,
-            latency_ms=round(elapsed_ms, 2), fetcher_tier=2,
-            defense_detected=detect_defense(status, resp_headers, content),
-            screenshot=shot, pdf=pdf_bytes, network=captured,
-            actions_log=action_out["log"], action_results=action_out["results"],
+            url=data["url"],
+            status_code=data["status_code"],
+            headers=data["headers"],
+            html=data["html"],
+            cookies=data["cookies"],
+            latency_ms=round(elapsed_ms, 2),
+            fetcher_tier=2,
+            defense_detected=detect_defense(data["status_code"], data["headers"], data["html"]),
+            screenshot=data["screenshot"],
+            pdf=data["pdf"],
+            network=data["network"],
+            actions_log=data["actions_log"],
+            action_results=data["action_results"],
         )
 
     def _take_idle_page(self, context: Any) -> Optional[Any]:
@@ -217,16 +207,22 @@ class DynamicFetcher(BaseFetcher):
     async def _release_page(self, context: Any, page: Any, owned: bool) -> None:
         """Return a tab to the pool (shared-context mode) or close it."""
         try:
+            pid = id(page)
+            uses = self._page_uses.get(pid, 0) + 1
             pool = self._idle_pages.setdefault(id(context), [])
-            if not owned and not page.is_closed() and len(pool) < self.max_idle_pages:
+            if (not owned and not page.is_closed() and len(pool) < self.max_idle_pages
+                    and uses < self.recycle_after):
+                self._page_uses[pid] = uses
                 pool.append(page)
             else:
+                self._page_uses.pop(pid, None)
                 await page.close()
         except Exception:
             pass  # the page or browser is already gone
 
     async def close(self) -> None:
         self._idle_pages.clear()
+        self._page_uses.clear()
         try:
             for ctx in self._contexts.values():
                 try:
@@ -242,21 +238,3 @@ class DynamicFetcher(BaseFetcher):
         finally:
             self._contexts.clear()
             self._browser = self._persistent = self._playwright = None
-
-
-async def _capture(response: Any, sink: list[dict[str, Any]]) -> None:
-    """Keep JSON responses from XHR/fetch calls (API data behind SPAs)."""
-    try:
-        if response.request.resource_type not in ("xhr", "fetch"):
-            return
-        ctype = (await response.all_headers()).get("content-type", "")
-        if "json" not in ctype:
-            return
-        body = await response.text()
-        try:
-            data: Any = json.loads(body)
-        except ValueError:
-            data = body[:20000]
-        sink.append({"url": response.url, "status": response.status, "method": response.request.method, "json": data})
-    except Exception:
-        pass  # page closed mid-capture

@@ -13,7 +13,9 @@ Actions are dicts::
     {"type": "scrape"}                                                   # snapshot the HTML at this point
 """
 
-from typing import Any
+from typing import Any, Optional
+import asyncio
+import json
 
 SETTLE_JS = """
 (args) => new Promise((resolve) => {
@@ -102,3 +104,92 @@ async def run_actions(page: Any, actions: list[dict[str, Any]], timeout_ms: int 
             continue
         out["log"].append(entry)
     return out
+
+
+async def _capture_json_response(response: Any, sink: list[dict[str, Any]]) -> None:
+    """Keep JSON responses from XHR/fetch calls (API data behind SPAs)."""
+    try:
+        if response.request.resource_type not in ("xhr", "fetch"):
+            return
+        ctype = (await response.all_headers()).get("content-type", "")
+        if "json" not in ctype:
+            return
+        body = await response.text()
+        try:
+            data: Any = json.loads(body)
+        except ValueError:
+            data = body[:20000]
+        sink.append({"url": response.url, "status": response.status, "method": response.request.method, "json": data})
+    except Exception:
+        pass
+
+
+async def run_playwright_fetch(
+    context: Any,
+    page: Any,
+    url: str,
+    *,
+    timeout: float = 30.0,
+    wait_until: str = "load",
+    wait_for: Optional[str] = None,
+    settle_ms: int = 40,
+    max_settle_ms: int = 3000,
+    actions: Optional[list[dict[str, Any]]] = None,
+    screenshot: bool = False,
+    full_page: bool = True,
+    pdf: bool = False,
+    headless: bool = True,
+    capture_network: bool = False,
+) -> dict[str, Any]:
+    """Shared page navigation, readiness settle, action execution and artifact capture."""
+    on_response = None
+    captured: list[dict[str, Any]] = []
+    if capture_network:
+        def on_response(resp: Any) -> None:
+            asyncio.ensure_future(_capture_json_response(resp, captured))
+
+        page.on("response", on_response)
+
+    ms = int(timeout * 1000)
+    try:
+        resp = await page.goto(url, timeout=ms, wait_until=wait_until)
+        if wait_for:
+            await page.wait_for_selector(wait_for, timeout=ms)
+        await settle(page, settle_ms, max_settle_ms)
+        action_out = await run_actions(page, actions, ms) if actions else {"log": [], "screenshots": [], "results": []}
+        if screenshot or (pdf and headless):
+            content = await page.content()
+            shot = await page.screenshot(full_page=full_page) if screenshot else None
+            if shot is None and action_out["screenshots"]:
+                shot = action_out["screenshots"][-1]
+            pdf_bytes = await page.pdf() if pdf and headless else None
+            resp_headers = await resp.all_headers() if resp else {}
+            raw_cookies = await context.cookies(page.url)
+        else:
+            if resp is not None:
+                content, resp_headers, raw_cookies = await asyncio.gather(
+                    page.content(), resp.all_headers(), context.cookies(page.url)
+                )
+            else:
+                content, raw_cookies = await asyncio.gather(page.content(), context.cookies(page.url))
+                resp_headers = {}
+            shot = action_out["screenshots"][-1] if action_out["screenshots"] else None
+            pdf_bytes = None
+        return {
+            "url": page.url,
+            "status_code": resp.status if resp else 200,
+            "headers": resp_headers,
+            "html": content,
+            "cookies": {c["name"]: c["value"] for c in raw_cookies},
+            "screenshot": shot,
+            "pdf": pdf_bytes,
+            "network": captured,
+            "actions_log": action_out["log"],
+            "action_results": action_out["results"],
+        }
+    finally:
+        if on_response is not None:
+            try:
+                page.remove_listener("response", on_response)
+            except Exception:
+                pass

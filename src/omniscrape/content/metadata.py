@@ -17,20 +17,25 @@ ARTICLE_TYPES = {"Article", "NewsArticle", "BlogPosting", "TechArticle", "Schola
 _BY = re.compile(r"^\s*(?:by|written by|posted by|author:?)\s+(.+?)(?:\s+(?:on|at|·|\||-|–|—)\s+.*)?$", re.IGNORECASE)
 _DATE_HINT = re.compile(r"(date|time|publish|posted|updated|byline|dateline|meta|ts\b|\bby\b|credit)", re.IGNORECASE)
 _AUTHOR_HINT = re.compile(r"(author|byline|by-?name|writer|contributor|creator)", re.IGNORECASE)
+_MONTHS = r"(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)"
 _HUMAN_DATE = re.compile(
-    r"\b(\d{4}-\d{2}-\d{2}|\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s+\d{4}|"
-    r"(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s+\d{1,2},?\s+\d{4}|\d{1,2}-[A-Z][a-z]{2}-\d{4})\b"
+    rf"\b(\d{{4}}[-/]\d{{2}}[-/]\d{{2}}|\d{{1,2}}(?:st|nd|rd|th)?\s+{_MONTHS}\.?\s+\d{{4}}|"
+    rf"{_MONTHS}\.?\s+\d{{1,2}}(?:st|nd|rd|th)?,?\s+\d{{4}}|\d{{1,2}}-[A-Z][a-z]{{2}}-\d{{4}})\b",
+    re.IGNORECASE,
 )
+_ORDINAL = re.compile(r"(\d{1,2})(?:st|nd|rd|th)\b", re.IGNORECASE)
+_URL_DATE = re.compile(r"/(20\d{2}|19\d{2})[-/](0[1-9]|1[0-2])[-/](0[1-9]|[12]\d|3[01])(?:/|$)")
 
 
 def _iso(value: Any) -> Optional[str]:
     text = first_text(value)
     if not text:
         return None
-    m = re.match(r"\d{4}-\d{2}-\d{2}", text)
+    m = re.match(r"(\d{4})[-/](\d{2})[-/](\d{2})", text)
     if m:
-        return m.group(0)
-    parsed = parse_date(text)
+        return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
+    cleaned = _ORDINAL.sub(r"\1", text)
+    parsed = parse_date(cleaned)
     return parsed[:10] if parsed else None
 
 
@@ -53,18 +58,27 @@ def extract_metadata(html_or_root: Union[str, Any], url: str = "", structured: O
     item = items[0] if items else {}
 
     author = _author_name(item.get("author") or item.get("creator"))
-    author = author or _author_name(meta.get("author") or og.get("article:author") or meta.get("parsely-author")
+    author = author or _author_name(meta.get("author") or meta.get("citation_author")
+                                    or og.get("article:author") or meta.get("parsely-author")
                                     or meta.get("sailthru.author") or dc.get("creator"))
     if not author:
         author = _visible_author(root)
 
     published = _iso(item.get("datePublished") or item.get("dateCreated"))
-    published = published or _iso(og.get("article:published_time") or meta.get("parsely-pub-date")
-                                  or meta.get("publish-date") or meta.get("pubdate") or meta.get("date")
-                                  or meta.get("sailthru.date") or dc.get("date") or dc.get("created"))
+    published = published or _iso(og.get("article:published_time") or og.get("article:published")
+                                  or meta.get("citation_publication_date") or meta.get("citation_date")
+                                  or meta.get("parsely-pub-date") or meta.get("publish-date")
+                                  or meta.get("pubdate") or meta.get("datepublished") or meta.get("date")
+                                  or meta.get("sailthru.date") or dc.get("date.issued")
+                                  or dc.get("date") or dc.get("created"))
     if not published:
         published = _visible_date(root)
-    modified = _iso(item.get("dateModified") or og.get("article:modified_time") or meta.get("last-modified"))
+    if not published and url:
+        um = _URL_DATE.search(url)
+        if um:
+            published = f"{um.group(1)}-{um.group(2)}-{um.group(3)}"
+    modified = _iso(item.get("dateModified") or og.get("article:modified_time")
+                    or og.get("og:updated_time") or meta.get("last-modified"))
 
     tags = item.get("keywords") or meta.get("keywords") or og.get("article:tag")
     if isinstance(tags, str):
@@ -96,7 +110,7 @@ def _visible_author(root: Any) -> Optional[str]:
         if not isinstance(el.tag, str) or el.tag in ("script", "style"):
             continue
         hint = f"{el.get('class', '')} {el.get('id', '')}"
-        if not _AUTHOR_HINT.search(hint):
+        if not _AUTHOR_HINT.search(hint) and el.tag != "address":
             continue
         text = norm(el.text_content())
         if not text or len(text) > 120:
