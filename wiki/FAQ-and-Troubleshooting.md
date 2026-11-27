@@ -4,11 +4,11 @@
 
 ### `pip install omniscrape` installed a different project
 
-The PyPI name `omniscrape` belongs to an unrelated project. This library is published as **`omni-scrape`**:
+The PyPI name `omniscrape` belongs to an unrelated project. This library is published as **`omni-scraper`**:
 
 ```bash
 pip uninstall omniscrape
-pip install omni-scrape
+pip install omni-scraper
 ```
 
 You still `import omniscrape` and run the `omniscrape` command. See [[Installation]].
@@ -18,7 +18,7 @@ You still `import omniscrape` and run the `omniscrape` command. See [[Installati
 `Selector(..., backend="selectolax")` needs the optional `fast` extra:
 
 ```bash
-pip install "omni-scrape[fast]"
+pip install "omni-scraper[fast]"
 ```
 
 The `selectolax` backend is for fast CSS selection only; use the default `lxml` backend when you need XPath or `adaptive=True`. See [[Selectors-and-Extraction]].
@@ -28,11 +28,11 @@ The `selectolax` backend is for fast CSS selection only; use the default `lxml` 
 Install the extra and download Chromium once:
 
 ```bash
-pip install "omni-scrape[browser]"
+pip install "omni-scraper[browser]"
 playwright install chromium
 ```
 
-Tier 3 needs `pip install "omni-scrape[stealth]"`. DuckDB output needs `omni-scrape[storage]`, the MCP server needs `omni-scrape[mcp]`, and IPython in `omniscrape shell` needs `omni-scrape[shell]`.
+Tier 3 needs `pip install "omni-scraper[stealth]"`. DuckDB output needs `omni-scraper[storage]`, the MCP server needs `omni-scraper[mcp]`, and IPython in `omniscrape shell` needs `omni-scraper[shell]`.
 
 ## Fetching
 
@@ -65,7 +65,7 @@ print(res.status_code, res.defense_detected)
 omniscrape get URL --stealth
 ```
 
-This needs `omni-scrape[stealth]`. It does **not** solve CAPTCHAs or interactive challenges, so some sites will still block you. Only scrape what you are allowed to scrape. See [[Comparison]] for where OmniScrape is behind.
+This needs `omni-scraper[stealth]`. It does **not** solve CAPTCHAs or interactive challenges, so some sites will still block you. Only scrape what you are allowed to scrape. See [[Comparison]] for where OmniScrape is behind.
 
 ### Requests keep failing or time out
 
@@ -99,7 +99,7 @@ Check, in order: `max_pages` / `--max-pages` (the CLI default is `50`), `max_dep
 
 ### CLI output file must end in `.jsonl` or `.duckdb`
 
-`omniscrape crawl` picks the storage backend from the `-o` extension: `.jsonl`, `.ndjson` or `.json` for JSON Lines, `.duckdb` for DuckDB (needs `omni-scrape[storage]`).
+`omniscrape crawl` picks the storage backend from the `-o` extension: `.jsonl`, `.ndjson` or `.json` for JSON Lines, `.duckdb` for DuckDB (needs `omni-scraper[storage]`).
 
 ## Selectors
 
@@ -119,7 +119,7 @@ On the stdio transport, stdout must carry only the MCP protocol. OmniScrape's lo
 
 ### Claude Desktop cannot start the server
 
-Install the extra (`pip install "omni-scrape[mcp]"`), and use the absolute path of the `omniscrape` executable in the config if it is not on the PATH that Claude Desktop sees.
+Install the extra (`pip install "omni-scraper[mcp]"`), and use the absolute path of the `omniscrape` executable in the config if it is not on the PATH that Claude Desktop sees.
 
 ## CLI
 

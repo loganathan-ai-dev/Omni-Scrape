@@ -7,7 +7,7 @@
 **Adaptive web scraping for Python.** OmniScrape gives you tiered HTTP / browser / stealth fetching, self-healing selectors, zero-config product and article extraction, LLM-ready Markdown, a polite resumable crawler, a CLI and an MCP server, all behind one small API.
 
 ```bash
-pip install omni-scrape
+pip install omni-scraper
 ```
 
 ```python
@@ -20,7 +20,7 @@ print(page.markdown[:200])               # main content only, as Markdown
 ```
 
 > [!NOTE]
-> The PyPI package is named `omni-scrape`, but you `import omniscrape` and run the `omniscrape` command. See [[Installation]].
+> The PyPI package is named `omni-scraper`, but you `import omniscrape` and run the `omniscrape` command. See [[Installation]].
 
 ## Contents
 

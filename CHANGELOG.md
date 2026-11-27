@@ -8,7 +8,7 @@ All notable changes to this project are documented here. The format follows
 
 ## [0.1.0] - 2026-11-27
 
-First public release. Published on PyPI as **`omni-scrape`** (`import omniscrape`, command `omniscrape`).
+First public release. Published on PyPI as **`omni-scraper`** (`import omniscrape`, command `omniscrape`).
 
 ### Added
 - Three-tier fetching: `curl_cffi` HTTP with a browser TLS fingerprint, Playwright rendering with a shared

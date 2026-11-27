@@ -38,7 +38,7 @@ def test_skill_uses_current_action_keys_and_pypi_name():
     cheat = (ROOT / ".agents/skills/omniscrape/references/api_cheatsheet.md").read_text(encoding="utf-8")
     assert '"milliseconds"' in cheat and '"ms"' not in cheat
     for md in ROOT.glob(".agents/**/*.md"):
-        assert "omniscrape[" not in md.read_text(encoding="utf-8"), f"{md}: use omni-scrape[extra]"
+        assert "omniscrape[" not in md.read_text(encoding="utf-8"), f"{md}: use omni-scraper[extra]"
 
 
 # ------------------------------------------------------------------ manifests
@@ -64,7 +64,7 @@ def test_distribution_name_and_single_version_source():
     import tomllib
 
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
-    assert project["name"] == "omni-scrape"
+    assert project["name"] == "omni-scraper"
     assert "version" in project["dynamic"] and "version" not in project
     assert project["license"] == "MIT"
     assert not {"orjson", "beautifulsoup4"} & {d.split(">")[0] for d in project["dependencies"]}
@@ -110,3 +110,7 @@ def test_readme_has_no_stale_install_instructions():
     assert "git+https" not in readme
     assert "pip install omniscrape" not in readme
     assert 'omniscrape[' not in readme
+    # PyPI rejected "omni-scrape" as too similar to the existing "omniscrape"; the name is "omni-scraper".
+    import re
+
+    assert re.search(r"omni-scrape(?!r)", readme) is None

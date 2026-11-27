@@ -1,6 +1,6 @@
 ## OmniScrape 0.1.0
 
-First public release. Install with `pip install omni-scrape` (the PyPI name is `omni-scrape`; you still
+First public release. Install with `pip install omni-scraper` (the PyPI name is `omni-scraper`; you still
 `import omniscrape` and run `omniscrape`).
 
 ### Highlights

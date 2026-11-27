@@ -76,7 +76,7 @@ links = LinkExtractor(
 ## Storage Backends
 
 - **[`JSONLStorage`](https://github.com/loganathan-ai-dev/Omni-Scrape/blob/main/src/omniscrape/storage/jsonl_backend.py)**: Zero-dependency line-delimited JSON writer (`JSONLStorage("out.jsonl")`).
-- **[`DuckDBStorage`](https://github.com/loganathan-ai-dev/Omni-Scrape/blob/main/src/omniscrape/storage/duckdb_backend.py)**: Analytical columnar storage (`pip install "omni-scrape[storage]"`), auto-creating tables from dict/Pydantic keys (`DuckDBStorage("out.duckdb", table_name="items")`).
+- **[`DuckDBStorage`](https://github.com/loganathan-ai-dev/Omni-Scrape/blob/main/src/omniscrape/storage/duckdb_backend.py)**: Analytical columnar storage (`pip install "omni-scraper[storage]"`), auto-creating tables from dict/Pydantic keys (`DuckDBStorage("out.duckdb", table_name="items")`).
 
 ---
 

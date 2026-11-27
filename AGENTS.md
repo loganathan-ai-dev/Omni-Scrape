@@ -4,7 +4,7 @@ Guidance for AI coding agents working in this repository.
 
 ## What this is
 
-OmniScrape: a Python web-scraping library. **PyPI name `omni-scrape`**, import `omniscrape`, CLI `omniscrape`.
+OmniScrape: a Python web-scraping library. **PyPI name `omni-scraper`**, import `omniscrape`, CLI `omniscrape`.
 Source is in `src/omniscrape/` (src layout, hatchling build).
 
 ## Commands

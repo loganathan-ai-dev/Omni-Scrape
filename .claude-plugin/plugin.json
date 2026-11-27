@@ -1,7 +1,7 @@
 {
   "name": "omniscrape",
   "version": "0.1.0",
-  "description": "OmniScrape agent skill and MCP server: fetching, JS rendering, self-healing selectors, product/article extraction, LLM-ready Markdown and polite crawling. Requires: pip install \"omni-scrape[mcp]\"",
+  "description": "OmniScrape agent skill and MCP server: fetching, JS rendering, self-healing selectors, product/article extraction, LLM-ready Markdown and polite crawling. Requires: pip install \"omni-scraper[mcp]\"",
   "author": { "name": "Loganathan M" },
   "homepage": "https://github.com/loganathan-ai-dev/Omni-Scrape",
   "repository": "https://github.com/loganathan-ai-dev/Omni-Scrape",

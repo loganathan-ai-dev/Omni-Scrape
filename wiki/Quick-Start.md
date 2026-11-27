@@ -1,6 +1,6 @@
 # Quick Start
 
-Install first (see [[Installation]]): `pip install omni-scrape`.
+Install first (see [[Installation]]): `pip install omni-scraper`.
 
 ## Scrape one page
 

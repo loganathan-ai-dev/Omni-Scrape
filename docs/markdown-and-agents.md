@@ -68,7 +68,7 @@ omniscrape shell https://example.com
 Install the optional MCP dependency and start the server over `stdio` or streamable HTTP:
 
 ```bash
-pip install "omni-scrape[mcp]"
+pip install "omni-scraper[mcp]"
 omniscrape mcp                              # stdio (Claude Desktop, Antigravity, Cursor)
 omniscrape mcp --transport http --port 8000 # HTTP at http://127.0.0.1:8000/mcp
 ```
@@ -88,6 +88,6 @@ This repository ships matching project skills so coding agents automatically kno
 
 - **Antigravity / universal `.agents` skill**: [`SKILL.md`](../.agents/skills/omniscrape/SKILL.md) and [`api_cheatsheet.md`](../.agents/skills/omniscrape/references/api_cheatsheet.md)
 - **Claude Code skill**: [`SKILL.md`](../.claude/skills/omniscrape/SKILL.md) and [`api_cheatsheet.md`](../.claude/skills/omniscrape/references/api_cheatsheet.md)
-- **Claude Code plugin**: `/plugin marketplace add loganathan-ai-dev/Omni-Scrape` then `/plugin install omniscrape@omni-scrape` (bundles the skill and an MCP server entry; install `omni-scrape[mcp]` first).
+- **Claude Code plugin**: `/plugin marketplace add loganathan-ai-dev/Omni-Scrape` then `/plugin install omniscrape@omni-scraper` (bundles the skill and an MCP server entry; install `omni-scraper[mcp]` first).
 
 The two skill folders are kept identical: edit `.agents/skills/omniscrape/` and run `python scripts/sync_skills.py`.
