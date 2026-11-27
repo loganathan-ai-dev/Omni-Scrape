@@ -1,0 +1,52 @@
+name: Bug Report
+description: Report a reproducible bug in OmniScrape
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting an issue! Please include a minimal reproduction so we can investigate quickly.
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal Reproduction
+      description: Python snippet or CLI command that reproduces the issue.
+      render: python
+    validations:
+      required: true
+  - type: dropdown
+    id: tier
+    attributes:
+      label: Fetcher / Component
+      options:
+        - Auto (OmniClient / scrape)
+        - Tier 1 (FastFetcher / curl_cffi)
+        - Tier 2 (DynamicFetcher / Playwright)
+        - Tier 3 (StealthFetcher / Camoufox)
+        - Selector / Adaptive Engine
+        - Content / Markdown / Structured Extraction
+        - CrawlEngine / Storage
+        - CLI / MCP Server
+    validations:
+      required: false
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Python version (3.11+), and OmniScrape version/commit.
+      placeholder: "Windows 11 / Ubuntu 24.04, Python 3.12, omniscrape 0.1.0"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Traceback / Output
+      render: shell

@@ -1,0 +1,25 @@
+name: Feature Request
+description: Suggest an enhancement or new capability for OmniScrape
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the scraping, parsing, crawling, or agent workflow gap.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed API or Behavior
+      description: Show an example of how you would expect to use this feature.
+      render: python
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Optional notes on existing workarounds or related libraries.

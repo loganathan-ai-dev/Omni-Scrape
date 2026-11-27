@@ -289,12 +289,28 @@ Omni-Scrape/
 │   ├── storage/             # JSONLStorage, DuckDBStorage
 │   ├── cli/ & mcp/          # Click/Rich CLI and FastMCP server
 ├── tests/                   # Unit and local-server integration tests (95+ tests)
+├── docs/                    # Guides for fetching, selectors, crawling, and MCP/skills
+├── .agents/skills/          # Project skill for Antigravity & open Agent Skills agents
+├── .claude/skills/          # Project skill for Claude Code
 ├── benchmarks/              # Isolated multi-tool benchmark harness & corpus
-├── .github/workflows/ci.yml # GitHub Actions CI
+├── .github/                 # CI workflow, issue/PR templates, Dependabot
 ├── pyproject.toml           # Package configuration & optional extras
 ├── CHANGELOG.md             # Release notes
 └── LICENSE                  # MIT License
 ```
+
+---
+
+## Documentation & Agent Skills
+
+- **Guides & Reference**: See [docs/README.md](docs/README.md):
+  - [Fetching, Sessions & Stealth](docs/fetching-and-stealth.md)
+  - [Selectors, Schemas & Extraction](docs/selectors-and-extraction.md)
+  - [Crawling, Sitemaps & Storage](docs/crawling-and-storage.md)
+  - [LLM Markdown, CLI & AI Agent Skills](docs/markdown-and-agents.md)
+- **AI Coding Agent Skills**:
+  - Antigravity / Agent Skills: [`.agents/skills/omniscrape/SKILL.md`](.agents/skills/omniscrape/SKILL.md)
+  - Claude Code: [`.claude/skills/omniscrape/SKILL.md`](.claude/skills/omniscrape/SKILL.md)
 
 ---
 
@@ -310,6 +326,6 @@ Omni-Scrape/
 
 ```bash
 git clone https://github.com/loganathan-ai-dev/Omni-Scrape.git && cd Omni-Scrape
-pip install -e ".[dev,browser,mcp]" && playwright install chromium
-pytest -v
+pip install -e ".[dev,browser,mcp,storage,fast]" && playwright install chromium
+python -m pytest -v
 ```

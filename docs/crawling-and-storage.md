@@ -1,0 +1,77 @@
+# Crawling, Sitemaps & Storage
+
+OmniScrape's async crawler pairs [`Spider`](../src/omniscrape/crawler/spider.py) and [`CrawlEngine`](../src/omniscrape/crawler/engine.py) with `OmniClient` so every crawl inherits retries, proxy rotation, TLS fingerprinting, and tier escalation.
+
+---
+
+## Basic Spider Example
+
+```python
+import asyncio
+from omniscrape import CrawlEngine, JSONLStorage, LinkExtractor, Request, Spider
+
+links = LinkExtractor(same_domain=True)
+
+class BooksSpider(Spider):
+    name = "books"
+    start_urls = ["https://books.toscrape.com/"]
+    allowed_domains = ["books.toscrape.com"]
+    concurrency = 8
+    max_depth = 3
+
+    async def parse(self, response, selector):
+        if selector.css("div.product_main"):
+            yield selector.extract({
+                "title": "h1::text",
+                "price": {"selector": "p.price_color::text", "type": "price"},
+            })
+        for url in links.extract(selector, response.url):
+            yield Request(url)
+
+stats = asyncio.run(
+    CrawlEngine(
+        BooksSpider(),
+        storage=JSONLStorage("books.jsonl"),
+        max_pages=200,
+        queue_path="books-queue.db",
+    ).run()
+)
+print(stats.to_dict())
+```
+
+---
+
+## Key `CrawlEngine` Options
+
+- **Politeness**: `obey_robots=True` (honors `robots.txt` rules and `Crawl-delay`), `per_domain_concurrency`, `download_delay`, `autothrottle=True`, plus automatic domain-wide `429 Retry-After` pauses via `DomainThrottle`.
+- **Scope & budget**: `max_pages`, `max_depth`, `allowed_domains`.
+- **Sitemap seeding**: Pass `start_from_sitemap=True` to seed the queue from the target site's sitemaps automatically, or call [`map_site`](../src/omniscrape/crawler/sitemap.py) standalone:
+  ```python
+  urls = await omniscrape.map_site("https://example.com", search="pricing", limit=200)
+  ```
+- **Pause & resume**: Pass `queue_path="crawl.db"` (or `use_checkpoint=True`) to persist the priority request queue and dedup state in SQLite (`resume=True` by default).
+- **Item pipelines**: Pass `pipelines=[fn1, fn2]` to transform or drop (`return None`) yielded items before storage.
+- **Streaming**: Use `async for item in engine.stream(): ...` instead of `.run()`.
+
+---
+
+## `LinkExtractor` Filtering
+
+`LinkExtractor` outputs canonicalized, deduplicated absolute URLs while preserving directory trailing slashes to avoid unnecessary redirects:
+
+```python
+links = LinkExtractor(
+    allow=[r"/products/"],
+    deny=[r"/cart", r"/login"],
+    restrict_css=["main", "nav.pagination"],
+    same_domain=True,
+    pages_only=True,
+)
+```
+
+---
+
+## Storage Backends
+
+- **[`JSONLStorage`](../src/omniscrape/storage/jsonl_backend.py)**: Zero-dependency line-delimited JSON writer (`JSONLStorage("out.jsonl")`).
+- **[`DuckDBStorage`](../src/omniscrape/storage/duckdb_backend.py)**: Analytical columnar storage (`pip install "omniscrape[storage]"`), auto-creating tables from dict/Pydantic keys (`DuckDBStorage("out.duckdb", table_name="items")`).
