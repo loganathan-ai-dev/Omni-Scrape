@@ -1,0 +1,24 @@
+{
+ "type": "product",
+ "url": "https://webscraper.io/test-sites/e-commerce/allinone/product/98",
+ "template": "webscraper_testsite",
+ "structured_mode": "microdata",
+ "fields": {
+  "title": "Asus ROG Strix GL553VD-DM535T",
+  "price": 1101.83,
+  "currency": "USD",
+  "review_count": 4
+ },
+ "main_text": "Asus ROG Strix GL553VD-DM535T\nApple MacBook Air 13.3\", Core i5 1.8GHz, 8GB, 128GB SSD, Intel HD 4000, RUS",
+ "targets": {
+  "title": {
+   "selector": "div.caption > h4.title",
+   "text": "Asus ROG Strix GL553VD-DM535T"
+  },
+  "price": {
+   "selector": "div.caption > h4.price",
+   "text": "$1101.83"
+  }
+ },
+ "real_world": true
+}
