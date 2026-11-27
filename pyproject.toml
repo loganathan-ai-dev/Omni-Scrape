@@ -53,7 +53,7 @@ markdown = [
     "tiktoken>=0.7.0",
 ]
 mcp = [
-    "fastmcp>=2.3.0",
+    "fastmcp>=4.2.5",
 ]
 fast = [
     "selectolax>=0.3.20",
