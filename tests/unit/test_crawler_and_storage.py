@@ -65,6 +65,7 @@ async def test_jsonl_storage():
 
 @pytest.mark.asyncio
 async def test_duckdb_storage():
+    duckdb = pytest.importorskip("duckdb")
     with tempfile.NamedTemporaryFile(suffix=".duckdb", delete=False) as f:
         db_path = f.name
     import os
@@ -76,7 +77,6 @@ async def test_duckdb_storage():
     await storage.write(prod)
     await storage.close()
 
-    import duckdb
     con = duckdb.connect(db_path)
     res = con.execute("SELECT title, price FROM test_products").fetchall()
     con.close()

@@ -1,3 +1,9 @@
-# Exclude benchmark fixture HTML/JSON data from GitHub Linguist language statistics
+# Exclude benchmark fixture HTML/JSON data and generated reports from GitHub Linguist
+*.html linguist-vendored
+*.html linguist-detectable=false
+benchmarks/** linguist-vendored
+benchmarks/**/*.html linguist-vendored
+benchmarks/**/*.json linguist-vendored
+benchmarks/corpus/** linguist-vendored
 benchmarks/corpus/data/** linguist-vendored
 benchmarks/results/** linguist-vendored
