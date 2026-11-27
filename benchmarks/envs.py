@@ -65,7 +65,9 @@ def create(group: str, locked: bool = False) -> None:
         LOCK_DIR.mkdir(parents=True, exist_ok=True)
         frozen = subprocess.run(["uv", "pip", "freeze", "--python", str(py)], check=True,
                                 capture_output=True, text=True).stdout
-        lines = [ln for ln in frozen.splitlines() if ln and not ln.startswith("-e") and "omniscrape" not in ln]
+        own = ("omniscrape", "omni-scraper", "omni_scraper")  # the project itself is installed editable, never pinned
+        lines = [ln for ln in frozen.splitlines()
+                 if ln and not ln.startswith("-e") and not any(name in ln.lower() for name in own)]
         lock.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 

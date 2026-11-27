@@ -6,6 +6,41 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- **Zero-config extraction for every common page type**: `extract_recipe`, `extract_events`, `extract_jobs`,
+  `extract_reviews` (with aggregate rating), `extract_faq` (FAQPage markup or `<details>` accordions),
+  `extract_organization` (emails, phones, address, social profiles), `extract_breadcrumbs`, `find_next_page`
+  (`rel=next`, "Next" buttons, numbered pagers; "Next post" links are ignored), `extract_tables`, and
+  `extract_entities` to run them all. New models: `Recipe`, `Event`, `JobPosting`, `Review`, `FAQItem`,
+  `Organization`, `Breadcrumb`, `PageEntities`.
+- **Page-type detection**: `detect_content_type` classifies pages as product, article, recipe, event, job,
+  listing, faq, organization or other (structured data first, then page signals; 141 of the 143 labelled
+  benchmark pages). `ScrapeResult` gains `content_type` and `entities`.
+- **Browser profiles for the HTTP tier**: `FastFetcher(impersonate=...)` takes any curl_cffi profile
+  (`chrome`, `edge`, `safari`, `firefox`, `chrome_android`, `safari_ios`, or pinned versions) or a list to rotate
+  through (`rotate="domain"` keeps one identity per host, `"request"` cycles). Per request:
+  `fetch(url, impersonate="safari", http_version="3")`. HTTP/3 via `http_version`.
+- **Multi-session spiders**: `Spider.sessions` declares named fetch configurations (tier, browser profile,
+  proxy, headers, `wait_for`, ...) and `Request(url, session="browser")` picks one, so one spider can mix HTTP and
+  browser pages. Sessions persist across `--resume`.
+- **curl import**: `parse_curl` / `fetch_curl` replay a browser's "Copy as cURL" command (bash or Windows
+  `cmd` style); `omniscrape curl "curl ..."`; `curl()` and `uncurl()` in `omniscrape shell`.
+- **CLI**: `get` infers the format from `-o` (`.json`, `.md`, `.html`, `.txt`), new `html` and `text` formats,
+  `--impersonate` and `--http-version`; the summary table shows the page type and found entities.
+- **MCP**: six new tools (`extract_entities`, `extract_schema`, `extract_listings`, `get_links`, `crawl_site`,
+  `screenshot`), eleven in total; every page-reading tool refuses error and anti-bot pages.
+
+### Changed
+- The HTTP tier now sends the impersonated browser's own User-Agent and client hints (default profile `chrome`,
+  the newest Chrome curl_cffi ships) instead of a fixed Chrome 124 header set, so TLS fingerprint and headers
+  always agree. `DEFAULT_HEADERS` is kept for callers that import it.
+- `scrape()` no longer reports a `product` on pages that are not product pages (a title-only "product" on news
+  articles, or one card's price on category pages) unless the page carries Product markup, and no longer
+  reports an `article` on product and listing pages.
+- `extract_listings` reuses the already-parsed page instead of serialising and re-parsing it.
+- README benchmarks now come from a fresh run of this release (`benchmarks/published/2026-11-27-release/`);
+  extraction quality is unchanged and the new extractors add about 2 ms per page.
+
 ## [0.1.0] - 2026-11-27
 
 First public release. Published on PyPI as **`omni-scraper`** (`import omniscrape`, command `omniscrape`).

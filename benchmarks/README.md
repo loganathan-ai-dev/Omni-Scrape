@@ -1,7 +1,8 @@
 # OmniScrape benchmarks
 
 A reproducible harness that compares OmniScrape with other scraping and extraction tools. The README's
-numbers come from here. The run it cites is committed in [`published/2026-11-27/`](published/2026-11-27/).
+numbers come from here. The run it cites is committed in [`published/2026-11-27-release/`](published/2026-11-27-release/);
+the earlier run of the same day is kept in [`published/2026-11-27/`](published/2026-11-27/) for comparison.
 
 ## What is measured
 

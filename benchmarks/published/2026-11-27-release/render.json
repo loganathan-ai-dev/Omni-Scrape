@@ -1,0 +1,66 @@
+{
+ "suite": "render",
+ "params": {
+  "pages": 60,
+  "concurrency": 4,
+  "page": "inline-script hydration"
+ },
+ "notes": [
+  "Cold batch: includes browser launch, so it measures what a one-off job costs.",
+  "Each tool uses its own browser path (OmniScrape tier 2, Crawl4AI AsyncWebCrawler, Scrapling AsyncStealthySession).",
+  "omniscrape shares one browser context and reuses tabs, like the other tools' sessions; omniscrape-isolated is OmniScrape's default (a fresh context per page, no shared cookies)."
+ ],
+ "tools": {
+  "omniscrape": {
+   "ok": true,
+   "version": "0.1.0",
+   "python": "3.12.13",
+   "where": "env:omniscrape",
+   "peak_rss_mb": 877.0,
+   "rss_after_import_mb": 26.6,
+   "import_seconds": 0.0043,
+   "wall_seconds": 6.524,
+   "memory_sampled": true,
+   "rendered_ok": 60,
+   "total": 60,
+   "success_rate": 1.0,
+   "seconds": 5.88,
+   "pages_per_sec": 10.21,
+   "failures": []
+  },
+  "omniscrape-isolated": {
+   "ok": true,
+   "version": "0.1.0",
+   "python": "3.12.13",
+   "where": "env:omniscrape",
+   "peak_rss_mb": 594.0,
+   "rss_after_import_mb": 26.6,
+   "import_seconds": 0.0325,
+   "wall_seconds": 7.554,
+   "memory_sampled": true,
+   "rendered_ok": 60,
+   "total": 60,
+   "success_rate": 1.0,
+   "seconds": 5.96,
+   "pages_per_sec": 10.06,
+   "failures": []
+  },
+  "scrapling": {
+   "ok": true,
+   "version": "0.5.1",
+   "python": "3.12.13",
+   "where": "env:scrapling",
+   "peak_rss_mb": 1111.7,
+   "rss_after_import_mb": 31.5,
+   "import_seconds": 0.1792,
+   "wall_seconds": 11.652,
+   "memory_sampled": true,
+   "rendered_ok": 60,
+   "total": 60,
+   "success_rate": 1.0,
+   "seconds": 11.0,
+   "pages_per_sec": 5.46,
+   "failures": []
+  }
+ }
+}

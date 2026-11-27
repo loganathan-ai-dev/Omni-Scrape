@@ -93,3 +93,37 @@ See [[Benchmarks]] for how this performs against a mutation corpus (a self-gener
 
 - [[Markdown-and-Agents]]: turn pages into LLM-ready Markdown.
 - [[Crawling-and-Storage]]: use `selector.extract(...)` inside a spider.
+
+## Any Page Type: Recipes, Events, Jobs, Reviews, FAQ, Contacts, Pagination
+
+Every `scrape()` result now says what kind of page it is and carries everything zero-config extraction found:
+
+```python
+import omniscrape
+
+page = await omniscrape.scrape(url)
+page.content_type      # product | article | recipe | event | job | listing | faq | organization | other
+ents = page.entities
+ents.recipe            # Recipe: ingredients, instructions, prep/cook/total minutes, servings, calories, rating
+ents.events            # [Event]: start/end date, status, attendance mode, location, organizer, price, ticket URL
+ents.jobs              # [JobPosting]: company, location, remote, employment type, salary min/max/currency/period
+ents.reviews           # [Review]: author, rating, title, body, date (+ ents.rating, ents.rating_count)
+ents.faq               # [FAQItem]: question, answer (FAQPage markup or <details> accordions)
+ents.organization      # Organization: name, logo, emails, phones, address, social profiles
+ents.breadcrumbs       # [Breadcrumb]: name, url
+ents.next_page         # next page of results (rel=next, "Next" buttons, numbered pagers)
+ents.tables            # data tables as lists of row dicts
+```
+
+The same functions work on HTML you already have: `extract_entities(html, url)`, `detect_content_type(html, url)`,
+`extract_recipe`, `extract_events`, `extract_jobs`, `extract_reviews`, `extract_faq`, `extract_organization`,
+`extract_breadcrumbs`, `find_next_page` and `extract_tables` (source: [`extract/entities.py`](https://github.com/loganathan-ai-dev/Omni-Scrape/blob/main/src/omniscrape/extract/entities.py)).
+
+- Structured data (JSON-LD, Microdata, RDFa) is read first; DOM fallbacks cover breadcrumb `<nav>`s, `<details>`
+  FAQs, `mailto:`/`tel:` links and visible emails, pagers and data tables.
+- "Next post" / "Next article" links are not treated as pagination.
+- Page-type detection uses structured data when present, otherwise page signals (repeated item links and prices
+  for listings, a priced product for product pages, article text). On the 143 labelled benchmark pages it matches
+  the labels on 141.
+- `scrape()` only reports `product` on product pages (or pages with Product markup) and no `article` on product or
+  listing pages, so heuristic false positives no longer leak into results.

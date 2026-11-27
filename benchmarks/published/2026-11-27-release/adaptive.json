@@ -1,0 +1,184 @@
+{
+ "suite": "adaptive",
+ "params": {
+  "pages": 60
+ },
+ "notes": [
+  "Only cases where the original selector breaks are scored.",
+  "recovered = correct element; wrong = a different element returned (silent data error); missed = nothing returned."
+ ],
+ "tools": {
+  "omniscrape": {
+   "ok": true,
+   "version": "0.1.0",
+   "python": "3.12.13",
+   "where": "env:omniscrape",
+   "peak_rss_mb": 50.5,
+   "rss_after_import_mb": 26.6,
+   "import_seconds": 0.0045,
+   "wall_seconds": 42.357,
+   "memory_sampled": true,
+   "groups": {
+    "all": {
+     "recovered": 1377,
+     "wrong": 0,
+     "missed": 0,
+     "n": 1377,
+     "recovery_rate": 1.0
+    },
+    "dev": {
+     "recovered": 592,
+     "wrong": 0,
+     "missed": 0,
+     "n": 592,
+     "recovery_rate": 1.0
+    },
+    "holdout": {
+     "recovered": 785,
+     "wrong": 0,
+     "missed": 0,
+     "n": 785,
+     "recovery_rate": 1.0
+    },
+    "mutation:attr_churn": {
+     "recovered": 203,
+     "wrong": 0,
+     "missed": 0,
+     "n": 203,
+     "recovery_rate": 1.0
+    },
+    "mutation:class_rename": {
+     "recovered": 202,
+     "wrong": 0,
+     "missed": 0,
+     "n": 202,
+     "recovery_rate": 1.0
+    },
+    "mutation:combined": {
+     "recovered": 203,
+     "wrong": 0,
+     "missed": 0,
+     "n": 203,
+     "recovery_rate": 1.0
+    },
+    "mutation:content_update": {
+     "recovered": 202,
+     "wrong": 0,
+     "missed": 0,
+     "n": 202,
+     "recovery_rate": 1.0
+    },
+    "mutation:sibling_insert": {
+     "recovered": 198,
+     "wrong": 0,
+     "missed": 0,
+     "n": 198,
+     "recovery_rate": 1.0
+    },
+    "mutation:tag_change": {
+     "recovered": 203,
+     "wrong": 0,
+     "missed": 0,
+     "n": 203,
+     "recovery_rate": 1.0
+    },
+    "mutation:wrapper_insert": {
+     "recovered": 166,
+     "wrong": 0,
+     "missed": 0,
+     "n": 166,
+     "recovery_rate": 1.0
+    }
+   },
+   "selector_still_works": 44,
+   "ms_per_page_variant": 30.987,
+   "errors": []
+  },
+  "scrapling": {
+   "ok": true,
+   "version": "0.5.1",
+   "python": "3.12.13",
+   "where": "env:scrapling",
+   "peak_rss_mb": 50.5,
+   "rss_after_import_mb": 31.5,
+   "import_seconds": 0.2043,
+   "wall_seconds": 39.564,
+   "memory_sampled": true,
+   "groups": {
+    "all": {
+     "recovered": 1175,
+     "wrong": 202,
+     "missed": 0,
+     "n": 1377,
+     "recovery_rate": 0.8533
+    },
+    "dev": {
+     "recovered": 516,
+     "wrong": 76,
+     "missed": 0,
+     "n": 592,
+     "recovery_rate": 0.8716
+    },
+    "holdout": {
+     "recovered": 659,
+     "wrong": 126,
+     "missed": 0,
+     "n": 785,
+     "recovery_rate": 0.8395
+    },
+    "mutation:attr_churn": {
+     "recovered": 196,
+     "wrong": 7,
+     "missed": 0,
+     "n": 203,
+     "recovery_rate": 0.9655
+    },
+    "mutation:class_rename": {
+     "recovered": 202,
+     "wrong": 0,
+     "missed": 0,
+     "n": 202,
+     "recovery_rate": 1.0
+    },
+    "mutation:combined": {
+     "recovered": 116,
+     "wrong": 87,
+     "missed": 0,
+     "n": 203,
+     "recovery_rate": 0.5714
+    },
+    "mutation:content_update": {
+     "recovered": 202,
+     "wrong": 0,
+     "missed": 0,
+     "n": 202,
+     "recovery_rate": 1.0
+    },
+    "mutation:sibling_insert": {
+     "recovered": 184,
+     "wrong": 14,
+     "missed": 0,
+     "n": 198,
+     "recovery_rate": 0.9293
+    },
+    "mutation:tag_change": {
+     "recovered": 122,
+     "wrong": 81,
+     "missed": 0,
+     "n": 203,
+     "recovery_rate": 0.601
+    },
+    "mutation:wrapper_insert": {
+     "recovered": 153,
+     "wrong": 13,
+     "missed": 0,
+     "n": 166,
+     "recovery_rate": 0.9217
+    }
+   },
+   "selector_still_works": 44,
+   "ms_per_page_variant": 82.095,
+   "errors": []
+  }
+ }
+}

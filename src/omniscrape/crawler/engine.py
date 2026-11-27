@@ -120,6 +120,7 @@ class CrawlEngine:
     async def run(self) -> CrawlStats:
         from omniscrape.client import OmniClient
 
+        self._check_session(self.spider.default_session)  # fail fast on a typo, before any request is sent
         self.client = self.client or OmniClient(retries=self.retries, retry_delay=0.1)
         self.queue = RequestQueue(self.queue_path)
         self.robots = RobotsCache(self.client, self.user_agent) if self.obey_robots else None
@@ -164,7 +165,24 @@ class CrawlEngine:
             yield item
         await task
 
+    def _session_options(self, req: Request) -> tuple[Any, Optional[dict[str, str]], dict[str, Any]]:
+        """``(tier, headers, extra fetch kwargs)`` for a request, from its session and its own overrides."""
+        name = req.session or self.spider.default_session
+        opts = dict((self.spider.sessions or {}).get(name, {})) if name else {}
+        session_tier = opts.pop("tier", None)
+        tier = req.tier if req.tier is not None else (session_tier if session_tier is not None else self.tier)
+        headers = {**(opts.pop("headers", None) or {}), **(req.headers or {})}
+        return tier, headers or None, opts
+
+    def _check_session(self, name: Optional[str]) -> None:
+        if name and name not in (self.spider.sessions or {}):
+            from omniscrape.exceptions import ConfigError
+
+            known = ", ".join(sorted(self.spider.sessions or {})) or "none defined"
+            raise ConfigError(f"Unknown session {name!r} on spider {self.spider.name!r} (sessions: {known})")
+
     async def schedule(self, req: Request) -> bool:
+        self._check_session(req.session)
         parts = urlsplit(req.url)
         if parts.scheme not in ("http", "https"):
             return False
@@ -266,9 +284,9 @@ class CrawlEngine:
         started = time.perf_counter() if self.throttle.autothrottle else 0.0
         status: Optional[int] = None
         try:
+            tier, headers, extra = self._session_options(req)
             result: FetchResult = await self.client.fetch(
-                req.url, tier=req.tier if req.tier is not None else self.tier,
-                headers=req.headers or None, method=req.method,
+                req.url, tier=tier, headers=headers, method=req.method, **extra,
             )
             status = result.status_code
         except Exception as exc:

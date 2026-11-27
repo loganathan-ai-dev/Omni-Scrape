@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
-PUBLISHED = ROOT / "benchmarks" / "published" / "2026-11-27"
+PUBLISHED = ROOT / "benchmarks" / "published" / "2026-11-27-release"
 README = ROOT / "README.md"
 
 pytestmark = pytest.mark.skipif(not (ROOT / "pyproject.toml").exists(), reason="needs a git checkout")

@@ -113,3 +113,31 @@ class MyApiFetcher(BaseFetcher):
 
 register_fetcher("my-api", MyApiFetcher, aliases=["myapi"])
 ```
+
+## Browser Identity, HTTP/3 and curl Import
+
+The HTTP tier impersonates a real browser end to end: the TLS/HTTP2 fingerprint **and** the User-Agent and client
+hints come from the same curl_cffi profile, so they never contradict each other.
+
+```python
+await omniscrape.fetch(url, impersonate="safari")              # one request as Safari
+await omniscrape.fetch(url, http_version="3")                  # HTTP/3 ("1.1", "2", "3", "3only")
+
+from omniscrape import OmniClient
+OmniClient(fetcher_options={1: {"impersonate": ["chrome", "safari", "firefox"]}})          # one identity per host
+OmniClient(fetcher_options={1: {"impersonate": ["chrome", "edge"], "rotate": "request"}})  # cycle per request
+```
+
+Profiles: `chrome` (default), `edge`, `safari`, `firefox`, `chrome_android`, `safari_ios`, or a pinned version such
+as `chrome131`. On the CLI: `--impersonate safari --http-version 3`.
+
+Replay a request copied from the browser's dev tools (*Copy as cURL*, bash or Windows `cmd` style):
+
+```python
+from omniscrape import parse_curl, fetch_curl
+
+parse_curl("curl 'https://api.example.com/items?page=2' -H 'accept: application/json' -b 'sid=abc'")
+res = await fetch_curl(command)                     # FetchResult via the HTTP tier; fetch_curl(command, tier=2) for a browser
+```
+
+`omniscrape curl "curl ..." -f json` does the same from the terminal, and `omniscrape shell` has `curl()` and `uncurl()`.

@@ -8,7 +8,10 @@ from omniscrape.parsers.selector import Element
 class DensityAnalyzer:
     """Identifies primary article body or repeated product card grids via layout heuristics."""
 
-    def __init__(self, html: str):
+    def __init__(self, html: str = "", root=None):
+        if root is not None:  # reuse an already-parsed tree instead of serialising and re-parsing it
+            self.root = root
+            return
         try:
             parser = lxml.html.HTMLParser(encoding="utf-8")
             if isinstance(html, str):
