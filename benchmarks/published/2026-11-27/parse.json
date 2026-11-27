@@ -1,0 +1,57 @@
+{
+ "suite": "parse",
+ "params": {
+  "docs": 143,
+  "repeats": 5,
+  "selectors_per_doc": "4 ground-truth (listings) + 6 generic"
+ },
+ "notes": [
+  "Expected counts for generic selectors come from lxml (libxml2); html5 parsers may legitimately differ on malformed markup, so count_accuracy is agreement, not truth, for those."
+ ],
+ "tools": {
+  "omniscrape": {
+   "ok": true,
+   "version": "0.1.0",
+   "python": "3.12.13",
+   "where": "env:omniscrape",
+   "peak_rss_mb": 52.0,
+   "rss_after_import_mb": 27.3,
+   "import_seconds": 0.0259,
+   "wall_seconds": 3.66,
+   "memory_sampled": true,
+   "docs_per_sec": 387.72,
+   "mb_per_sec": 10.64,
+   "pass_seconds": {
+    "median": 0.3688,
+    "p95": 0.445,
+    "min": 0.3253,
+    "max": 0.445,
+    "n": 5
+   },
+   "count_accuracy": 1.0,
+   "mismatches": []
+  },
+  "scrapling": {
+   "ok": true,
+   "version": "0.5.1",
+   "python": "3.12.13",
+   "where": "env:scrapling",
+   "peak_rss_mb": 46.9,
+   "rss_after_import_mb": 31.7,
+   "import_seconds": 0.2032,
+   "wall_seconds": 3.899,
+   "memory_sampled": true,
+   "docs_per_sec": 294.93,
+   "mb_per_sec": 8.1,
+   "pass_seconds": {
+    "median": 0.4849,
+    "p95": 0.8326,
+    "min": 0.4206,
+    "max": 0.8326,
+    "n": 5
+   },
+   "count_accuracy": 1.0,
+   "mismatches": []
+  }
+ }
+}

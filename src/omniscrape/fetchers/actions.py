@@ -13,9 +13,9 @@ Actions are dicts::
     {"type": "scrape"}                                                   # snapshot the HTML at this point
 """
 
-from typing import Any, Optional
 import asyncio
 import json
+from typing import Any, Optional
 
 SETTLE_JS = """
 (args) => new Promise((resolve) => {

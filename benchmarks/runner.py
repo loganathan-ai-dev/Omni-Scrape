@@ -7,7 +7,7 @@ import subprocess
 import sys
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from importlib import import_module
 from pathlib import Path
 from typing import Any, Optional
@@ -85,7 +85,7 @@ class RunContext:
 
 def machine_info() -> dict[str, Any]:
     info: dict[str, Any] = {
-        "timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "timestamp": datetime.now(UTC).isoformat(timespec="seconds"),
         "platform": platform.platform(),
         "machine": platform.machine(),
         "processor": platform.processor(),

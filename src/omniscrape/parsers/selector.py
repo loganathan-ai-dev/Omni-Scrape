@@ -13,6 +13,7 @@ from __future__ import annotations  # methods named `re` must not shadow the mod
 import json
 import re
 from functools import lru_cache
+from re import Pattern
 from typing import Any, Callable, Iterable, Optional, Union
 from urllib.parse import urljoin
 
@@ -71,7 +72,7 @@ def _compiled_css(query: str) -> tuple[lxml.etree.XPath, bool]:
     return lxml.etree.XPath(xp), "::" in query
 
 
-def _wrap(results: Any, url: str = "") -> "SelectorList":
+def _wrap(results: Any, url: str = "") -> SelectorList:
     if isinstance(results, list):
         out = SelectorList()
         append = out.append
@@ -95,14 +96,14 @@ _LXML_ELEMENT = lxml.etree._Element
 class SelectorList(list):
     """A list of Elements and/or strings with Parsel-style helpers."""
 
-    def css(self, query: str) -> "SelectorList":
+    def css(self, query: str) -> SelectorList:
         out = SelectorList()
         for item in self:
             if isinstance(item, Element):
                 out.extend(item.css(query))
         return out
 
-    def xpath(self, query: str) -> "SelectorList":
+    def xpath(self, query: str) -> SelectorList:
         out = SelectorList()
         for item in self:
             if isinstance(item, Element):
@@ -124,18 +125,18 @@ class SelectorList(list):
     def texts(self) -> list[str]:
         return [item.text if isinstance(item, Element) else item.strip() for item in self]
 
-    def re(self, pattern: Union[str, re.Pattern]) -> list[str]:
+    def re(self, pattern: Union[str, Pattern]) -> list[str]:
         out: list[str] = []
         for item in self:
             out.extend(_regex_all(pattern, item.text if isinstance(item, Element) else item))
         return out
 
-    def re_first(self, pattern: Union[str, re.Pattern], default: Optional[str] = None) -> Optional[str]:
+    def re_first(self, pattern: Union[str, Pattern], default: Optional[str] = None) -> Optional[str]:
         found = self.re(pattern)
         return found[0] if found else default
 
     @property
-    def first(self) -> Optional[Union["Element", str]]:
+    def first(self) -> Optional[Union[Element, str]]:
         return self[0] if self else None
 
     @property
@@ -146,7 +147,7 @@ class SelectorList(list):
         return {}
 
 
-def _regex_all(pattern: Union[str, re.Pattern], text: str) -> list[str]:
+def _regex_all(pattern: Union[str, Pattern], text: str) -> list[str]:
     rx = re.compile(pattern) if isinstance(pattern, str) else pattern
     out = []
     for m in rx.finditer(text):
@@ -214,10 +215,10 @@ class Element:
     def has_class(self, name: str) -> bool:
         return name in (self._node.get("class") or "").split()
 
-    def re(self, pattern: Union[str, re.Pattern]) -> list[str]:
+    def re(self, pattern: Union[str, Pattern]) -> list[str]:
         return _regex_all(pattern, self.text)
 
-    def re_first(self, pattern: Union[str, re.Pattern], default: Optional[str] = None) -> Optional[str]:
+    def re_first(self, pattern: Union[str, Pattern], default: Optional[str] = None) -> Optional[str]:
         found = self.re(pattern)
         return found[0] if found else default
 
@@ -248,56 +249,56 @@ class Element:
         except lxml.etree.XPathError:
             return SelectorList()
 
-    def css_first(self, query: str) -> Optional["Element"]:
+    def css_first(self, query: str) -> Optional[Element]:
         found = self.css(query)
         return found[0] if found and isinstance(found[0], Element) else None
 
     # ------------------------------------------------------------------ navigation
-    def parent(self) -> Optional["Element"]:
+    def parent(self) -> Optional[Element]:
         p = self._node.getparent()
         return Element(p, self._url) if p is not None else None
 
-    def children(self) -> list["Element"]:
+    def children(self) -> list[Element]:
         return [Element(c, self._url) for c in self._node.iterchildren() if isinstance(c.tag, str)]
 
     @property
-    def next(self) -> Optional["Element"]:
+    def next(self) -> Optional[Element]:
         n = self._node.getnext()
         while n is not None and not isinstance(n.tag, str):
             n = n.getnext()
         return Element(n, self._url) if n is not None else None
 
     @property
-    def previous(self) -> Optional["Element"]:
+    def previous(self) -> Optional[Element]:
         p = self._node.getprevious()
         while p is not None and not isinstance(p.tag, str):
             p = p.getprevious()
         return Element(p, self._url) if p is not None else None
 
     @property
-    def siblings(self) -> list["Element"]:
+    def siblings(self) -> list[Element]:
         parent = self._node.getparent()
         if parent is None:
             return []
         return [Element(s, self._url) for s in parent if s is not self._node and isinstance(s.tag, str)]
 
-    def ancestors(self) -> list["Element"]:
+    def ancestors(self) -> list[Element]:
         return [Element(a, self._url) for a in self._node.iterancestors()]
 
-    def find_ancestor(self, predicate: Callable[["Element"], bool]) -> Optional["Element"]:
+    def find_ancestor(self, predicate: Callable[[Element], bool]) -> Optional[Element]:
         for anc in self.ancestors():
             if predicate(anc):
                 return anc
         return None
 
-    def iter(self) -> Iterable["Element"]:
+    def iter(self) -> Iterable[Element]:
         for el in self._node.iter():
             if isinstance(el.tag, str):
                 yield Element(el, self._url)
 
     # ------------------------------------------------------------------ search
-    def find_all(self, tag: Optional[str] = None, text: Optional[Union[str, re.Pattern]] = None,
-                 limit: Optional[int] = None, **attrs: Any) -> list["Element"]:
+    def find_all(self, tag: Optional[str] = None, text: Optional[Union[str, Pattern]] = None,
+                 limit: Optional[int] = None, **attrs: Any) -> list[Element]:
         """BeautifulSoup-style search. ``class_`` matches one class name; attr values may be regexes."""
         out = []
         for el in self._node.iter(tag) if tag else self._node.iter():
@@ -316,11 +317,11 @@ class Element:
                 break
         return out
 
-    def find(self, tag: Optional[str] = None, text: Optional[Union[str, re.Pattern]] = None, **attrs: Any) -> Optional["Element"]:
+    def find(self, tag: Optional[str] = None, text: Optional[Union[str, Pattern]] = None, **attrs: Any) -> Optional[Element]:
         found = self.find_all(tag, text, limit=1, **attrs)
         return found[0] if found else None
 
-    def find_similar(self, threshold: float = 0.6, ignore_attributes: Iterable[str] = ("href", "src", "id")) -> list["Element"]:
+    def find_similar(self, threshold: float = 0.6, ignore_attributes: Iterable[str] = ("href", "src", "id")) -> list[Element]:
         """Elements with the same tag path and depth and similar attributes (e.g. sibling product cards)."""
         me = self._node
         path = _tag_path(me)
@@ -549,10 +550,10 @@ class FastElement:
     def urljoin(self, href: str) -> str:
         return urljoin(self._url, href)
 
-    def re(self, pattern: Union[str, re.Pattern]) -> list[str]:
+    def re(self, pattern: Union[str, Pattern]) -> list[str]:
         return _regex_all(pattern, self.text)
 
-    def re_first(self, pattern: Union[str, re.Pattern], default: Optional[str] = None) -> Optional[str]:
+    def re_first(self, pattern: Union[str, Pattern], default: Optional[str] = None) -> Optional[str]:
         found = self.re(pattern)
         return found[0] if found else default
 
@@ -580,15 +581,15 @@ class FastElement:
                         out.append(v)
         return out
 
-    def css_first(self, query: str) -> Optional["FastElement"]:
+    def css_first(self, query: str) -> Optional[FastElement]:
         found = self.css(query)
         return found[0] if found and isinstance(found[0], FastElement) else None
 
-    def parent(self) -> Optional["FastElement"]:
+    def parent(self) -> Optional[FastElement]:
         p = self._node.parent
         return FastElement(p, self._url) if p is not None else None
 
-    def children(self) -> list["FastElement"]:
+    def children(self) -> list[FastElement]:
         out = []
         c = self._node.child
         while c is not None:
@@ -598,14 +599,14 @@ class FastElement:
         return out
 
     @property
-    def next(self) -> Optional["FastElement"]:
+    def next(self) -> Optional[FastElement]:
         n = self._node.next
         while n is not None and (not n.tag or n.tag.startswith("-")):
             n = n.next
         return FastElement(n, self._url) if n is not None else None
 
     @property
-    def previous(self) -> Optional["FastElement"]:
+    def previous(self) -> Optional[FastElement]:
         p = self._node.prev
         while p is not None and (not p.tag or p.tag.startswith("-")):
             p = p.prev
@@ -613,6 +614,9 @@ class FastElement:
 
     def extract(self, schema: dict[str, Any]) -> dict[str, Any]:
         return _extract_with_schema(self, schema)
+
+
+_ELEMENT_NODE_SLOT = Element.__dict__["_node"]
 
 
 class Selector(Element):
@@ -641,7 +645,7 @@ class Selector(Element):
             except ImportError as exc:
                 from omniscrape.exceptions import ConfigError
 
-                raise ConfigError("selectolax is not installed. Install with 'pip install omniscrape[fast]'.") from exc
+                raise ConfigError("selectolax is not installed. Install with: pip install 'omni-scrape[fast]'") from exc
             text = html.decode("utf-8", errors="replace") if isinstance(html, (bytes, bytearray)) else (html or "")
             parser = LexborHTMLParser(text or "<html><body></body></html>")
             self._fast_root = FastElement(parser.root, url)
@@ -653,6 +657,19 @@ class Selector(Element):
                 root = _parse(html)
             self._lxml_root = root
             super().__init__(root, url)
+
+    # With ``backend="selectolax"`` the lxml tree is built lazily. ``_node`` is what every inherited
+    # ``Element`` method reads, so resolve it on demand instead of leaving it ``None``.
+    @property
+    def _node(self):
+        node = _ELEMENT_NODE_SLOT.__get__(self, type(self))
+        if node is None and self._lxml_root is None and self._fast_root is not None:
+            return self.root
+        return node
+
+    @_node.setter
+    def _node(self, value) -> None:
+        _ELEMENT_NODE_SLOT.__set__(self, value)
 
     @property
     def root(self) -> lxml.html.HtmlElement:
@@ -709,24 +726,37 @@ class Selector(Element):
             _ = self.root
         return super().xpath(query, **variables)
 
-    def find_all(self, tag: Optional[str] = None, text: Optional[Union[str, re.Pattern]] = None,
-                 limit: Optional[int] = None, **attrs: Any) -> list["Element"]:
+    def find_all(self, tag: Optional[str] = None, text: Optional[Union[str, Pattern]] = None,
+                 limit: Optional[int] = None, **attrs: Any) -> list[Element]:
         if self._node is None:
             _ = self.root
         return super().find_all(tag, text, limit=limit, **attrs)
 
+    def _deepest(self, matched: list) -> list[Element]:
+        """Keep only the innermost matches, so ``<html>``/``<body>``/wrappers are not returned too."""
+        has_matching_descendant: set[int] = set()
+        for node in matched:
+            parent = node.getparent()
+            while parent is not None and id(parent) not in has_matching_descendant:
+                has_matching_descendant.add(id(parent))
+                parent = parent.getparent()
+        return [Element(n, self.url) for n in matched if id(n) not in has_matching_descendant]
+
     def find_by_text(self, text: str, exact: bool = False) -> list[Element]:
+        """Elements whose text contains ``text`` (or equals it with ``exact=True``); innermost only."""
         pattern = text.strip()
-        matches = []
+        matched = []
         for el in self.root.iter():
             if not isinstance(el.tag, str):
                 continue
             content = (el.text_content() or "").strip()
             if (exact and content == pattern) or (not exact and pattern.lower() in content.lower()):
-                matches.append(Element(el, self.url))
-        return matches
+                matched.append(el)
+        return self._deepest(matched)
 
-    def find_by_regex(self, pattern: Union[str, re.Pattern]) -> list[Element]:
+    def find_by_regex(self, pattern: Union[str, Pattern]) -> list[Element]:
+        """Elements whose text matches ``pattern``; innermost only."""
         compiled = re.compile(pattern) if isinstance(pattern, str) else pattern
-        return [Element(el, self.url) for el in self.root.iter()
-                if isinstance(el.tag, str) and compiled.search(el.text_content() or "")]
+        matched = [el for el in self.root.iter()
+                   if isinstance(el.tag, str) and compiled.search(el.text_content() or "")]
+        return self._deepest(matched)

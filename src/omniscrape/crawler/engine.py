@@ -15,7 +15,6 @@ from pathlib import Path
 from typing import Any, AsyncIterator, Callable, Optional, Union
 from urllib.parse import urljoin, urlsplit
 
-from omniscrape.crawler.links import domain_allowed
 from omniscrape.crawler.queue import RequestQueue
 from omniscrape.crawler.robots import RobotsCache
 from omniscrape.crawler.spider import Request, Spider
@@ -298,7 +297,8 @@ class CrawlEngine:
         if callback is None and req.callback_name:
             callback = getattr(self.spider, req.callback_name, None)
         callback = callback or self.spider.parse
-        output = callback(result, Selector(result.html))
+        result.meta = dict(req.meta)
+        output = callback(result, Selector(result.html, url=result.url))
         if inspect.isasyncgen(output):
             async for out in output:
                 await self._handle_output(out, req, result)

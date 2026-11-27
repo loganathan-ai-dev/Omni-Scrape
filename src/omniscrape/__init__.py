@@ -28,7 +28,6 @@ if TYPE_CHECKING:
     from omniscrape.fetchers.http import FastFetcher
     from omniscrape.fetchers.pool import ProxyPoolManager
     from omniscrape.fetchers.registry import available_fetchers, create_fetcher, register_fetcher
-    from omniscrape.fetchers.session import FetcherSession
     from omniscrape.fetchers.stealth import StealthFetcher
     from omniscrape.models import Article, FetchResult, Product, ScrapeResult
     from omniscrape.normalizers.currency import parse_price
@@ -67,7 +66,6 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "available_fetchers": ("omniscrape.fetchers.registry", "available_fetchers"),
     "create_fetcher": ("omniscrape.fetchers.registry", "create_fetcher"),
     "register_fetcher": ("omniscrape.fetchers.registry", "register_fetcher"),
-    "FetcherSession": ("omniscrape.fetchers.session", "FetcherSession"),
     "StealthFetcher": ("omniscrape.fetchers.stealth", "StealthFetcher"),
     "Article": ("omniscrape.models", "Article"),
     "FetchResult": ("omniscrape.models", "FetchResult"),
@@ -121,11 +119,11 @@ __all__ = [
     "Spider",
     "Request",
     "CrawlEngine",
+    "BaseFetcher",
     "FastFetcher",
     "DynamicFetcher",
     "StealthFetcher",
     "ProxyPoolManager",
-    "FetcherSession",
     "PageClassifier",
     "EscalationStrategy",
     "DuckDBStorage",
@@ -165,7 +163,7 @@ async def fetch(
     allow_stealth: bool = False,
     retries: int = 2,
     **kwargs,
-) -> "FetchResult":
+) -> FetchResult:
     """Fetch a URL with automatic (``tier=None``) or forced tier/engine selection.
 
     Auto mode starts with the fast HTTP tier and escalates to browser rendering when the page is
@@ -188,7 +186,7 @@ async def scrape(
     retries: int = 2,
     timeout: float = 30.0,
     **kwargs,
-) -> "ScrapeResult":
+) -> ScrapeResult:
     """One-liner universal scraper: fetch, then extract title, markdown, structured data and links."""
     from omniscrape.client import OmniClient
 
@@ -196,18 +194,18 @@ async def scrape(
         return await client.scrape(url, tier=tier, headers=headers, proxy=proxy, **kwargs)
 
 
-def scrape_sync(url: str, **kwargs) -> "ScrapeResult":
+def scrape_sync(url: str, **kwargs) -> ScrapeResult:
     """Synchronous wrapper for scrape()."""
     return asyncio.run(scrape(url, **kwargs))
 
 
-async def scrape_product(url: str, **kwargs) -> Optional["Product"]:
+async def scrape_product(url: str, **kwargs) -> Optional[Product]:
     """Specialized product extraction from an e-commerce URL."""
     res = await scrape(url, **kwargs)
     return res.product
 
 
-async def scrape_article(url: str, **kwargs) -> Optional["Article"]:
+async def scrape_article(url: str, **kwargs) -> Optional[Article]:
     """Specialized article extraction from a news/blog URL."""
     res = await scrape(url, **kwargs)
     return res.article
@@ -225,7 +223,7 @@ async def fetch_many(
     timeout: float = 30.0,
     return_exceptions: bool = False,
     **kwargs,
-) -> list[Union["FetchResult", Exception]]:
+) -> list[Union[FetchResult, Exception]]:
     """Concurrently fetch multiple URLs using a shared ``OmniClient``."""
     from omniscrape.client import OmniClient
 
@@ -253,7 +251,7 @@ async def scrape_many(
     timeout: float = 30.0,
     return_exceptions: bool = False,
     **kwargs,
-) -> list[Union["ScrapeResult", Exception]]:
+) -> list[Union[ScrapeResult, Exception]]:
     """Concurrently fetch and extract multiple URLs using a shared ``OmniClient``."""
     from omniscrape.client import OmniClient
 

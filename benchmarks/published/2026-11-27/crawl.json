@@ -1,0 +1,76 @@
+{
+ "suite": "crawl",
+ "params": {
+  "site_pages": 300,
+  "expected_allowed": 321,
+  "concurrency": 8,
+  "latency_ms": "5-25 per request",
+  "repeats": 3,
+  "obey_robots": true
+ },
+ "notes": [
+  "Coverage, duplicates and robots violations are counted by the server, not by the tool.",
+  "Flaky pages return HTTP 500 once; recovered = fetched again successfully.",
+  "Crawl4AI drives a real browser (its default), so it is expected to be slower."
+ ],
+ "tools": {
+  "omniscrape": {
+   "ok": true,
+   "version": "0.1.0",
+   "python": "3.12.13",
+   "where": "env:omniscrape",
+   "peak_rss_mb": 45.0,
+   "rss_after_import_mb": 26.6,
+   "import_seconds": 0.005,
+   "wall_seconds": 2.156,
+   "memory_sampled": true,
+   "total_requests": 333,
+   "unique_allowed_fetched": 321,
+   "expected_allowed": 321,
+   "coverage": 1.0,
+   "robots_violations": 0,
+   "duplicate_requests": 0,
+   "robots_txt_requested": true,
+   "flaky_seen": 10,
+   "flaky_recovered": 10,
+   "seconds": 1.831,
+   "pages_per_sec": 175.31,
+   "pages_returned": 322,
+   "seconds_all_runs": [
+    2.084,
+    1.831,
+    1.671
+   ],
+   "pages_per_sec_stdev": 15.59
+  },
+  "scrapling": {
+   "ok": true,
+   "version": "0.5.1",
+   "python": "3.12.13",
+   "where": "env:scrapling",
+   "peak_rss_mb": 58.9,
+   "rss_after_import_mb": 31.6,
+   "import_seconds": 0.2311,
+   "wall_seconds": 2.714,
+   "memory_sampled": true,
+   "total_requests": 333,
+   "unique_allowed_fetched": 321,
+   "expected_allowed": 321,
+   "coverage": 1.0,
+   "robots_violations": 0,
+   "duplicate_requests": 0,
+   "robots_txt_requested": true,
+   "flaky_seen": 10,
+   "flaky_recovered": 10,
+   "seconds": 2.03,
+   "pages_per_sec": 158.16,
+   "pages_returned": 322,
+   "seconds_all_runs": [
+    2.03,
+    1.964,
+    2.032
+   ],
+   "pages_per_sec_stdev": 2.53
+  }
+ }
+}

@@ -1,16 +1,21 @@
 <div align="center">
 
+<img src="https://raw.githubusercontent.com/loganathan-ai-dev/Omni-Scrape/main/docs/assets/logo-mark.png" alt="OmniScrape logo" width="180">
+
 # OmniScrape
 
-**An adaptive, fast, and AI-ready Python web scraping framework — from zero-config extraction and self-healing selectors to polite concurrent crawls and stealth browser rendering.**
+**Adaptive web scraping for Python.** Tiered HTTP / browser / stealth fetching, self-healing selectors, zero-config product and article extraction, LLM-ready Markdown, a polite resumable crawler, a CLI and an MCP server, behind one small API.
 
-[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![PyPI](https://img.shields.io/pypi/v/omni-scrape.svg?color=0a7cff)](https://pypi.org/project/omni-scrape/)
+[![Python](https://img.shields.io/pypi/pyversions/omni-scrape.svg)](https://pypi.org/project/omni-scrape/)
 [![CI](https://github.com/loganathan-ai-dev/Omni-Scrape/actions/workflows/ci.yml/badge.svg)](https://github.com/loganathan-ai-dev/Omni-Scrape/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/loganathan-ai-dev/Omni-Scrape/blob/main/LICENSE)
+[![Ruff](https://img.shields.io/badge/lint-ruff-261230.svg)](https://github.com/astral-sh/ruff)
+[![Typed](https://img.shields.io/badge/typing-py.typed-informational.svg)](https://peps.python.org/pep-0561/)
+
+[Install](#install) · [Quick start](#quick-start) · [Features](#features) · [Benchmarks](#benchmarks) · [Compare](#how-it-compares) · [Docs](#documentation) · [Contributing](#contributing)
 
 </div>
-
-OmniScrape unifies **HTTP/2 TLS-impersonated fetching**, **Playwright & Camoufox browser rendering**, **100%-accurate self-healing selectors**, **zero-config product/article/listing extraction**, **LLM-ready Markdown**, **polite resumable crawling**, and a built-in **MCP server** behind a single, fast Python API.
 
 ```python
 import omniscrape
@@ -20,48 +25,62 @@ page.product.title, page.product.price, page.product.currency   # ('A Light in t
 print(page.markdown)                                             # main content only, as clean Markdown
 ```
 
----
-
-## Key Features
-
-- **⚡ Fast, Lazy-Imported Core**: `import omniscrape` loads in **~5 ms** with **26.6 MB** base RSS.
-- **🛡️ 3-Tier Progressive Fetching**: Starts on `curl_cffi` HTTP/2 with browser TLS fingerprints (`tier=1`), auto-escalates empty JS shells to Playwright Chromium (`tier=2`), and supports opt-in stealth (`tier=3`, Camoufox or hardened Chromium with `allow_stealth=True`).
-- **🩹 Self-Healing Selectors (100% Recovery)**: Remembers 12+ structural, context, and content signals per element and relocates targets automatically across class renames, tag swaps, wrappers, attribute churn, and value updates — while rejecting ambiguous ties.
-- **🧠 Zero-Config & Schema Extraction**: Extract `Product`, `Article`, repeated listing cards (`extract_listings`), JSON-LD (with `@id` graph resolution), Microdata, RDFa, OpenGraph, or declarative `Selector.extract(schema)` dicts.
-- **📄 LLM-Ready Markdown**: Boilerplate-stripped `fit_markdown` with `0.31%` leakage, BM25 query filtering, numbered citations, and token-bounded `chunk_markdown`.
-- **🕷️ Polite Resumable Crawling & Batch APIs**: `CrawlEngine` with `robots.txt` compliance, `Crawl-delay`, domain-wide `429 Retry-After` pauses, `ETag`/`If-Modified-Since` caching, sitemap seeding (`start_from_sitemap=True`), SQLite pause/resume, and `fetch_many` / `scrape_many`.
-- **🤖 CLI & MCP Server**: Built-in `omniscrape` CLI and FastMCP server (`stdio` or streamable HTTP) for AI agents.
-
----
+> [!NOTE]
+> The PyPI package is named **`omni-scrape`** (the name `omniscrape` belongs to an unrelated project). You still `import omniscrape` and run the `omniscrape` command.
 
 ## Install
 
-Requires Python 3.11 or newer.
+Requires Python 3.11+.
 
 ```bash
-pip install "omniscrape @ git+https://github.com/loganathan-ai-dev/Omni-Scrape.git"
+pip install omni-scrape
 ```
-
-Optional extras:
 
 | Extra | Adds | Install |
 |---|---|---|
-| `browser` | Playwright Chromium rendering, actions, screenshots, PDF | `pip install "omniscrape[browser] @ git+https://github.com/loganathan-ai-dev/Omni-Scrape.git"` then `playwright install chromium` |
-| `stealth` | Camoufox for opt-in stealth (`tier=3`) | `[stealth]` |
-| `fast` | Opt-in `selectolax` Lexbor CSS backend (`backend="selectolax"`) | `[fast]` |
-| `httpx` | Alternative HTTP/2 client (`tier="httpx"`) | `[httpx]` |
-| `storage` | DuckDB analytical storage | `[storage]` |
-| `markdown` | Exact token counts with `tiktoken` | `[markdown]` |
-| `mcp` | MCP server for AI agents | `[mcp]` |
-| `all` | Core browser, stealth, httpx, storage, markdown, and MCP extras | `[all]` |
+| `browser` | Playwright Chromium rendering, actions, screenshots, PDF | `pip install "omni-scrape[browser]"` then `playwright install chromium` |
+| `stealth` | Camoufox for opt-in stealth (`tier=3`) | `pip install "omni-scrape[stealth]"` |
+| `fast` | Opt-in `selectolax` Lexbor CSS backend | `pip install "omni-scrape[fast]"` |
+| `httpx` | Alternative HTTP/2 client (`tier="httpx"`) | `pip install "omni-scrape[httpx]"` |
+| `storage` | DuckDB output | `pip install "omni-scrape[storage]"` |
+| `markdown` | Exact token counts via `tiktoken` | `pip install "omni-scrape[markdown]"` |
+| `mcp` | MCP server for AI agents | `pip install "omni-scrape[mcp]"` |
+| `shell` | IPython for `omniscrape shell` | `pip install "omni-scrape[shell]"` |
+| `all` | All of the above | `pip install "omni-scrape[all]"` |
 
-From source: `pip install -e ".[all,dev]"`.
+## Features
 
----
+| | |
+|---|---|
+| **3-tier fetching** | `curl_cffi` HTTP with a browser TLS fingerprint (`tier=1`), automatic escalation of empty JS shells to Playwright (`tier=2`), opt-in stealth browser (`tier=3`). |
+| **Self-healing selectors** | Remembers 12 structural, context and content signals per element and relocates it after class renames, tag swaps, wrappers and attribute churn, rejecting ambiguous matches. |
+| **Zero-config extraction** | `Product`, `Article` and repeated listing cards from JSON-LD, Microdata, RDFa, OpenGraph, embedded JSON and DOM heuristics. No selectors needed. |
+| **Declarative schemas** | `Selector.extract({...})` with price, date, unit and number normalizers. |
+| **LLM-ready Markdown** | Main-content `fit_markdown`, BM25 query filtering, numbered citations, token-bounded `chunk_markdown`. |
+| **Polite resumable crawler** | `robots.txt` on by default, `Crawl-delay`, AutoThrottle, `Retry-After` pauses, sitemap seeding, SQLite pause/resume, streaming. |
+| **CLI** | `get`, `crawl`, `map`, `extract`, `shell`, `mcp`. |
+| **MCP server** | FastMCP over stdio or streamable HTTP, five tools. |
+| **Agent skill and plugin** | Ready-made skill for Claude Code and other agents, plus a Claude Code plugin. |
 
-## Quick Start
+```mermaid
+flowchart LR
+    U[URL] --> F1[Tier 1<br/>HTTP + TLS fingerprint]
+    F1 -->|empty JS shell| F2[Tier 2<br/>Playwright browser]
+    F1 -->|blocked and allow_stealth| F3[Tier 3<br/>Stealth browser]
+    F2 --> R[FetchResult]
+    F1 --> R
+    F3 --> R
+    R --> P[Selector<br/>CSS / XPath / adaptive]
+    R --> X[Extractors<br/>product / article / listings]
+    R --> M[fit_markdown<br/>chunk_markdown]
+    P --> S[(JSONL / DuckDB)]
+    X --> S
+```
 
-### Single Page & Batch Scraping
+## Quick start
+
+<details open>
+<summary><b>Single page and batch scraping</b></summary>
 
 ```python
 import asyncio
@@ -69,12 +88,11 @@ import omniscrape
 
 async def main():
     page = await omniscrape.scrape("https://quotes.toscrape.com/")
-    print(page.title)          # page title
-    print(page.markdown[:300]) # main-content Markdown, boilerplate removed
-    print(page.links[:5])      # absolute links
-    print(page.metadata)       # title, author, dates, site name, description, language
+    print(page.title)           # page title
+    print(page.markdown[:300])  # main-content Markdown, boilerplate removed
+    print(page.links[:5])       # absolute links
+    print(page.metadata)        # title, author, dates, site name, description, language
 
-    # Concurrent batch scraping with per-domain politeness
     pages = await omniscrape.scrape_many(
         ["https://quotes.toscrape.com/page/1/", "https://quotes.toscrape.com/page/2/"],
         concurrency=4,
@@ -83,15 +101,17 @@ async def main():
 
 asyncio.run(main())
 ```
+</details>
 
-### Fetching, Sessions, Retries & Caching
+<details>
+<summary><b>Retries, proxies, caching, circuit breaker</b></summary>
 
 ```python
 from omniscrape import OmniClient, ProxyPoolManager
 from omniscrape.resilience import CircuitBreaker, DeadLetterQueue
 
 async with OmniClient(
-    retries=2,                        # retries transport errors, 429 (Retry-After), and 5xx
+    retries=2,                        # transport errors, 429 (Retry-After) and 5xx
     timeout=30,
     cache_responses=True,             # ETag / Last-Modified conditional 304 caching
     headers={"Accept-Language": "en-GB"},
@@ -103,11 +123,11 @@ async with OmniClient(
     pages = await client.scrape_many(["https://example.com/b", "https://example.com/c"], concurrency=4)
 ```
 
-Custom fetchers can be registered at runtime with `register_fetcher("my-api", MyApiFetcher)`.
+Proxy strategies: `round_robin`, `random`, `sticky` (one proxy per domain). Register your own fetcher with `register_fetcher("my-api", MyApiFetcher)`.
+</details>
 
-### Browser Rendering & Stealth Actions
-
-Both `tier=2` (`DynamicFetcher`) and `tier=3` (`StealthFetcher`) share the same readiness and action runner (`wait_for`, `actions`, `screenshot`, `pdf`, and `capture_network`):
+<details>
+<summary><b>Browser rendering and page actions</b></summary>
 
 ```python
 res = await omniscrape.fetch(
@@ -119,6 +139,7 @@ res = await omniscrape.fetch(
         {"type": "infinite_scroll", "max_scrolls": 5},
         {"type": "type", "selector": "input[name=q]", "text": "lamp"},
         {"type": "press", "key": "Enter"},
+        {"type": "wait", "milliseconds": 500},
         {"type": "evaluate", "script": "() => document.querySelectorAll('.product-card').length"},
     ],
     screenshot=True,
@@ -126,55 +147,53 @@ res = await omniscrape.fetch(
 )
 ```
 
-Supported actions: `click`, `type`/`write`/`fill`, `press`, `scroll`, `infinite_scroll`, `wait`, `evaluate`, `screenshot`, and `scrape` (pass `"optional": True` to continue if an action fails). Use `OmniClient(fetcher_options={2: {"isolate": False}})` to reuse a single browser context and pooled tabs across requests.
+Actions: `click`, `type`/`write`/`fill`, `press`, `scroll` (`direction`, `amount`, or `to: "top"|"bottom"`), `infinite_scroll`, `wait` (`milliseconds`), `evaluate`, `screenshot`, `scrape`. Add `"optional": True` to continue if an action fails.
+</details>
 
-### Selectors, Schema & Self-Healing
+<details>
+<summary><b>Selectors, schemas and self-healing</b></summary>
 
 ```python
 from omniscrape import Selector
 
 page = Selector(html, url="https://shop.example/list")
-
 page.css("div.card h3::text").getall()
 page.css("div.card a::attr(href)").get()
 page.css("span.price").re(r"\$([\d.]+)")
 page.xpath("//div[@data-sku='B2']/h3/text()").get()
 
-# Declarative schema extraction with built-in type/currency/date/unit normalizers
 item = page.extract({
     "title": "div.pdp h1::text",
     "price": {"selector": "div.pdp .price::text", "type": "price"},
     "tags": {"selector": "ul.tags li::text", "all": True},
 })
-```
 
-Self-healing selectors survive class renames, wrapper insertions, tag swaps, attribute churn, and value updates:
-
-```python
-# First run: save structural + context fingerprint
+# Self-healing: save a fingerprint once...
 page = Selector(html_v1, url="https://shop.example/item/1", adaptive=True, storage="fingerprints.db")
 page.css(".price-current", identifier="price", auto_save=True)
 
-# Later: selector broke after redesign -> relocated automatically
+# ...and after a redesign the same call relocates the element.
 page = Selector(html_v2, url="https://shop.example/item/1", adaptive=True, storage="fingerprints.db")
 page.css(".price-current", identifier="price", adaptive=True)[0].text
 ```
+</details>
 
-For pure-CSS high-throughput pipelines with `omniscrape[fast]`, pass `Selector(html, backend="selectolax")`.
-
-### Zero-Config Products, Articles, Listings & Markdown
+<details>
+<summary><b>Zero-config products, articles, listings and Markdown</b></summary>
 
 ```python
 from omniscrape import extract_product, extract_listings, extract_metadata, fit_markdown, chunk_markdown
 
-product = extract_product(html, url)              # Product model (JSON-LD, Microdata, RDFa, OG, Shopify JSON, DOM)
-listings = extract_listings(category_html, url)   # Repeated cards on category/search pages
-meta = extract_metadata(html, url)                # title, author (with JSON-LD @id resolution), dates, tags
-md = fit_markdown(html, url=url, query="pricing", citations=True, max_tokens=2000)
+product = extract_product(html, url)              # JSON-LD, Microdata, RDFa, OG, Shopify JSON, DOM
+listings = extract_listings(category_html, url)   # repeated cards on category / search pages
+meta = extract_metadata(html, url)                # title, author, dates, tags
+md = fit_markdown(html, url=url, query="pricing", links=True, citations=True, max_tokens=2000)
 chunks = chunk_markdown(md, max_tokens=512)
 ```
+</details>
 
-### Crawling, Storage, CLI & MCP
+<details>
+<summary><b>Crawling with pause / resume</b></summary>
 
 ```python
 import asyncio
@@ -191,141 +210,179 @@ class Books(Spider):
         if selector.css("div.product_main"):
             yield {"title": selector.css("h1::text").get(), "price": selector.css("p.price_color::text").get()}
         for url in links.extract(selector, response.url):
-            yield Request(url)
+            yield Request(url, meta={"from": response.url})   # arrives as response.meta in the callback
 
 stats = asyncio.run(CrawlEngine(
-    Books(),
-    storage=JSONLStorage("books.jsonl"),
-    max_pages=200,
-    start_from_sitemap=False,
-    queue_path="books-queue.db",  # SQLite pause/resume
+    Books(), storage=JSONLStorage("books.jsonl"), max_pages=200, queue_path="books-queue.db",
 ).run())
 ```
+</details>
 
-CLI & MCP server:
+### Command line
 
 ```bash
-omniscrape get https://books.toscrape.com/
-omniscrape get https://books.toscrape.com/ -f markdown
-omniscrape mcp                              # stdio MCP server
-omniscrape mcp --transport http --port 8000 # streamable HTTP MCP server
+omniscrape get https://books.toscrape.com/                      # summary table
+omniscrape get URL -f json > page.json                          # data on stdout, logs on stderr
+omniscrape get URL --css "h1" -H "Accept-Language: en" --proxy http://p:8080
+omniscrape crawl https://books.toscrape.com/ --max-pages 100 -o books.jsonl --resume
+omniscrape map https://example.com --search pricing
+omniscrape extract URL --schema schema.json
+omniscrape shell URL                                            # REPL with `page` and `response` loaded
+omniscrape mcp                                                  # stdio MCP server
+omniscrape mcp --transport http --port 8000                     # streamable HTTP at /mcp
 ```
-
----
 
 ## Benchmarks
 
-Every benchmark runs in an **isolated Python 3.12 virtual environment** per tool (`benchmarks/`) on Windows 11 against the same offline corpus and local `aiohttp` test server. Ground truth for real pages comes from each site's own markup, never from another tool's output.
+Reproducible, offline-first and honest about scope. Each tool runs in its own isolated virtual environment against the same corpus and a local test server. Ground truth comes from each page's own markup, never from another tool's output.
 
-Latest verified run: `20261127-111900-enhanced-final` (OmniScrape `0.1.0` vs Scrapling `0.5.1` and Trafilatura `2.4.0`; baseline multi-tool comparisons from `20261126-183935-final`).
+**Run:** `20261127-111900-enhanced-final`, 2026-11-27, Windows 11, Intel 12-thread CPU, 11.7 GB RAM, Python 3.12 environments, 5 repeats. OmniScrape 0.1.0 against Scrapling 0.5.1 and Trafilatura 2.4.0. Raw numbers are committed in [`benchmarks/published/2026-11-27/`](https://github.com/loganathan-ai-dev/Omni-Scrape/tree/main/benchmarks/published/2026-11-27).
 
-### Self-Healing Selectors (1,377 Broken Cases Across 60 Pages)
+### At a glance
 
-| Tool | Recovered | Wrong Element | Missed | Time / Page | Peak RSS |
+| Suite | Metric | OmniScrape | Scrapling 0.5.1 | Trafilatura 2.4.0 |
+|---|---|---:|---:|---:|
+| Self-healing selectors | Recovered, 1,377 broken cases | **100.0%** | 85.3% | n/a |
+| Self-healing selectors | Wrong element picked | **0** | 202 | n/a |
+| Parsing, 143 pages × 5 | Pages per second | **387.7** | 294.9 | n/a |
+| Crawl, 300 pages, concurrency 8 | Pages per second | **175.3** | 158.2 | n/a |
+| JavaScript rendering, 60 pages | Pages per second | **14.2** (isolated) / 9.2 (shared) | 7.2 | n/a |
+| Live crawl, quotes.toscrape.com | Pages per second | **4.02** | 3.72 | n/a |
+| Live crawl, books.toscrape.com | Pages per second | 4.46 | **5.11** | n/a |
+| Main-content Markdown, 66 pages | F1 | **0.9903** | n/a | 0.9807 |
+| Article extraction, 126 pages | F1 | **0.9418** | n/a | 0.9003 |
+| Product extraction | F1 | **1.000** | n/a | not supported |
+
+OmniScrape does not win every row: Scrapling was faster on the books.toscrape.com live crawl, and the live crawls are network-bound with only 20 and 40 pages.
+
+<details>
+<summary><b>Self-healing selectors: recovery by mutation type</b></summary>
+
+1,377 deliberately broken selectors across 60 pages (dev set 592, holdout 785).
+
+| Tool | Recovered | Wrong element | Missed | ms per page variant | Peak RSS |
 |---|---:|---:|---:|---:|---:|
-| **OmniScrape** | **100.0% (1,377/1,377)** | **0.0% (0)** | **0** | **28.1 ms** | **50.4 MB** |
-| Scrapling 0.5.1 | 85.33% (1,175/1,377) | 14.67% (202) | 0 | 46.9 ms | 50.3 MB |
+| **OmniScrape** | **100.0%** (1,377) | **0** | 0 | **40.7** | 50.9 MB |
+| Scrapling 0.5.1 | 85.3% (1,175) | 202 | 0 | 72.0 | 50.2 MB |
 
-| Mutation Category | OmniScrape | Scrapling 0.5.1 |
+| Mutation | OmniScrape | Scrapling |
 |---|---:|---:|
-| All classes renamed (`class_rename`) | **100%** | 100% |
-| Content changed (`content_update`) | **100%** | 100% |
-| IDs & data-* churned (`attr_churn`) | **100%** | 96.6% |
-| Look-alike siblings inserted (`sibling_insert`) | **100%** | 92.9% |
-| Element wrapped (`wrapper_insert`) | **100%** | 92.2% |
-| Tag swapped (`tag_change`) | **100%** | 60.1% |
-| Combined redesign (`combined`) | **100%** | 57.1% |
+| All classes renamed | **100%** | 100% |
+| Content changed | **100%** | 100% |
+| IDs and `data-*` churned | **100%** | 96.6% |
+| Look-alike siblings inserted | **100%** | 92.9% |
+| Element wrapped | **100%** | 92.2% |
+| Tag swapped | **100%** | 60.1% |
+| Combined redesign | **100%** | 57.1% |
 
-### Parsing, Crawling & JavaScript Rendering
+> [!NOTE]
+> The mutations are generated by this repository's own script (`benchmarks/corpus/adaptive_cases.py`), so this is a self-benchmark: it shows how each tool copes with these classes of change, not an independent verdict. Run it yourself.
+</details>
+
+<details>
+<summary><b>Parsing, crawling, rendering and startup</b></summary>
 
 | Suite | Metric | OmniScrape | Scrapling 0.5.1 |
 |---|---|---:|---:|
-| **Startup** | Cold `import` time / base RSS | **0.005 s / 26.6 MB** | 0.160 s / 31.6 MB |
-| **Parse** (143 docs × 5) | Throughput / peak RSS | **387.7 docs/s** *(up to 495.6)* / 52.2 MB | 294.9 docs/s *(up to 420.6)* / 47.0 MB |
-| **Crawl** (300 pages, conc=8, robots=True, 10 flaky 500s) | Pages/s / peak RSS | **175.3 pages/s** / **45.0 MB** | 158.2 pages/s / 59.0 MB |
-| **Live Crawl** (`quotes.toscrape.com`, 20 pages, conc=2) | Pages/s / peak RSS | **4.02 pages/s** / **48.6 MB** | 3.72 pages/s / 61.9 MB |
-| **Live Crawl** (`books.toscrape.com`, 40 pages, conc=2) | Pages/s / peak RSS | 4.46 pages/s / **48.6 MB** | **5.11 pages/s** / 61.9 MB |
-| **JS Render** (60 pages, conc=4, cold batch) | Pages/s / peak RSS | **14.21 pages/s** *(isolated)* / **604 MB** | 7.16 pages/s / 1,039 MB |
+| Startup | Cold `import` time | **0.004 s** | 0.203 s |
+| Startup | RSS after import | **26.5 MB** | 31.6 MB |
+| Parse, 143 docs × 5 | Docs/s · MB/s · peak RSS | **387.7** · 10.6 · 52.0 MB | 294.9 · 8.1 · **46.9 MB** |
+| Crawl, 300 pages, concurrency 8, robots on, 10 flaky 500s | Pages/s · peak RSS | **175.3** · **45.0 MB** | 158.2 · 58.9 MB |
+| Live crawl, quotes (20 pages, concurrency 2) | Pages/s · peak RSS | **4.02** · **48.6 MB** | 3.72 · 61.9 MB |
+| Live crawl, books (40 pages, concurrency 2) | Pages/s · peak RSS | 4.46 · **48.6 MB** | **5.11** · 61.9 MB |
+| JS render, 60 pages, concurrency 4 | Pages/s · peak RSS | **14.21** · **604 MB** (isolated contexts) | 7.16 · 1,039 MB |
+| JS render, shared context | Pages/s · peak RSS | 9.22 · 911 MB | n/a |
 
-*Crawl correctness (`OmniScrape` and `Scrapling`): 100% coverage (`321/321`), 0 `robots.txt` violations, 0 duplicate requests, 10/10 flaky HTTP 500s recovered.*
+Crawl correctness for both tools: 321/321 allowed pages fetched, 0 `robots.txt` violations, flaky HTTP 500s recovered. All 60 rendered pages succeeded for every tool. Crawl throughput over 3 runs: OmniScrape 175.3 pages/s (stdev 15.6), Scrapling 158.2 (stdev 2.5).
+</details>
 
-### Main-Content Markdown & Zero-Config Extraction
+<details>
+<summary><b>Markdown and zero-config extraction vs Trafilatura</b></summary>
 
 | Suite | Metric | OmniScrape | Trafilatura 2.4.0 |
 |---|---|---:|---:|
-| **Markdown** (66 docs) | Overall F1 / Holdout F1 | **0.9903 / 0.9854** | 0.9807 / 0.9811 |
-| **Markdown** | Handwritten F1 / Leakage | **0.9838 / 0.31%** | 0.9602 / 0.96% |
-| **Markdown** | ms/doc / Peak RSS | **14.8 ms / 51.9 MB** | 23.9 ms / 57.4 MB |
-| **Extract** (126 docs) | Product F1 (all / holdout) | **1.000 / 1.000** | not supported |
-| **Extract** | Article F1 (all / holdout) | **0.9418 / 0.8966** | 0.9003 / 0.8479 |
-| **Extract** | ms/doc / Peak RSS | **41.4 ms / 57.2 MB** | 75.7 ms / 101.3 MB |
+| Markdown, 66 pages | F1, overall | **0.9903** | 0.9807 |
+| Markdown | F1, holdout | **0.9854** | 0.9811 |
+| Markdown | F1, handwritten pages | **0.9838** | 0.9602 |
+| Markdown | Boilerplate leakage, overall | **0.31%** | 0.96% |
+| Markdown | ms per doc · peak RSS | **14.8 ms** · 51.9 MB | 23.9 ms · 57.4 MB |
+| Extract, 126 pages | Product F1 (all / holdout) | **1.000 / 1.000** | not supported |
+| Extract | Article F1 (all / holdout) | **0.9418 / 0.8966** | 0.9003 / 0.8479 |
+| Extract | ms per doc · peak RSS | **41.4 ms** · **57.2 MB** | 75.7 ms · 101.3 MB |
+</details>
 
-### Reproducing Benchmarks
+<details>
+<summary><b>Methodology and reproducing</b></summary>
+
+- One subprocess per (tool, suite); competitor tools live in separate environments built by `python -m benchmarks envs`.
+- Crawl suite: a local server with 300 pages, 5-25 ms latency, a `robots.txt`, duplicate links and flaky pages. Coverage, duplicates and robots violations are counted **server-side**, not by the tool.
+- The `omniscrape` tool names shared and isolated browser contexts separately in the render suite.
+- The tree was uncommitted (`git_dirty`) at commit `08f7edc` when this run was made, before the 0.1.0 bug-fix pass.
+- Tools in the harness that are **not** in this published run: Crawl4AI, Scrapy, Crawlee, lxml, BeautifulSoup, selectolax, parsel, markdownify, html2text. They need `python -m benchmarks envs`; no numbers for them are claimed here.
 
 ```bash
+git clone https://github.com/loganathan-ai-dev/Omni-Scrape.git && cd Omni-Scrape
 pip install -e ".[dev,bench]"
-python -m benchmarks envs       # build isolated Python 3.12 environments per tool (requires uv)
-python -m benchmarks run        # run all 7 suites and build HTML report
-python -m benchmarks compare benchmarks/results/<old> benchmarks/results/<new>
+python -m benchmarks envs                  # isolated environments per tool (needs uv)
+python -m benchmarks run                   # all 7 suites, writes benchmarks/results/<run>/report.html
+python -m benchmarks compare OLD_DIR NEW_DIR
 ```
 
----
+See [`benchmarks/README.md`](https://github.com/loganathan-ai-dev/Omni-Scrape/blob/main/benchmarks/README.md).
+</details>
 
-## Repository Layout
+## How it compares
 
-```text
-Omni-Scrape/
-├── src/omniscrape/
-│   ├── __init__.py          # Lazy public API exports
-│   ├── client.py            # OmniClient (fetch, scrape, fetch_many, scrape_many, ETag cache)
-│   ├── classifier/          # Page type & anti-bot detection + escalation policy
-│   ├── fetchers/            # FastFetcher (curl_cffi), DynamicFetcher (Playwright), StealthFetcher, ProxyPool
-│   ├── parsers/             # Selector (lxml + opt-in selectolax), AdaptiveEngine, SemanticExtractor, Structured
-│   ├── content/             # Main-content extraction, Markdown, metadata, chunking, BM25 filtering
-│   ├── extract/             # Zero-config Product and Listing extraction
-│   ├── crawler/             # CrawlEngine, Spider, LinkExtractor, RobotsCache, DomainThrottle, Sitemaps
-│   ├── normalizers/         # Currency, unit, date, and Markdown normalizers
-│   ├── resilience/          # Retry, CircuitBreaker, DeadLetterQueue
-│   ├── storage/             # JSONLStorage, DuckDBStorage
-│   ├── cli/ & mcp/          # Click/Rich CLI and FastMCP server
-├── tests/                   # Unit and local-server integration tests (95+ tests)
-├── docs/                    # Guides for fetching, selectors, crawling, and MCP/skills
-├── .agents/skills/          # Project skill for Antigravity & open Agent Skills agents
-├── .claude/skills/          # Project skill for Claude Code
-├── benchmarks/              # Isolated multi-tool benchmark harness & corpus
-├── .github/                 # CI workflow, issue/PR templates, Dependabot
-├── pyproject.toml           # Package configuration & optional extras
-├── CHANGELOG.md             # Release notes
-└── LICENSE                  # MIT License
-```
+Cells come from each project's own README or documentation, read on 2026-11-27. `—` means the page does not state it, which is not the same as "no". Corrections welcome via an issue.
 
----
+| | **OmniScrape** | [Scrapling](https://github.com/D4Vinci/Scrapling) | [Crawl4AI](https://github.com/unclecode/crawl4ai) | [Scrapy](https://github.com/scrapy/scrapy) | [Crawlee (Python)](https://github.com/apify/crawlee-python) | [Trafilatura](https://github.com/adbar/trafilatura) |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| Async API | ✅ | ✅ | ✅ | engine only | ✅ | — |
+| HTTP with TLS/browser impersonation | ✅ one profile | ✅ incl. HTTP/3 | — | — | — | — |
+| Real-browser rendering | ✅ | ✅ | ✅ | — | ✅ | — |
+| Stealth / anti-bot fetcher | ◐ no challenge solving | ✅ claims Turnstile bypass | ✅ stealth mode | — | — | — |
+| Adaptive / self-healing selectors | ✅ | ✅ | — | — | — | — |
+| CSS and XPath | ✅ | ✅ | ✅ | ✅ | — | — |
+| Spider with concurrency | ✅ | ✅ | ✅ deep crawl | ✅ | ✅ | ◐ |
+| Pause / resume | ✅ | ✅ | ◐ crash recovery | — | ◐ persisted queue | — |
+| `robots.txt` | ✅ on by default | ✅ opt-in | — | ✅ | — | — |
+| Proxy rotation | ✅ | ✅ | ✅ | — | ✅ | — |
+| CLI | ✅ | ✅ | ✅ | ✅ | scaffolding only | ✅ |
+| Interactive shell | ✅ | ✅ | — | ✅ | — | — |
+| MCP server | ✅ | ✅ | ✅ | — | — | — |
+| LLM-ready Markdown | ✅ | ✅ | ✅ | — | — | ✅ |
+| Zero-config product / article extraction | ✅ | — | — | — | — | ✅ articles only |
+| Several fetcher types in one spider | ◐ per-request `tier` | ✅ | — | — | — | — |
+| Agent skill | ✅ | ✅ | — | — | — | — |
+| License | MIT | BSD-3 | Apache-2.0 | BSD-3 | Apache-2.0 | Apache-2.0 |
 
-## Documentation & Agent Skills
+**Where OmniScrape is behind today:** a single TLS impersonation profile (no rotation, no HTTP/3), light browser stealth patches (no fingerprint randomisation, no Cloudflare challenge solving), no multi-session spider object, and no LLM-based extraction. Scrapling ships a more mature anti-bot story; if Turnstile bypass is your main need, use it.
 
-- **Guides & Reference**: See [docs/README.md](docs/README.md):
-  - [Fetching, Sessions & Stealth](docs/fetching-and-stealth.md)
-  - [Selectors, Schemas & Extraction](docs/selectors-and-extraction.md)
-  - [Crawling, Sitemaps & Storage](docs/crawling-and-storage.md)
-  - [LLM Markdown, CLI & AI Agent Skills](docs/markdown-and-agents.md)
-- **AI Coding Agent Skills**:
-  - Antigravity / Agent Skills: [`.agents/skills/omniscrape/SKILL.md`](.agents/skills/omniscrape/SKILL.md)
-  - Claude Code: [`.claude/skills/omniscrape/SKILL.md`](.claude/skills/omniscrape/SKILL.md)
+## Documentation
 
----
+- **Wiki:** [github.com/loganathan-ai-dev/Omni-Scrape/wiki](https://github.com/loganathan-ai-dev/Omni-Scrape/wiki)
+- **Guides in the repo:** [docs/README.md](https://github.com/loganathan-ai-dev/Omni-Scrape/blob/main/docs/README.md): [fetching and stealth](https://github.com/loganathan-ai-dev/Omni-Scrape/blob/main/docs/fetching-and-stealth.md), [selectors and extraction](https://github.com/loganathan-ai-dev/Omni-Scrape/blob/main/docs/selectors-and-extraction.md), [crawling and storage](https://github.com/loganathan-ai-dev/Omni-Scrape/blob/main/docs/crawling-and-storage.md), [Markdown, CLI and agents](https://github.com/loganathan-ai-dev/Omni-Scrape/blob/main/docs/markdown-and-agents.md)
+- **Agents:** the `omniscrape` skill ships in [`.claude/skills`](https://github.com/loganathan-ai-dev/Omni-Scrape/tree/main/.claude/skills/omniscrape) and [`.agents/skills`](https://github.com/loganathan-ai-dev/Omni-Scrape/tree/main/.agents/skills/omniscrape). As a Claude Code plugin: `/plugin marketplace add loganathan-ai-dev/Omni-Scrape` then `/plugin install omniscrape@omni-scrape`.
 
-## Responsible Use
+## Responsible use
 
-- **robots.txt**: `CrawlEngine` and `map_site` obey `robots.txt` (including `Crawl-delay`) by default.
-- **Access restrictions**: Blocked responses are returned with `defense_detected` populated. OmniScrape does not solve CAPTCHAs or bypass interactive challenges; tier 3 (`StealthFetcher`) runs only when `allow_stealth=True` or `tier=3` is explicitly requested.
-- **Rate limits & terms**: `DomainThrottle` coordinates `Retry-After` cooldowns across workers. Respect site terms and prefer official APIs when available.
+> [!WARNING]
+> OmniScrape detects anti-bot systems (Cloudflare, DataDome, PerimeterX, Akamai, Kasada, AWS WAF) and reports them in `defense_detected`. It does **not** solve CAPTCHAs or interactive challenges. The stealth tier runs only when you pass `allow_stealth=True` or `tier=3`. Only scrape what you are allowed to scrape.
 
----
+- `CrawlEngine` and `map_site` obey `robots.txt`, including `Crawl-delay` and `*` / `$` wildcards, by default.
+- `DomainThrottle` shares `Retry-After` cool-downs across workers. Respect site terms and prefer official APIs.
+- See [SECURITY.md](https://github.com/loganathan-ai-dev/Omni-Scrape/blob/main/SECURITY.md) to report a vulnerability.
 
-## Development
+## Contributing
 
 ```bash
 git clone https://github.com/loganathan-ai-dev/Omni-Scrape.git && cd Omni-Scrape
 pip install -e ".[dev,browser,mcp,storage,fast]" && playwright install chromium
-python -m pytest -v
+ruff check . && pytest
 ```
+
+Read [CONTRIBUTING.md](https://github.com/loganathan-ai-dev/Omni-Scrape/blob/main/CONTRIBUTING.md). Release history is in the [CHANGELOG](https://github.com/loganathan-ai-dev/Omni-Scrape/blob/main/CHANGELOG.md).
+
+## License
+
+[MIT](https://github.com/loganathan-ai-dev/Omni-Scrape/blob/main/LICENSE) © 2026 Loganathan M

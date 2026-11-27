@@ -1,0 +1,28 @@
+{
+ "run_id": "20261127-111900-enhanced-final",
+ "label": "enhanced-final",
+ "suites": [
+  "parse",
+  "extract",
+  "markdown",
+  "adaptive",
+  "render",
+  "crawl",
+  "live"
+ ],
+ "isolation": "auto",
+ "repeats": 5,
+ "quick": false,
+ "machine": {
+  "timestamp": "2026-11-27T05:49:00+00:00",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "machine": "AMD64",
+  "processor": "Intel64 Family 6 Model 151 Stepping 2, GenuineIntel",
+  "python_orchestrator": "3.14.4",
+  "cpu_count": 12,
+  "ram_gb": 11.7,
+  "cpu_mhz": 2400,
+  "git_commit": "08f7edc",
+  "git_dirty": true
+ }
+}

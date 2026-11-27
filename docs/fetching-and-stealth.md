@@ -1,4 +1,4 @@
-# Fetching, Sessions & Stealth
+# Fetching, Retries & Stealth
 
 OmniScrape routes all HTTP and browser requests through [`OmniClient`](../src/omniscrape/client.py), reusing long-lived fetcher instances across requests.
 
@@ -82,7 +82,7 @@ res = await omniscrape.fetch(
         {"type": "infinite_scroll", "max_scrolls": 5},
         {"type": "type", "selector": "input[name=q]", "text": "lamp"},
         {"type": "press", "key": "Enter"},
-        {"type": "wait", "ms": 400},
+        {"type": "wait", "milliseconds": 400},
         {"type": "evaluate", "script": "() => document.querySelectorAll('.product-card').length"},
     ],
     screenshot=True,

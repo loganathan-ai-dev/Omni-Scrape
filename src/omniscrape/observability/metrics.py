@@ -1,6 +1,5 @@
 """In-memory telemetry and Prometheus-compatible metrics tracker."""
 
-import time
 from collections import defaultdict, deque
 from threading import Lock
 from typing import Any

@@ -1,6 +1,7 @@
 """Universal date parser to ISO 8601."""
 
 from typing import Optional
+
 from dateutil import parser as date_parser
 
 

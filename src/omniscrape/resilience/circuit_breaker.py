@@ -2,6 +2,7 @@
 
 import time
 from threading import Lock
+
 from omniscrape.exceptions import CircuitBreakerOpenError
 
 

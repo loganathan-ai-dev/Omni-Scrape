@@ -10,8 +10,8 @@ class LxmlAdapter(ToolAdapter):
     suites = frozenset({"parse"})
 
     def prepare(self) -> None:
-        import lxml.html  # noqa: F401
         import cssselect  # noqa: F401
+        import lxml.html  # noqa: F401
 
     def select_texts(self, html, selectors):
         import lxml.html

@@ -9,7 +9,6 @@ import itertools
 import json
 import sqlite3
 import time
-from contextlib import closing
 from typing import Optional
 
 from omniscrape.crawler.spider import Request
@@ -28,19 +27,23 @@ class RequestQueue:
             self._conn.execute("PRAGMA journal_mode=WAL")
             self._conn.execute("""CREATE TABLE IF NOT EXISTS requests (
                 fp TEXT PRIMARY KEY, url TEXT, method TEXT, priority INTEGER, depth INTEGER,
-                callback TEXT, meta TEXT, headers TEXT, state TEXT, seq INTEGER, updated REAL)""")
+                callback TEXT, meta TEXT, headers TEXT, state TEXT, seq INTEGER, updated REAL, tier TEXT)""")
+            columns = {row[1] for row in self._conn.execute("PRAGMA table_info(requests)")}
+            if "tier" not in columns:  # queue files written by older versions
+                self._conn.execute("ALTER TABLE requests ADD COLUMN tier TEXT")
             self._load()
 
     # ------------------------------------------------------------------ persistence
     def _load(self) -> None:
         assert self._conn is not None
-        rows = self._conn.execute("SELECT fp, url, method, priority, depth, callback, meta, headers, state, seq "
+        rows = self._conn.execute("SELECT fp, url, method, priority, depth, callback, meta, headers, state, tier "
                                   "FROM requests ORDER BY seq").fetchall()
-        for fp, url, method, priority, depth, callback, meta, headers, state, seq in rows:
+        for fp, url, method, priority, depth, callback, meta, headers, state, tier in rows:
             self._seen.add(fp)
             if state == "pending":
                 req = Request(url=url, method=method, priority=priority, depth=depth,
-                              meta=json.loads(meta or "{}"), headers=json.loads(headers or "{}"))
+                              meta=json.loads(meta or "{}"), headers=json.loads(headers or "{}"),
+                              tier=json.loads(tier) if tier else None)
                 req.callback_name = callback
                 self._push(req, fp)
 
@@ -59,10 +62,11 @@ class RequestQueue:
         if self._conn is None:
             return
         self._conn.execute(
-            "INSERT INTO requests (fp, url, method, priority, depth, callback, meta, headers, state, seq, updated) "
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(fp) DO UPDATE SET state=excluded.state, updated=excluded.updated",
+            "INSERT INTO requests (fp, url, method, priority, depth, callback, meta, headers, state, seq, updated, tier) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(fp) DO UPDATE SET state=excluded.state, updated=excluded.updated",
             (fp, req.url, req.method, req.priority, req.depth, getattr(req, "callback_name", None),
-             json.dumps(req.meta, default=str), json.dumps(req.headers), state, next(self._counter), time.time()),
+             json.dumps(req.meta, default=str), json.dumps(req.headers), state, next(self._counter), time.time(),
+             json.dumps(req.tier) if req.tier is not None else None),
         )
 
     def _set_state(self, fp: str, state: str) -> None:
@@ -117,9 +121,3 @@ class RequestQueue:
             self.close()
         except Exception:
             pass
-
-
-def completed_urls(path: str) -> set[str]:
-    with closing(sqlite3.connect(path)) as conn:
-        return {r[0] for r in conn.execute("SELECT url FROM requests WHERE state='done'")}
-
